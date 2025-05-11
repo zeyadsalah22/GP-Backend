@@ -21,7 +21,7 @@ public partial class Company
 
     public bool IsDeleted { get; set; }
 
-    public byte[] Rowversion { get; set; } = null!;
+    public byte[]? Rowversion { get; set; } = null!;
 
     public virtual ICollection<Interview> Interviews { get; set; } = new List<Interview>();
 

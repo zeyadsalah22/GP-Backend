@@ -1,5 +1,8 @@
-
 using GPBackend.Models;
+using GPBackend.Repositories;
+using GPBackend.Repositories.Interfaces;
+using GPBackend.Services;
+using GPBackend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace GPBackend
@@ -19,6 +22,9 @@ namespace GPBackend
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
+            builder.Services.AddScoped<ICompanyService, CompanyService>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -32,10 +38,7 @@ namespace GPBackend
 
             app.UseAuthorization();
 
-
             app.MapControllers();
-
-                        app.MapCompanyEndpoints();
 
             app.Run();
         }
