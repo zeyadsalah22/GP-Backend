@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using GPBackend.Models;
-using GPBackend.Repositories.Interfaces;
 using GPBackend.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
+using GPBackend.DTOs.Company;
+using GPBackend.DTOs.Common;
 
 namespace GPBackend.Controllers
 {
@@ -18,14 +18,24 @@ namespace GPBackend.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Company>>> GetAllCompanies()
+        public async Task<ActionResult<IEnumerable<CompanyResponseDto>>> GetAllCompanies([FromQuery] CompanyQueryDto queryDto)
         {
-            var companies = await _companyService.GetAllCompaniesAsync();
-            return Ok(companies);
+            var result = await _companyService.GetFilteredCompaniesAsync(queryDto);
+                
+            // Add pagination headers
+            Response.Headers.Add("X-Pagination-TotalCount", result.TotalCount.ToString());
+            Response.Headers.Add("X-Pagination-PageSize", result.PageSize.ToString());
+            Response.Headers.Add("X-Pagination-CurrentPage", result.PageNumber.ToString());
+            Response.Headers.Add("X-Pagination-TotalPages", result.TotalPages.ToString());
+            Response.Headers.Add("X-Pagination-HasNext", result.HasNext.ToString());
+            Response.Headers.Add("X-Pagination-HasPrevious", result.HasPrevious.ToString());
+
+            return Ok(result);
+
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Company>> GetCompanyById(int id)
+        public async Task<ActionResult<CompanyResponseDto>> GetCompanyById(int id)
         {
             var company = await _companyService.GetCompanyByIdAsync(id);
             if (company == null)
@@ -36,21 +46,16 @@ namespace GPBackend.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Company>> CreateCompany(Company company)
+        public async Task<ActionResult<CompanyResponseDto>> CreateCompany(CompanyCreateDto companyDto)
         {
-            var createdCompany = await _companyService.CreateCompanyAsync(company);
+            var createdCompany = await _companyService.CreateCompanyAsync(companyDto);
             return CreatedAtAction(nameof(GetCompanyById), new { id = createdCompany.CompanyId }, createdCompany);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCompany(int id, Company company)
+        public async Task<IActionResult> UpdateCompany(int id, CompanyUpdateDto companyDto)
         {
-            if (id != company.CompanyId)
-            {
-                return BadRequest();
-            }
-
-            var result = await _companyService.UpdateCompanyAsync(company);
+            var result = await _companyService.UpdateCompanyAsync(id, companyDto);
             if (!result)
             {
                 return NotFound();
