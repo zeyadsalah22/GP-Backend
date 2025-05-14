@@ -1,7 +1,7 @@
 using GPBackend.Models;
-using GPBackend.Repositories;
+using GPBackend.Repositories.Implements;
 using GPBackend.Repositories.Interfaces;
-using GPBackend.Services;
+using GPBackend.Services.Implements;
 using GPBackend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +21,9 @@ namespace GPBackend
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            // Add AutoMapper
+            builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
             builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
             builder.Services.AddScoped<ICompanyService, CompanyService>();

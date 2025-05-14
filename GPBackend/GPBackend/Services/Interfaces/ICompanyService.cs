@@ -1,13 +1,16 @@
 using GPBackend.Models;
+using GPBackend.DTOs.Company;
+using GPBackend.DTOs.Common;
 
 namespace GPBackend.Services.Interfaces
 {
     public interface ICompanyService
     {
-        Task<IEnumerable<Company>> GetAllCompaniesAsync();
-        Task<Company?> GetCompanyByIdAsync(int id);
-        Task<Company> CreateCompanyAsync(Company company);
-        Task<bool> UpdateCompanyAsync(Company company);
+        Task<PagedResult<CompanyResponseDto>> GetFilteredCompaniesAsync(CompanyQueryDto queryDto);
+        Task<IEnumerable<CompanyResponseDto>> GetAllCompaniesAsync();
+        Task<CompanyResponseDto?> GetCompanyByIdAsync(int id);
+        Task<CompanyResponseDto> CreateCompanyAsync(CompanyCreateDto companyDto);
+        Task<bool> UpdateCompanyAsync(int id, CompanyUpdateDto companyDto);
         Task<bool> DeleteCompanyAsync(int id);
     }
 } 

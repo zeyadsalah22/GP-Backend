@@ -291,3 +291,4 @@ C:\Users\Lenovo\OneDrive - Egypt Japan University Of Science and Technology (E-J
 C:\Users\Lenovo\OneDrive - Egypt Japan University Of Science and Technology (E-JUST)\Desktop\EJUST\GP - Senior year\GPBackend\GP-Backend\GPBackend\GPBackend\bin\Debug\net8.0\tr\Microsoft.CodeAnalysis.Scripting.resources.dll
 C:\Users\Lenovo\OneDrive - Egypt Japan University Of Science and Technology (E-JUST)\Desktop\EJUST\GP - Senior year\GPBackend\GP-Backend\GPBackend\GPBackend\bin\Debug\net8.0\zh-Hans\Microsoft.CodeAnalysis.Scripting.resources.dll
 C:\Users\Lenovo\OneDrive - Egypt Japan University Of Science and Technology (E-JUST)\Desktop\EJUST\GP - Senior year\GPBackend\GP-Backend\GPBackend\GPBackend\bin\Debug\net8.0\zh-Hant\Microsoft.CodeAnalysis.Scripting.resources.dll
+C:\Users\Lenovo\OneDrive - Egypt Japan University Of Science and Technology (E-JUST)\Desktop\EJUST\GP - Senior year\GPBackend\GP-Backend\GPBackend\GPBackend\bin\Debug\net8.0\AutoMapper.dll
