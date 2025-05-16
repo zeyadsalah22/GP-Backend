@@ -1,6 +1,8 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.OpenApi;
 
 namespace GPBackend.Models
 {
@@ -31,4 +33,5 @@ namespace GPBackend.Models
 
         public virtual User User { get; set; } = null!;
     }
-} 
+
+}

@@ -7,7 +7,7 @@ using GPBackend.DTOs.Common;
 namespace GPBackend.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/companies")]
     public class CompanyController : ControllerBase
     {
         private readonly ICompanyService _companyService;
