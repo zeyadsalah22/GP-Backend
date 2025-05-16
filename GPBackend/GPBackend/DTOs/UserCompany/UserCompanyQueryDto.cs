@@ -1,15 +1,16 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace GPBackend.DTOs.Company
+namespace GPBackend.DTOs.UserCompany
 {
-    public class CompanyQueryDto
+    public class UserCompanyQueryDto
     {
         // Search parameters
         public string? SearchTerm { get; set; }
-            
+        
         // Filter parameters
-        public string? Location { get; set; }
-        public string? Name { get; set; }
+        public int? UserId { get; set; }
+        public int? CompanyId { get; set; }
+        public string? CompanyName { get; set; }
         
         // Pagination parameters
         [Range(1, int.MaxValue, ErrorMessage = "Page number must be greater than 0")]

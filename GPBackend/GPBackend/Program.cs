@@ -4,6 +4,7 @@ using GPBackend.Repositories.Interfaces;
 using GPBackend.Services.Implements;
 using GPBackend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using GPBackend.Controllers;
 
 namespace GPBackend
 {
@@ -26,7 +27,11 @@ namespace GPBackend
             builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
             builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
+            builder.Services.AddScoped<IUserCompanyRepository, UserCompanyRepository>();
+            builder.Services.AddScoped<IResumeRepository, ResumeRepository>();
             builder.Services.AddScoped<ICompanyService, CompanyService>();
+            builder.Services.AddScoped<IUserCompanyService, UserCompanyService>();
+            builder.Services.AddScoped<IResumeService, ResumeService>();
 
             var app = builder.Build();
 
