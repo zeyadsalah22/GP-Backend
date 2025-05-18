@@ -31,5 +31,4 @@ public partial class Employee
 
     public virtual UserCompany UserCompany { get; set; } = null!;
 
-    public virtual User User { get; set; } = null!;
 }

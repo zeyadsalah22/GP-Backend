@@ -3,9 +3,11 @@ using GPBackend.Models;
 using GPBackend.Services.Interfaces;
 using GPBackend.DTOs.Company;
 using GPBackend.DTOs.Common;
+using Microsoft.AspNetCore.Authorization;
 
 namespace GPBackend.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/companies")]
     public class CompanyController : ControllerBase

@@ -192,7 +192,6 @@ namespace GPBackend.Migrations
 
                     b.Property<byte[]>("Rowversion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("rowversion");
@@ -756,20 +755,12 @@ namespace GPBackend.Migrations
 
             modelBuilder.Entity("GPBackend.Models.Employee", b =>
                 {
-                    b.HasOne("GPBackend.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("GPBackend.Models.UserCompany", "UserCompany")
                         .WithMany("Employees")
                         .HasForeignKey("UserId", "CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_Employees_User_Companies");
-
-                    b.Navigation("User");
 
                     b.Navigation("UserCompany");
                 });

@@ -21,10 +21,17 @@ namespace GPBackend.Services.Implements
             return _mapper.Map<IEnumerable<ResumeResponseDto>>(resumes);
         }
 
-        public async Task<ResumeResponseDto?> GetResumeByIdAsync(int id)
+        public async Task<ResumeResponseDto?> GetResumeByIdAsync(int id, int userId)
         {
             var resume = await _resumeRepository.GetByIdAsync(id);
-            return resume != null ? _mapper.Map<ResumeResponseDto>(resume) : null;
+            
+            // Validate that the resume belongs to the user
+            if (resume == null || resume.UserId != userId)
+            {
+                return null;
+            }
+            
+            return _mapper.Map<ResumeResponseDto>(resume);
         }
 
         public async Task<ResumeResponseDto> CreateResumeAsync(ResumeCreateDto resumeDto)
@@ -34,10 +41,12 @@ namespace GPBackend.Services.Implements
             return _mapper.Map<ResumeResponseDto>(createdResume);
         }
 
-        public async Task<bool> UpdateResumeAsync(int id, ResumeUpdateDto resumeDto)
+        public async Task<bool> UpdateResumeAsync(int id, ResumeUpdateDto resumeDto, int userId)
         {
             var existingResume = await _resumeRepository.GetByIdAsync(id);
-            if (existingResume == null)
+            
+            // Validate that the resume belongs to the user
+            if (existingResume == null || existingResume.UserId != userId)
             {
                 return false;
             }
@@ -48,8 +57,16 @@ namespace GPBackend.Services.Implements
             return await _resumeRepository.UpdateAsync(existingResume);
         }
 
-        public async Task<bool> DeleteResumeAsync(int id)
+        public async Task<bool> DeleteResumeAsync(int id, int userId)
         {
+            var existingResume = await _resumeRepository.GetByIdAsync(id);
+            
+            // Validate that the resume belongs to the user
+            if (existingResume == null || existingResume.UserId != userId)
+            {
+                return false;
+            }
+            
             return await _resumeRepository.DeleteAsync(id);
         }
     }

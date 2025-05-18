@@ -48,10 +48,12 @@ namespace GPBackend.Services.Implements
             return _mapper.Map<IEnumerable<UserCompanyResponseDto>>(userCompanies);
         }
 
-        public async Task<IEnumerable<UserCompanyResponseDto>> GetUserCompaniesByCompanyIdAsync(int companyId)
+        public async Task<IEnumerable<UserCompanyResponseDto>> GetUserCompaniesByCompanyIdAsync(int companyId, int userId)
         {
+            // Filtering to only include companies that belong to the authenticated user
             var userCompanies = await _userCompanyRepository.GetByCompanyIdAsync(companyId);
-            return _mapper.Map<IEnumerable<UserCompanyResponseDto>>(userCompanies);
+            var userCompaniesForAuthenticatedUser = userCompanies.Where(uc => uc.UserId == userId);
+            return _mapper.Map<IEnumerable<UserCompanyResponseDto>>(userCompaniesForAuthenticatedUser);
         }
 
         public async Task<UserCompanyResponseDto?> GetUserCompanyByIdAsync(int userId, int companyId)
