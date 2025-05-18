@@ -8,7 +8,7 @@ namespace GPBackend.Services.Interfaces
         Task<PagedResult<UserCompanyResponseDto>> GetFilteredUserCompaniesAsync(UserCompanyQueryDto queryDto);
         Task<IEnumerable<UserCompanyResponseDto>> GetAllUserCompaniesAsync();
         Task<IEnumerable<UserCompanyResponseDto>> GetUserCompaniesByUserIdAsync(int userId);
-        Task<IEnumerable<UserCompanyResponseDto>> GetUserCompaniesByCompanyIdAsync(int companyId);
+        Task<IEnumerable<UserCompanyResponseDto>> GetUserCompaniesByCompanyIdAsync(int companyId, int userId);
         Task<UserCompanyResponseDto?> GetUserCompanyByIdAsync(int userId, int companyId);
         Task<UserCompanyResponseDto> CreateUserCompanyAsync(UserCompanyCreateDto userCompanyDto);
         Task<bool> UpdateUserCompanyAsync(int userId, int companyId, UserCompanyUpdateDto userCompanyDto);

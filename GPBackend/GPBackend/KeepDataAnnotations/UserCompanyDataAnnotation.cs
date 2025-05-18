@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GPBackend.Models
 {
@@ -10,9 +11,16 @@ namespace GPBackend.Models
 
     public class UserCompanyMetaData
     {
+        [Key]
+        [ForeignKey("User")]
         public int UserId { get; set; }
 
+        [Key]
+        [ForeignKey("Company")]
         public int CompanyId { get; set; }
+
+        [StringLength(255)]
+        [Required]
 
         public string? Description { get; set; }
 

@@ -15,7 +15,7 @@ namespace GPBackend.Models
         public int EmployeeId { get; set; }
 
         [Required]
-        [ForeignKey("User")]
+        [ForeignKey("UserCompany")]
         public int UserId { get; set; }
 
         [Required]
@@ -49,6 +49,5 @@ namespace GPBackend.Models
 
         public virtual UserCompany UserCompany { get; set; } = null!;
 
-        public virtual User User { get; set; } = null!;
     }
 } 

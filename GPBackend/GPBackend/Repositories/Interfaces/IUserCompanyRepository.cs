@@ -14,5 +14,6 @@ namespace GPBackend.Repositories.Interfaces
         Task<UserCompany> CreateAsync(UserCompany userCompany);
         Task<bool> UpdateAsync(UserCompany userCompany);
         Task<bool> DeleteAsync(int userId, int companyId);
+        Task<bool> UserCompanyExistsAsync(int userId, int companyId);
     }
 } 

@@ -173,10 +173,10 @@ namespace GPBackend.Repositories.Implements
             return true;
         }
 
-        private async Task<bool> UserCompanyExistsAsync(int userId, int companyId)
+        public async Task<bool> UserCompanyExistsAsync(int userId, int companyId)
         {
             return await _context.UserCompanies.AnyAsync(uc => 
-                uc.UserId == userId && uc.CompanyId == companyId);
+                !uc.IsDeleted && uc.UserId == userId && uc.CompanyId == companyId);
         }
     }
 } 
