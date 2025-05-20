@@ -1,0 +1,8 @@
+C:\E-JUST\Grad proj\GP-Backend\GPBackend\GPBackend\obj\Debug\net9.0\GPBackend.csproj.AssemblyReference.cache
+C:\E-JUST\Grad proj\GP-Backend\GPBackend\GPBackend\obj\Debug\net9.0\GPBackend.GeneratedMSBuildEditorConfig.editorconfig
+C:\E-JUST\Grad proj\GP-Backend\GPBackend\GPBackend\obj\Debug\net9.0\GPBackend.AssemblyInfoInputs.cache
+C:\E-JUST\Grad proj\GP-Backend\GPBackend\GPBackend\obj\Debug\net9.0\GPBackend.AssemblyInfo.cs
+C:\E-JUST\Grad proj\GP-Backend\GPBackend\GPBackend\obj\Debug\net9.0\GPBackend.csproj.CoreCompileInputs.cache
+C:\E-JUST\Grad proj\GP-Backend\GPBackend\GPBackend\obj\Debug\net9.0\GPBackend.MvcApplicationPartsAssemblyInfo.cs
+C:\E-JUST\Grad proj\GP-Backend\GPBackend\GPBackend\obj\Debug\net9.0\GPBackend.MvcApplicationPartsAssemblyInfo.cache
+C:\E-JUST\Grad proj\GP-Backend\GPBackend\GPBackend\obj\Debug\net9.0\GPBackend.sourcelink.json
