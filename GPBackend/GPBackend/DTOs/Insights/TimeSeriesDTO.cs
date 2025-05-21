@@ -17,5 +17,6 @@ namespace GPBackend.DTOs
         public int total_applications { get; set; }
         public int rejections { get; set; }
         public int acceptances { get; set; }
+        public int pending { get; set; }
     }
 } 

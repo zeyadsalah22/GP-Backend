@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GPBackend.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/insights")]
     [ApiController]
     [Authorize]
     public class InsightsController : ControllerBase

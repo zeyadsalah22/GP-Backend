@@ -23,7 +23,7 @@ namespace GPBackend.Services
         public async Task<TimeSeriesDTO> GetTimeSeriesAsync(int userId, DateTime? startDate, int? points, string interval)
         {
             // Set default values if not provided
-            DateTime effectiveStartDate = startDate ?? DateTime.Now.AddMonths(-12);
+            DateTime effectiveStartDate = startDate ?? DateTime.Now.AddDays(-84);
             int effectivePoints = points ?? 12;
             string effectiveInterval = !string.IsNullOrEmpty(interval) ? interval.ToLower() : "week";
 
