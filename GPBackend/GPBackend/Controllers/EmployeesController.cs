@@ -12,10 +12,14 @@ namespace GPBackend.Controllers
     public class EmployeeController : ControllerBase
     {
         private readonly IEmployeeService _employeeService;
+        private readonly IUserCompanyService _userCompanyService;
 
-        public EmployeeController(IEmployeeService employeeService)
+        public EmployeeController(
+            IEmployeeService employeeService,
+            IUserCompanyService userCompanyService)
         {
             _employeeService = employeeService;
+            _userCompanyService = userCompanyService;
         }
 
         private int GetAuthenticatedUserId()
@@ -28,9 +32,25 @@ namespace GPBackend.Controllers
             return userId;
         }
 
+        private async Task EnsureUserHasAccessToCompany(int companyId)
+        {
+            var userId = GetAuthenticatedUserId();
+            var hasAccess = await _userCompanyService.UserHasAccessToCompany(userId, companyId);
+            if (!hasAccess)
+            {
+                throw new UnauthorizedAccessException("User does not have access to this company");
+            }
+        }
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetEmployees([FromQuery] EmployeeQueryDto queryDto)
         {
+            // If company ID is provided, ensure user has access to it
+            if (queryDto.CompanyId.HasValue)
+            {
+                await EnsureUserHasAccessToCompany(queryDto.CompanyId.Value);
+            }
+
             var result = await _employeeService.GetFilteredEmployeesAsync(queryDto);
 
             // Add pagination headers
@@ -52,6 +72,10 @@ namespace GPBackend.Controllers
             {
                 return NotFound();
             }
+
+            // Ensure user has access to the company this employee belongs to
+            await EnsureUserHasAccessToCompany(employee.CompanyId);
+
             return Ok(employee);
         }
 
@@ -60,6 +84,9 @@ namespace GPBackend.Controllers
         {
             // Set the authenticated user's ID
             employeeDto.UserId = GetAuthenticatedUserId();
+
+            // Ensure user has access to the company
+            await EnsureUserHasAccessToCompany(employeeDto.CompanyId);
 
             var createdEmployee = await _employeeService.CreateEmployeeAsync(employeeDto);
             return CreatedAtAction(
@@ -71,17 +98,33 @@ namespace GPBackend.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<EmployeeDto>> UpdateEmployee(int id, EmployeeUpdateDto employeeDto)
         {
-            var updatedEmployee = await _employeeService.UpdateEmployeeAsync(id, employeeDto);
-            if (updatedEmployee == null)
+            // First get the existing employee to check company access
+            var existingEmployee = await _employeeService.GetEmployeeByIdAsync(id);
+            if (existingEmployee == null)
             {
                 return NotFound();
             }
+
+            // Ensure user has access to the company
+            await EnsureUserHasAccessToCompany(existingEmployee.CompanyId);
+
+            var updatedEmployee = await _employeeService.UpdateEmployeeAsync(id, employeeDto);
             return Ok(updatedEmployee);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEmployee(int id)
         {
+            // First get the existing employee to check company access
+            var existingEmployee = await _employeeService.GetEmployeeByIdAsync(id);
+            if (existingEmployee == null)
+            {
+                return NotFound();
+            }
+
+            // Ensure user has access to the company
+            await EnsureUserHasAccessToCompany(existingEmployee.CompanyId);
+
             await _employeeService.DeleteEmployeeAsync(id);
             return NoContent();
         }
