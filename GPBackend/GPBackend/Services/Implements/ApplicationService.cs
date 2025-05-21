@@ -126,6 +126,8 @@ namespace GPBackend.Services.Implements
             application.CreatedAt = DateTime.UtcNow;
             application.UpdatedAt = DateTime.UtcNow;
             
+            // TODO: modify here to return the created object at once, not id
+
             // Save to database
             var applicationId = await _applicationRepository.CreateAsync(application);
             
