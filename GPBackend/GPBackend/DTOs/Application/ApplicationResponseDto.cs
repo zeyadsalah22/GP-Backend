@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using GPBackend.DTOs.Company;
+using GPBackend.DTOs.Employee;
 
 namespace GPBackend.DTOs.Application
 {
@@ -8,6 +11,7 @@ namespace GPBackend.DTOs.Application
         public int UserId { get; set; }
         public int CompanyId { get; set; }
         public string CompanyName { get; set; } = null!;
+        public CompanyResponseDto? Company { get; set; }
         public string JobTitle { get; set; } = null!;
         public string JobType { get; set; } = null!;
         public string? Description { get; set; }
@@ -19,5 +23,6 @@ namespace GPBackend.DTOs.Application
         public DateOnly SubmissionDate { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public List<EmployeeDto> ContactedEmployees { get; set; } = new List<EmployeeDto>();
     }
 } 
