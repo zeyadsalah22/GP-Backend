@@ -18,7 +18,7 @@ namespace GPBackend.Repositories.Implements
 
         public async Task<IEnumerable<Question>> GetAllQuestionAsync(int userId)
         {
-            return await _context.Question
+            return await _context.Questions
                         .Include(q => q.Application)
                         .Where(q => q.Application.UserId == userId && !q.IsDeleted)
                         .OrderBy(q => q.CreatedAt)
@@ -27,7 +27,7 @@ namespace GPBackend.Repositories.Implements
 
         public async Task<PagedResult<Question>> GetFilteredQuestionAsync(int userId, QuestionQueryDto questionQueryDto)
         {
-            IQueryable<Question> query = _context.Question
+            IQueryable<Question> query = _context.Questions
                         .Include(q => q.Application)
                         .Where(q => q.Application.UserId == userId && !q.IsDeleted);
 
@@ -89,7 +89,7 @@ namespace GPBackend.Repositories.Implements
 
         public async Task<Question?> GetQuestionByIdAsync(int questionId)
         {
-            return await _context.Question
+            return await _context.Questions
                         .Include(q => q.Application)
                         .FirstOrDefaultAsync(q => q.QuestionId == questionId && !q.IsDeleted);
         }
@@ -100,7 +100,7 @@ namespace GPBackend.Repositories.Implements
             question.UpdatedAt = DateTime.UtcNow;
             question.IsDeleted = false;
 
-            _context.Question.Add(question);
+            _context.Questions.Add(question);
 
             int rows = await _context.SaveChangesAsync();
             return question;
@@ -110,7 +110,7 @@ namespace GPBackend.Repositories.Implements
         {
             question.UpdatedAt = DateTime.UtcNow;
 
-            _context.Question.Update(question);
+            _context.Questions.Update(question);
 
             int rows = await _context.SaveChangesAsync();
 
@@ -119,7 +119,7 @@ namespace GPBackend.Repositories.Implements
 
         public async Task<bool> DeleteQuestionByIdAsync(int questionId)
         {
-            Question? question = await _context.Question.FindAsync(questionId);
+            Question? question = await _context.Questions.FindAsync(questionId);
 
             if (question == null)
             {
@@ -128,7 +128,7 @@ namespace GPBackend.Repositories.Implements
             question.IsDeleted = true;
             question.UpdatedAt = DateTime.UtcNow;
 
-            _context.Question.Update(question);
+            _context.Questions.Update(question);
 
             int rows = await _context.SaveChangesAsync();
 
@@ -138,7 +138,7 @@ namespace GPBackend.Repositories.Implements
 
         public async Task<bool> ExistsAsync(int questionId)
         {
-            return await _context.Question.AnyAsync(q => q.QuestionId == questionId && !q.IsDeleted);
+            return await _context.Questions.AnyAsync(q => q.QuestionId == questionId && !q.IsDeleted);
         }
         
         private IQueryable<Question> ApplySorting(IQueryable<Question> query, string sortBy, bool descending)

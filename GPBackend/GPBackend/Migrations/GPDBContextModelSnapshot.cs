@@ -438,7 +438,7 @@ namespace GPBackend.Migrations
 
                     b.HasIndex("ApplicationId");
 
-                    b.ToTable("Question");
+                    b.ToTable("Questions");
                 });
 
             modelBuilder.Entity("GPBackend.Models.Resume", b =>
