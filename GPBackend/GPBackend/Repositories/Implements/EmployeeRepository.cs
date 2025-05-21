@@ -3,7 +3,7 @@ using GPBackend.Models;
 using GPBackend.Repositories.Interfaces;
 using GPBackend.DTOs.Employee;
 using GPBackend.DTOs.Common;
-using System.Linq.Dynamic.Core;
+using System.Linq.Expressions;
 
 namespace GPBackend.Repositories.Implements
 {
@@ -16,10 +16,10 @@ namespace GPBackend.Repositories.Implements
             _context = context;
         }
 
-        public async Task<PagedResult<Employee>> GetFilteredAsync(EmployeeQueryDto queryDto)
+        public async Task<PagedResult<Employee>> GetFilteredAsync(int userId, EmployeeQueryDto queryDto)
         {
             var query = _context.Employees
-                .Where(e => !e.IsDeleted)
+                .Where(e => !e.IsDeleted && e.UserCompany.UserId == userId)
                 .AsQueryable();
 
             // Apply search filter
@@ -40,10 +40,36 @@ namespace GPBackend.Repositories.Implements
             // Apply sorting
             if (!string.IsNullOrWhiteSpace(queryDto.SortBy))
             {
+                // Normalize the sort field name
                 string sortBy = char.ToUpper(queryDto.SortBy[0]) + queryDto.SortBy.Substring(1).ToLower();
-                query = queryDto.SortDescending
-                    ? query.OrderByDescending(sortBy)
-                    : query.OrderBy(sortBy);
+                
+                // Apply appropriate sorting based on property name
+                switch (sortBy)
+                {
+                    case "Name":
+                        query = queryDto.SortDescending 
+                            ? query.OrderByDescending(e => e.Name)
+                            : query.OrderBy(e => e.Name);
+                        break;
+                    case "JobTitle":
+                        query = queryDto.SortDescending 
+                            ? query.OrderByDescending(e => e.JobTitle)
+                            : query.OrderBy(e => e.JobTitle);
+                        break;
+                    case "CreatedAt":
+                        query = queryDto.SortDescending 
+                            ? query.OrderByDescending(e => e.CreatedAt)
+                            : query.OrderBy(e => e.CreatedAt);
+                        break;
+                    case "Email":
+                        query = queryDto.SortDescending 
+                            ? query.OrderByDescending(e => e.Email)
+                            : query.OrderBy(e => e.Email);
+                        break;
+                    default:
+                        query = query.OrderByDescending(e => e.CreatedAt);
+                        break;
+                }
             }
             else
             {
@@ -68,10 +94,10 @@ namespace GPBackend.Repositories.Implements
             };
         }
 
-        public async Task<IEnumerable<Employee>> GetAllAsync()
+        public async Task<IEnumerable<Employee>> GetAllAsync(int userId)
         {
             return await _context.Employees
-                .Where(e => !e.IsDeleted)
+                .Where(e => !e.IsDeleted && e.UserCompany.UserId == userId)
                 .ToListAsync();
         }
 

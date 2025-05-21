@@ -18,11 +18,11 @@ namespace GPBackend.Services
             _mapper = mapper;
         }
 
-        public async Task<PagedList<EmployeeDto>> GetFilteredEmployeesAsync(EmployeeQueryDto queryDto)
+        public async Task<PagedResult<EmployeeDto>> GetFilteredEmployeesAsync(int userId, EmployeeQueryDto queryDto)
         {
-            var result = await _employeeRepository.GetFilteredAsync(queryDto);
+            var result = await _employeeRepository.GetFilteredAsync(userId, queryDto);
 
-            return new PagedList<EmployeeDto>
+            return new PagedResult<EmployeeDto>
             {
                 Items = result.Items.Select(e => _mapper.Map<EmployeeDto>(e)).ToList(),
                 PageNumber = result.PageNumber,
@@ -31,10 +31,14 @@ namespace GPBackend.Services
             };
         }
 
-        public async Task<EmployeeDto> GetEmployeeByIdAsync(int id)
+        public async Task<EmployeeDto> GetEmployeeByIdAsync(int id, int userId)
         {
             var employee = await _employeeRepository.GetByIdAsync(id);
-            return employee != null ? _mapper.Map<EmployeeDto>(employee) : null;
+            if (employee == null)
+                return null;
+            if (employee.UserId != userId)
+                return null;
+            return _mapper.Map<EmployeeDto>(employee);
         }
 
         public async Task<EmployeeDto> CreateEmployeeAsync(EmployeeCreationDto employeeDto)
@@ -44,20 +48,27 @@ namespace GPBackend.Services
             return _mapper.Map<EmployeeDto>(createdEmployee);
         }
 
-        public async Task<EmployeeDto> UpdateEmployeeAsync(int id, EmployeeUpdateDto employeeDto)
+        public async Task<EmployeeDto> UpdateEmployeeAsync(int id, int userId, EmployeeUpdateDto employeeDto)
         {
             var employee = await _employeeRepository.GetByIdAsync(id);
             if (employee == null)
                 return null;
-
+            if (employee.UserId != userId)
+                return null;
             _mapper.Map(employeeDto, employee);
             await _employeeRepository.UpdateAsync(employee);
             return _mapper.Map<EmployeeDto>(employee);
         }
 
-        public async Task DeleteEmployeeAsync(int id)
+        public async Task<bool> DeleteEmployeeAsync(int id, int userId)
         {
+            var employee = await _employeeRepository.GetByIdAsync(id);
+            if (employee == null)
+                return false;
+            if (employee.UserCompany.UserId != userId)
+                return false;
             await _employeeRepository.DeleteAsync(id);
+            return true;
         }
     }
 } 
