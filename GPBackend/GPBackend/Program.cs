@@ -10,6 +10,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using System.IdentityModel.Tokens.Jwt;
+using GPBackend.Repositories;
+using GPBackend.Services;
 
 namespace GPBackend
 {
@@ -117,7 +119,9 @@ namespace GPBackend
             builder.Services.AddScoped<IUserCompanyRepository, UserCompanyRepository>();
             builder.Services.AddScoped<IResumeRepository, ResumeRepository>();
             builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
-            builder.Services.AddScoped<ITodoListRepository, TodoListRepository>();
+            builder.Services.AddScoped<IInsightsRepository, InsightsRepository>();
+            builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+                        builder.Services.AddScoped<ITodoListRepository, TodoListRepository>();
             builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
 
             // Register services
@@ -127,8 +131,6 @@ namespace GPBackend
             builder.Services.AddScoped<IUserCompanyService, UserCompanyService>();
             builder.Services.AddScoped<IResumeService, ResumeService>();
             builder.Services.AddScoped<IApplicationService, ApplicationService>();
-            builder.Services.AddScoped<ITodoListService, TodoListService>();
-            builder.Services.AddScoped<IQuestionService, QuestionService > ();
 
             // Register TokenBlacklistService as Singleton (persistence across requests)
             builder.Services.AddSingleton<ITokenBlacklistService, TokenBlacklistService>();

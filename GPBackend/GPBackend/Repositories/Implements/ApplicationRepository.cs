@@ -21,6 +21,10 @@ namespace GPBackend.Repositories.Implements
             return await _context.Applications
                 .Include(a => a.UserCompany)
                 .ThenInclude(uc => uc.Company)
+                .Include(a => a.ApplicationEmployees)
+                .ThenInclude(ae => ae.Employee)
+                .ThenInclude(e => e.UserCompany)
+                .ThenInclude(uc => uc.Company)
                 .FirstOrDefaultAsync(a => a.ApplicationId == id && !a.IsDeleted);
         }
 
@@ -28,6 +32,10 @@ namespace GPBackend.Repositories.Implements
         {
             IQueryable<Application> query = _context.Applications
                 .Include(a => a.UserCompany)
+                .ThenInclude(uc => uc.Company)
+                .Include(a => a.ApplicationEmployees)
+                .ThenInclude(ae => ae.Employee)
+                .ThenInclude(e => e.UserCompany)
                 .ThenInclude(uc => uc.Company)
                 .Where(a => a.UserId == userId && !a.IsDeleted);
 
@@ -117,6 +125,10 @@ namespace GPBackend.Repositories.Implements
         {
             return await _context.Applications
                 .Include(a => a.UserCompany)
+                .ThenInclude(uc => uc.Company)
+                .Include(a => a.ApplicationEmployees)
+                .ThenInclude(ae => ae.Employee)
+                .ThenInclude(e => e.UserCompany)
                 .ThenInclude(uc => uc.Company)
                 .Where(a => a.UserId == userId && !a.IsDeleted)
                 .OrderByDescending(a => a.SubmissionDate)
