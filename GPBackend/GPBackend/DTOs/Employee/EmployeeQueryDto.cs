@@ -6,6 +6,5 @@ namespace GPBackend.DTOs.Employee
     {
         public string? Search { get; set; }
         public int? CompanyId { get; set; }
-        public string? OrderBy { get; set; }
     }
 } 
