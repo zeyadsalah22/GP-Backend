@@ -28,25 +28,30 @@ namespace GPBackend.Repositories
                 })
                 .ToListAsync();
 
+            var total_applications = applications.Count;
+            var rejected_applications = applications.Count(a => a.Status.ToLower() == "rejected");
+            var accepted_applications = applications.Count(a => a.Status.ToLower() == "accepted");
+
             var result = new StatisticsDTO
             {
-                total_applications = applications.Count,
-                rejected_applications = applications.Count(a => a.Status.ToLower() == "rejected"),
-                pending_applications = applications.Count(a => a.Status.ToLower() == "pending"),
-                accepted_applications = applications.Count(a => a.Status.ToLower() == "accepted"),
-                last_application = applications.OrderByDescending(a => a.SubmissionDate).FirstOrDefault()?.SubmissionDate != null 
-                    ? applications.OrderByDescending(a => a.SubmissionDate).FirstOrDefault().SubmissionDate.ToDateTime(TimeOnly.MinValue) 
+                total_applications = total_applications,
+                rejected_applications = rejected_applications,
+                accepted_applications = accepted_applications,
+                pending_applications = total_applications - (rejected_applications + accepted_applications),
+                last_application = applications.OrderByDescending(a => a.SubmissionDate).FirstOrDefault()?.SubmissionDate != null
+                    ? applications.OrderByDescending(a => a.SubmissionDate).FirstOrDefault().SubmissionDate.ToDateTime(TimeOnly.MinValue)
                     : null,
-                last_rejection = applications.Where(a => a.Status.ToLower() == "rejected").OrderByDescending(a => a.SubmissionDate).FirstOrDefault()?.SubmissionDate != null 
-                    ? applications.Where(a => a.Status.ToLower() == "rejected").OrderByDescending(a => a.SubmissionDate).FirstOrDefault().SubmissionDate.ToDateTime(TimeOnly.MinValue) 
+                last_rejection = applications.Where(a => a.Status.ToLower() == "rejected").OrderByDescending(a => a.SubmissionDate).FirstOrDefault()?.SubmissionDate != null
+                    ? applications.Where(a => a.Status.ToLower() == "rejected").OrderByDescending(a => a.SubmissionDate).FirstOrDefault().SubmissionDate.ToDateTime(TimeOnly.MinValue)
                     : null,
-                last_acceptance = applications.Where(a => a.Status.ToLower() == "accepted").OrderByDescending(a => a.SubmissionDate).FirstOrDefault()?.SubmissionDate != null 
-                    ? applications.Where(a => a.Status.ToLower() == "accepted").OrderByDescending(a => a.SubmissionDate).FirstOrDefault().SubmissionDate.ToDateTime(TimeOnly.MinValue) 
+                last_acceptance = applications.Where(a => a.Status.ToLower() == "accepted").OrderByDescending(a => a.SubmissionDate).FirstOrDefault()?.SubmissionDate != null
+                    ? applications.Where(a => a.Status.ToLower() == "accepted").OrderByDescending(a => a.SubmissionDate).FirstOrDefault().SubmissionDate.ToDateTime(TimeOnly.MinValue)
                     : null,
-                last_pending = applications.Where(a => a.Status.ToLower() == "pending").OrderByDescending(a => a.SubmissionDate).FirstOrDefault()?.SubmissionDate != null 
-                    ? applications.Where(a => a.Status.ToLower() == "pending").OrderByDescending(a => a.SubmissionDate).FirstOrDefault().SubmissionDate.ToDateTime(TimeOnly.MinValue) 
+                last_pending = applications.Where(a => a.Status.ToLower() == "pending").OrderByDescending(a => a.SubmissionDate).FirstOrDefault()?.SubmissionDate != null
+                    ? applications.Where(a => a.Status.ToLower() == "pending").OrderByDescending(a => a.SubmissionDate).FirstOrDefault().SubmissionDate.ToDateTime(TimeOnly.MinValue)
                     : null
             };
+
 
             return result;
         }
@@ -81,18 +86,23 @@ namespace GPBackend.Repositories
                 DateTime nextDate = GetNextDate(currentDate, interval);
                 DateOnly currentDateOnly = DateOnly.FromDateTime(currentDate);
                 DateOnly nextDateOnly = DateOnly.FromDateTime(nextDate);
-                
+
+                var total_applications = applications.Count(a => a.SubmissionDate >= currentDateOnly &&
+                                                          a.SubmissionDate < nextDateOnly);
+                var rejections = applications.Count(a => a.Status.ToLower() == "rejected" &&
+                                            a.SubmissionDate >= currentDateOnly &&
+                                            a.SubmissionDate < nextDateOnly);
+                var acceptances = applications.Count(a => a.Status.ToLower() == "accepted" &&
+                                                 a.SubmissionDate >= currentDateOnly &&
+                                                 a.SubmissionDate < nextDateOnly);
+
                 var pointData = new TimeSeriesPointDTO
                 {
                     date = currentDate,
-                    total_applications = applications.Count(a => a.SubmissionDate >= currentDateOnly && 
-                                                          a.SubmissionDate < nextDateOnly),
-                    rejections = applications.Count(a => a.Status.ToLower() == "rejected" && 
-                                                a.SubmissionDate >= currentDateOnly && 
-                                                a.SubmissionDate < nextDateOnly),
-                    acceptances = applications.Count(a => a.Status.ToLower() == "accepted" && 
-                                                 a.SubmissionDate >= currentDateOnly && 
-                                                 a.SubmissionDate < nextDateOnly)
+                    total_applications = total_applications,
+                    rejections = rejections,
+                    acceptances = acceptances,
+                    pending = total_applications - (rejections + acceptances),
                 };
 
                 timeSeriesDTO.results.Add(pointData);
