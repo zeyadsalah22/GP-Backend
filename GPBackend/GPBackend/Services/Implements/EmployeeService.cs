@@ -18,11 +18,11 @@ namespace GPBackend.Services
             _mapper = mapper;
         }
 
-        public async Task<PagedList<EmployeeDto>> GetFilteredEmployeesAsync(EmployeeQueryDto queryDto)
+        public async Task<PagedResult<EmployeeDto>> GetFilteredEmployeesAsync(EmployeeQueryDto queryDto)
         {
             var result = await _employeeRepository.GetFilteredAsync(queryDto);
 
-            return new PagedList<EmployeeDto>
+            return new PagedResult<EmployeeDto>
             {
                 Items = result.Items.Select(e => _mapper.Map<EmployeeDto>(e)).ToList(),
                 PageNumber = result.PageNumber,
