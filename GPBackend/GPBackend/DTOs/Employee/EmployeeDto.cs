@@ -1,4 +1,5 @@
 using System;
+using GPBackend.DTOs.Company;
 
 namespace GPBackend.DTOs.Employee
 {
@@ -7,7 +8,9 @@ namespace GPBackend.DTOs.Employee
         public int EmployeeId { get; set; }
         public int UserId { get; set; }
         public int CompanyId { get; set; }
-        public string Name { get; set; }
+        public string? CompanyName { get; set; }
+        public CompanyResponseDto? Company { get; set; }
+        public string? Name { get; set; }
         public string? LinkedinLink { get; set; }
         public string? Email { get; set; }
         public string? JobTitle { get; set; }

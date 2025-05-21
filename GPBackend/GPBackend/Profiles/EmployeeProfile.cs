@@ -1,6 +1,7 @@
 using AutoMapper;
 using GPBackend.Models;
 using GPBackend.DTOs.Employee;
+using GPBackend.DTOs.Company;
 
 namespace GPBackend.Profiles
 {
@@ -9,7 +10,12 @@ namespace GPBackend.Profiles
         public EmployeeProfile()
         {
             // Map from Entity to DTO
-            CreateMap<Employee, EmployeeDto>();
+            CreateMap<Employee, EmployeeDto>()
+                .ForMember(dest => dest.CompanyName, opt => opt.MapFrom(src => src.UserCompany.Company.Name))
+                .ForMember(dest => dest.Company, opt => opt.MapFrom(src => src.UserCompany.Company));
+
+            // Map from Company to CompanyResponseDto for nested mapping
+            CreateMap<Company, CompanyResponseDto>();
 
             // Map from CreationDto to Entity
             CreateMap<EmployeeCreationDto, Employee>()

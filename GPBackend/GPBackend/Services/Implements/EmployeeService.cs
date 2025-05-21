@@ -36,7 +36,7 @@ namespace GPBackend.Services
             var employee = await _employeeRepository.GetByIdAsync(id);
             if (employee == null)
                 return null;
-            if (employee.UserId != userId)
+            if (employee.UserCompany.UserId != userId)
                 return null;
             return _mapper.Map<EmployeeDto>(employee);
         }
@@ -53,7 +53,7 @@ namespace GPBackend.Services
             var employee = await _employeeRepository.GetByIdAsync(id);
             if (employee == null)
                 return null;
-            if (employee.UserId != userId)
+            if (employee.UserCompany.UserId != userId)
                 return null;
             _mapper.Map(employeeDto, employee);
             await _employeeRepository.UpdateAsync(employee);
