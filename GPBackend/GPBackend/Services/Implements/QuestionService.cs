@@ -15,7 +15,7 @@ namespace GPBackend.Services.Implements
         private readonly IApplicationRepository _applicationRepository;
         private readonly IMapper _mapper;
 
-        QuestionService(
+        public QuestionService(
             IQuestionRepository QuestionRepository,
             IApplicationRepository applicationRepository,
             IMapper mapper

@@ -151,7 +151,8 @@ namespace GPBackend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Applications",
+                name: "
+                ",
                 columns: table => new
                 {
                     application_id = table.Column<int>(type: "int", nullable: false)
