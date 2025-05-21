@@ -19,6 +19,8 @@ namespace GPBackend.Repositories.Implements
         public async Task<PagedResult<Employee>> GetFilteredAsync(int userId, EmployeeQueryDto queryDto)
         {
             var query = _context.Employees
+                .Include(e => e.UserCompany)
+                .Include(e => e.UserCompany.Company) // Include Company data
                 .Where(e => !e.IsDeleted && e.UserCompany.UserId == userId)
                 .AsQueryable();
 
@@ -97,6 +99,7 @@ namespace GPBackend.Repositories.Implements
         public async Task<IEnumerable<Employee>> GetAllAsync(int userId)
         {
             return await _context.Employees
+                .Include(e => e.UserCompany.Company) // Include related company data
                 .Where(e => !e.IsDeleted && e.UserCompany.UserId == userId)
                 .ToListAsync();
         }
@@ -104,6 +107,7 @@ namespace GPBackend.Repositories.Implements
         public async Task<Employee?> GetByIdAsync(int id)
         {
             return await _context.Employees
+                .Include(e => e.UserCompany.Company) // Include related company data
                 .FirstOrDefaultAsync(e => e.EmployeeId == id && !e.IsDeleted);
         }
 
@@ -111,7 +115,12 @@ namespace GPBackend.Repositories.Implements
         {
             _context.Employees.Add(employee);
             await _context.SaveChangesAsync();
-            return employee;
+            
+            // Reload the employee with UserCompany and Company data
+            return await _context.Employees
+                .Include(e => e.UserCompany)
+                .Include(e => e.UserCompany.Company)
+                .FirstOrDefaultAsync(e => e.EmployeeId == employee.EmployeeId);
         }
 
         public async Task<bool> UpdateAsync(Employee employee)
