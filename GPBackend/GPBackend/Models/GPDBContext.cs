@@ -27,7 +27,7 @@ public partial class GPDBContext : DbContext
 
     public virtual DbSet<InterviewQuestion> InterviewQuestion { get; set; }
 
-    public virtual DbSet<Question> Question { get; set; }
+    public virtual DbSet<Question> Questions { get; set; }
 
     public virtual DbSet<Resume> Resumes { get; set; }
 

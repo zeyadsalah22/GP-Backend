@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GPBackend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+aa9a197050a4b0af37abee9559326659398de1a5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1a6004d2b5dec1dc650d53cb2b4f6700916615e6")]
 [assembly: System.Reflection.AssemblyProductAttribute("GPBackend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GPBackend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
