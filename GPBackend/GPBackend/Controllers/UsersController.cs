@@ -28,8 +28,8 @@ namespace GPBackend.Controllers
             return Ok(users);
         }
 
-        // GET: api/users/current
-        [HttpGet("current")]
+        // GET: api/users/me
+        [HttpGet("me")]
         public async Task<IActionResult> GetCurrentUser()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -99,21 +99,15 @@ namespace GPBackend.Controllers
             return NoContent();
         }
 
-        // PUT: api/users/{id}/change-password
-        [HttpPut("{id}/change-password")]
-        public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordDto model)
+        // PUT: api/users/change-password
+        [HttpPut("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto model)
         {
             // Get the current user's ID from the token
             var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(currentUserId) || !int.TryParse(currentUserId, out int userId))
             {
                 return Unauthorized();
-            }
-
-            // Only allow users to change their own password
-            if (userId != id)
-            {
-                return Forbid();
             }
             
             // Validate that new password and confirmation match
@@ -122,7 +116,7 @@ namespace GPBackend.Controllers
                 return BadRequest(new { message = "New password and confirmation do not match" });
             }
 
-            var result = await _userService.ChangePasswordAsync(id, model.CurrentPassword, model.NewPassword);
+            var result = await _userService.ChangePasswordAsync(userId, model.CurrentPassword, model.NewPassword);
             if (!result)
             {
                 return BadRequest(new { message = "Current password is incorrect" });
