@@ -34,7 +34,7 @@ namespace GPBackend.Profiles
                 .ForMember(dest => dest.Rowversion, opt => opt.Ignore())
                 .ForMember(dest => dest.ApplicationEmployees, opt => opt.Ignore())
                 .ForMember(dest => dest.Interviews, opt => opt.Ignore())
-                .ForMember(dest => dest.Questions, opt => opt.Ignore())
+                .ForMember(dest => dest.Question, opt => opt.Ignore())
                 .ForMember(dest => dest.SubmittedCv, opt => opt.Ignore())
                 .ForMember(dest => dest.UserCompany, opt => opt.Ignore());
                 
@@ -49,7 +49,7 @@ namespace GPBackend.Profiles
                 .ForMember(dest => dest.Rowversion, opt => opt.Ignore())
                 .ForMember(dest => dest.ApplicationEmployees, opt => opt.Ignore())
                 .ForMember(dest => dest.Interviews, opt => opt.Ignore())
-                .ForMember(dest => dest.Questions, opt => opt.Ignore())
+                .ForMember(dest => dest.Question, opt => opt.Ignore())
                 .ForMember(dest => dest.SubmittedCv, opt => opt.Ignore())
                 .ForMember(dest => dest.UserCompany, opt => opt.Ignore())
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));

@@ -31,7 +31,7 @@ public partial class Interview
 
     public virtual Company Company { get; set; } = null!;
 
-    public virtual ICollection<InterviewQuestion> InterviewQuestions { get; set; } = new List<InterviewQuestion>();
+    public virtual ICollection<InterviewQuestion> InterviewQuestion { get; set; } = new List<InterviewQuestion>();
 
     public virtual User User { get; set; } = null!;
 }

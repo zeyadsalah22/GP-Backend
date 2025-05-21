@@ -110,6 +110,7 @@ namespace GPBackend.Repositories.Implements
         {
             try
             {
+                company.UpdatedAt = DateTime.UtcNow;
                 _context.Companies.Update(company);
                 await _context.SaveChangesAsync();
                 return true;
