@@ -1,6 +1,7 @@
 using AutoMapper;
 using GPBackend.DTOs.Application;
 using GPBackend.DTOs.Common;
+using GPBackend.DTOs.Employee;
 using GPBackend.Models;
 using GPBackend.Repositories.Interfaces;
 using GPBackend.Services.Interfaces;
@@ -35,6 +36,15 @@ namespace GPBackend.Services.Implements
             
             var applicationDto = _mapper.Map<ApplicationResponseDto>(application);
             applicationDto.CompanyName = application.UserCompany?.Company?.Name ?? "Unknown Company";
+            applicationDto.Company = _mapper.Map<DTOs.Company.CompanyResponseDto>(application.UserCompany?.Company);
+            
+            // Map contacted employees
+            if (application.ApplicationEmployees != null && application.ApplicationEmployees.Any())
+            {
+                applicationDto.ContactedEmployees = _mapper.Map<List<EmployeeDto>>(
+                    application.ApplicationEmployees.Select(ae => ae.Employee).ToList()
+                );
+            }
             
             return applicationDto;
         }
@@ -45,11 +55,23 @@ namespace GPBackend.Services.Implements
             
             var applicationDtos = _mapper.Map<List<ApplicationResponseDto>>(pagedResult.Items);
             
-            // Set company names
+            // Set company details and contacted employees
             foreach (var dto in applicationDtos)
             {
                 var application = pagedResult.Items.FirstOrDefault(a => a.ApplicationId == dto.ApplicationId);
-                dto.CompanyName = application?.UserCompany?.Company?.Name ?? "Unknown Company";
+                if (application != null)
+                {
+                    dto.CompanyName = application.UserCompany?.Company?.Name ?? "Unknown Company";
+                    dto.Company = _mapper.Map<DTOs.Company.CompanyResponseDto>(application.UserCompany?.Company);
+                    
+                    // Map contacted employees
+                    if (application.ApplicationEmployees != null && application.ApplicationEmployees.Any())
+                    {
+                        dto.ContactedEmployees = _mapper.Map<List<EmployeeDto>>(
+                            application.ApplicationEmployees.Select(ae => ae.Employee).ToList()
+                        );
+                    }
+                }
             }
             
             return new PagedResult<ApplicationResponseDto>
@@ -66,11 +88,23 @@ namespace GPBackend.Services.Implements
             var applications = await _applicationRepository.GetAllByUserIdAsync(userId);
             var applicationDtos = _mapper.Map<IEnumerable<ApplicationResponseDto>>(applications);
             
-            // Set company names
+            // Set company details and contacted employees
             foreach (var dto in applicationDtos)
             {
                 var application = applications.FirstOrDefault(a => a.ApplicationId == dto.ApplicationId);
-                dto.CompanyName = application?.UserCompany?.Company?.Name ?? "Unknown Company";
+                if (application != null)
+                {
+                    dto.CompanyName = application.UserCompany?.Company?.Name ?? "Unknown Company";
+                    dto.Company = _mapper.Map<DTOs.Company.CompanyResponseDto>(application.UserCompany?.Company);
+                    
+                    // Map contacted employees
+                    if (application.ApplicationEmployees != null && application.ApplicationEmployees.Any())
+                    {
+                        dto.ContactedEmployees = _mapper.Map<List<EmployeeDto>>(
+                            application.ApplicationEmployees.Select(ae => ae.Employee).ToList()
+                        );
+                    }
+                }
             }
             
             return applicationDtos;
