@@ -274,7 +274,7 @@ namespace GPBackend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Questions",
+                name: "Question",
                 columns: table => new
                 {
                     question_id = table.Column<int>(type: "int", nullable: false)
@@ -288,9 +288,9 @@ namespace GPBackend.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Questions", x => x.question_id);
+                    table.PrimaryKey("PK_Question", x => x.question_id);
                     table.ForeignKey(
-                        name: "FK_Questions_Applications",
+                        name: "FK_Question_Applications",
                         column: x => x.application_id,
                         principalTable: "Applications",
                         principalColumn: "application_id");
@@ -322,7 +322,7 @@ namespace GPBackend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Interview_Questions",
+                name: "Interview_Question",
                 columns: table => new
                 {
                     question_id = table.Column<int>(type: "int", nullable: false)
@@ -336,9 +336,9 @@ namespace GPBackend.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Interview_Questions", x => x.question_id);
+                    table.PrimaryKey("PK_Interview_Question", x => x.question_id);
                     table.ForeignKey(
-                        name: "FK_Interview_Questions_Interviews",
+                        name: "FK_Interview_Question_Interviews",
                         column: x => x.interview_id,
                         principalTable: "Interviews",
                         principalColumn: "interview_id",
@@ -383,8 +383,8 @@ namespace GPBackend.Migrations
                 columns: new[] { "user_id", "company_id" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Interview_Questions_interview_id",
-                table: "Interview_Questions",
+                name: "IX_Interview_Question_interview_id",
+                table: "Interview_Question",
                 column: "interview_id");
 
             migrationBuilder.CreateIndex(
@@ -403,8 +403,8 @@ namespace GPBackend.Migrations
                 column: "user_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Questions_application_id",
-                table: "Questions",
+                name: "IX_Question_application_id",
+                table: "Question",
                 column: "application_id");
 
             migrationBuilder.CreateIndex(
@@ -447,10 +447,10 @@ namespace GPBackend.Migrations
                 name: "ApplicationEmployee");
 
             migrationBuilder.DropTable(
-                name: "Interview_Questions");
+                name: "Interview_Question");
 
             migrationBuilder.DropTable(
-                name: "Questions");
+                name: "Question");
 
             migrationBuilder.DropTable(
                 name: "Skills");
