@@ -121,6 +121,8 @@ namespace GPBackend
             builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
             builder.Services.AddScoped<IInsightsRepository, InsightsRepository>();
             builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+            builder.Services.AddScoped<ITodoListRepository, TodoListRepository>();
+            builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
             
             // Register services
             builder.Services.AddScoped<IJwtService, JwtService>();
@@ -131,6 +133,8 @@ namespace GPBackend
             builder.Services.AddScoped<IApplicationService, ApplicationService>();
             builder.Services.AddScoped<IInsightsService, InsightsService>();
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+            builder.Services.AddScoped<ITodoListService, TodoListService>();
+            builder.Services.AddScoped<IQuestionService, QuestionService>();
 
             // Register TokenBlacklistService as Singleton (persistence across requests)
             builder.Services.AddSingleton<ITokenBlacklistService, TokenBlacklistService>();
