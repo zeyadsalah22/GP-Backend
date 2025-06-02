@@ -14,6 +14,7 @@ public partial class Interview
     public int UserId { get; set; }
 
     public string? Position { get; set; }
+    public string? JobDescription { get; set; }
 
     public string? Feedback { get; set; }
 

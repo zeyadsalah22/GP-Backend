@@ -10,7 +10,7 @@ namespace GPBackend.Controllers
 {
     [Route("api/mockinterview")]
     [ApiController]
-    [Authorize]
+    // [Authorize]
     public class InterviewController : ControllerBase
     {
         private readonly IInterviewService _interviewService;
@@ -38,15 +38,15 @@ namespace GPBackend.Controllers
             int userId = GetAuthenticatedUserId();
             try
             {
-                var result = await _interviewService.GetAllInterviewsAsync(userId, interviewQueryDto);
+                var result = await _interviewService.GetFilteredInterviewsAsync(userId, interviewQueryDto);
 
                 // Add pagination headers
-                Response.Headers.Add("X-Pagination-TotalCount", result.TotalCount.ToString());
-                Response.Headers.Add("X-Pagination-PageSize", result.PageSize.ToString());
-                Response.Headers.Add("X-Pagination-CurrentPage", result.PageNumber.ToString());
-                Response.Headers.Add("X-Pagination-TotalPages", result.TotalPages.ToString());
-                Response.Headers.Add("X-Pagination-HasNext", result.HasNext.ToString());
-                Response.Headers.Add("X-Pagination-HasPrevious", result.HasPrevious.ToString());
+                Response.Headers.Append("X-Pagination-TotalCount", result.TotalCount.ToString());
+                Response.Headers.Append("X-Pagination-PageSize", result.PageSize.ToString());
+                Response.Headers.Append("X-Pagination-CurrentPage", result.PageNumber.ToString());
+                Response.Headers.Append("X-Pagination-TotalPages", result.TotalPages.ToString());
+                Response.Headers.Append("X-Pagination-HasNext", result.HasNext.ToString());
+                Response.Headers.Append("X-Pagination-HasPrevious", result.HasPrevious.ToString());
 
                 return Ok(result);
             }
@@ -102,7 +102,11 @@ namespace GPBackend.Controllers
             {
                 int userId = GetAuthenticatedUserId();
                 var createdInterview = await _interviewService.CreateInterviewAsync(userId, interviewCreateDto);
-                return CreatedAtAction(nameof(GetAllInterviewsAsync), new { id = createdInterview.Id }, createdInterview);
+                if (createdInterview == null)
+                {
+                    return StatusCode(500, new { message = "Failed to create interview." });
+                }
+                return CreatedAtAction(nameof(GetAllInterviewsAsync), new { id = createdInterview.InterviewId }, createdInterview);
             }
             catch (UnauthorizedAccessException)
             {
@@ -117,7 +121,7 @@ namespace GPBackend.Controllers
             {
                 int userId = GetAuthenticatedUserId();
                 var updatedInterview = await _interviewService.UpdateInterviewByIdAsync(userId, id, interviewUpdateDto);
-                if (updatedInterview == null)
+                if (!updatedInterview)
                 {
                     return NotFound(new { message = "Interview not found." });
                 }

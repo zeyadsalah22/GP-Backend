@@ -16,7 +16,7 @@ namespace GPBackend.Repositories.Interfaces
         // Task<IEnumerable<Interview>> GetInterviewQuestionsAsync(string jobDescription, string jobTitle);
 
         Task<IEnumerable<Interview>> GetAllInterviewsAsync(int userId);
-        Task<PagedResult<Interview>> GetFilteredInterviewsAsync(InterviewCreateDto interviewCreateDto);
+        Task<PagedResult<Interview>> GetFilteredInterviewsAsync(int userId, InterviewQueryDto interviewQueryDto);
         Task<Interview?> GetInterviewByIdAsync(int userId, int interviewId);
         Task<int> CreateInterviewAsync(Interview interview);
         Task<bool> UpdateInterviewAsync(Interview interview);
