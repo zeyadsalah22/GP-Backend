@@ -11,14 +11,11 @@ namespace GPBackend.Services.Interfaces
         /// <param name="jobDescription">The job description to filter questions.</param>
         /// <param name="jobTitle">The job title to filter questions.</param>
         /// <returns>A list of mock interview questions.</returns>
-        Task<IEnumerable<InterviewResponseDto>> GetInterviewQuestionsAsync(string jobDescription, string jobTitle);
-
-        Task<PagedResult<InterviewResponseDto>> GetAllInterviewsAsync(int userId, InterviewQueryDto interviewQueryDto);
-
-        Task<InterviewResponseDto> GetInterviewByIdAsync(int userId, int interviewId);
-
-        Task<InterviewResponseDto> CreateInterviewAsync(int userId, CreateInterviewDto createInterviewDto);
-        Task<InterviewResponseDto> UpdateInterviewByIdAsync(int userId, int interviewId, UpdateInterviewDto updateInterviewDto);
+        Task<IEnumerable<InterviewResponseDto>> GetAllInterviewsByUserIdAsync(int userId);
+        Task<PagedResult<InterviewResponseDto>> GetFilteredInterviewsAsync(int userId, InterviewQueryDto interviewQueryDto);
+        Task<InterviewResponseDto?> GetInterviewByIdAsync(int userId, int interviewId);
+        Task<InterviewResponseDto?> CreateInterviewAsync(int userId, InterviewCreateDto interviewCreateDto);
+        Task<bool> UpdateInterviewByIdAsync(int userId, int interviewId, InterviewUpdateDto interviewUpdateDto);
         Task<bool> DeleteInterviewByIdAsync(int userId, int interviewId);
 
 

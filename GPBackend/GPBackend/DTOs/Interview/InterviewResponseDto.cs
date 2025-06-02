@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using GPBackend.Models;
+using GPBackend.DTOs.InterviewQuestion;
 
 namespace GPBackend.DTOs.Interview
 {
@@ -12,11 +13,11 @@ namespace GPBackend.DTOs.Interview
         public string? Position { get; set; }
         public string? Feedback { get; set; }
 
-        // public string? jobDescription { get; set; }
+        public string? JobDescription { get; set; }
         public DateTime StartDate { get; set; }
         public int Duration { get; set; }
 
-        
-
+        // interview questions
+        public List<InterviewQuestionResponseDto> InterviewQuestions { get; set; } = new List<InterviewQuestionResponseDto>();
     }
 }

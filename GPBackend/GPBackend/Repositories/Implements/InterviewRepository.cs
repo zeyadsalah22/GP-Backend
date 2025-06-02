@@ -3,6 +3,8 @@ using GPBackend.DTOs.Common;
 using GPBackend.Models;
 using GPBackend.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using GPBackend.DTOs.Question;
+using System.Linq.Expressions;
 
 namespace GPBackend.Repositories.Implements
 {
@@ -19,21 +21,76 @@ namespace GPBackend.Repositories.Implements
         {
             return await _context.Interviews
                         .Include(a => a.Application)
-                        .Where(a => a.UserId == userId)
+                        .Where(a => a.UserId == userId && !a.IsDeleted)
+                        .OrderByDescending(a => a.CreatedAt)
                         .ToListAsync();
         }
 
-        public async Task<PagedResult<Interview>> GetFilteredInterviewsAsync(InterviewQueryDto interviewQueryDto)
+        public async Task<PagedResult<Interview>> GetFilteredInterviewsAsync(int userId, InterviewQueryDto interviewQueryDto)
         {
-            
+            IQueryable<Interview> query = _context.Interviews
+                .Include(a => a.Application)
+                .Include(a => a.User)
+                .Include(a => a.Company)
+                .Where(a => a.UserId == userId && !a.IsDeleted);
+
+            // Apply filters
+            if (interviewQueryDto.ApplicationId.HasValue)
+            {
+                query = query.Where(a => a.ApplicationId == interviewQueryDto.ApplicationId.Value);
+            }
+            if (interviewQueryDto.CompanyId.HasValue)
+            {
+                query = query.Where(a => a.CompanyId == interviewQueryDto.CompanyId.Value);
+            }
+            if (!string.IsNullOrEmpty(interviewQueryDto.Position))
+            {
+                query = query.Where(a => a.Position.Contains(interviewQueryDto.Position));
+            }
+            if (!string.IsNullOrEmpty(interviewQueryDto.JobDescription))
+            {
+                query = query.Where(a => a.JobDescription.Contains(interviewQueryDto.JobDescription));
+            }
+            if (interviewQueryDto.StartDate.HasValue)
+            {
+                query = query.Where(a => a.StartDate >= interviewQueryDto.StartDate.Value);
+            }
+
+
+            // Apply sorting
+            if (!string.IsNullOrWhiteSpace(interviewQueryDto.SortBy))
+            {
+                query = ApplySorting(query, interviewQueryDto.SortBy, interviewQueryDto.SortDescending);
+            }
+            else
+            {
+                // Default sorting by start date descending
+                query = query.OrderByDescending(a => a.StartDate);
+            }
+
+
+            // Pagination
+            int totalCount = await query.CountAsync();
+            var interviews = await query
+                .Skip((interviewQueryDto.PageNumber - 1) * interviewQueryDto.PageSize)
+                .Take(interviewQueryDto.PageSize)
+                .ToListAsync();
+
+            return new PagedResult<Interview>
+            {
+                Items = interviews,
+                TotalCount = totalCount,
+                PageNumber = interviewQueryDto.PageNumber,
+                PageSize = interviewQueryDto.PageSize
+            };
         }
 
-        public async Task<Interview?> GetInterviewByIdAsync(int interviewId)
+        public async Task<Interview?> GetInterviewByIdAsync(int userId, int interviewId)
         {
             return await _context.Interviews
                     .Include(a => a.Application)
                     .Include(a => a.Company)
-                    .FirstOrDefaultAsync(a => a.InterviewId == interviewId);
+                    .FirstOrDefaultAsync(a => a.InterviewId == interviewId && a.UserId == userId && !a.IsDeleted);
         }
 
         public async Task<int> CreateInterviewAsync(Interview interview)
@@ -53,14 +110,29 @@ namespace GPBackend.Repositories.Implements
 
         public async Task<bool> DeleteInterviewByIdAsync(int id)
         {
-            Interview? interview = await GetInterviewByIdAsync(id);
-            if (interview == null)
+            var interview = await _context.Interviews.FindAsync(id);
+            if (interview == null || interview.IsDeleted)
             {
-                return false;
+                return false; // Interview not found or already deleted
             }
 
             interview.IsDeleted = true;
             return await _context.SaveChangesAsync() > 0;
+        }
+
+        private IQueryable<Interview> ApplySorting(IQueryable<Interview> query, string sortBy, bool sortDescending)
+        {
+            Expression<Func<Interview, object>> keySelector = sortBy.ToLower() switch
+            {
+                "startdate" => a => a.StartDate,
+                "createdat" => a => a.CreatedAt,
+                "updatedat" => a => a.UpdatedAt,
+                "jobtitle" => a => a.Position,
+                "companyname" => a => a.Company.Name,
+                "applicationid" => a => a.ApplicationId,
+                _ => a => a.StartDate // Default sorting by start date
+            };
+            return sortDescending ? query.OrderByDescending(keySelector) : query.OrderBy(keySelector);
         }
     } 
 }
