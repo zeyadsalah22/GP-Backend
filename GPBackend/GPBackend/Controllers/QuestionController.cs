@@ -10,7 +10,7 @@ using Microsoft.DotNet.Scaffolding.Shared.Messaging;
 namespace GPBackend.Controllers
 {
     [Authorize]
-    [Route("api/Question")]
+    [Route("api/questions")]
     [ApiController]
     public class QuestionController : ControllerBase
     {

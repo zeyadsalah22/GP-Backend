@@ -12,15 +12,18 @@ namespace GPBackend.Services.Implements
     {
         private readonly IApplicationRepository _applicationRepository;
         private readonly IUserCompanyRepository _userCompanyRepository;
+        private readonly IEmployeeRepository _employeeRepository;
         private readonly IMapper _mapper;
 
         public ApplicationService(
             IApplicationRepository applicationRepository,
             IUserCompanyRepository userCompanyRepository,
+            IEmployeeRepository employeeRepository,
             IMapper mapper)
         {
             _applicationRepository = applicationRepository;
             _userCompanyRepository = userCompanyRepository;
+            _employeeRepository = employeeRepository;
             _mapper = mapper;
         }
 
@@ -119,6 +122,18 @@ namespace GPBackend.Services.Implements
                 throw new InvalidOperationException("The specified user-company relationship does not exist");
             }
             
+            // Validate contacted employees if provided
+            if (createDto.ContactedEmployeeIds != null && createDto.ContactedEmployeeIds.Any())
+            {
+                var areEmployeesValid = await _employeeRepository.ValidateEmployeeIdsAsync(
+                    createDto.ContactedEmployeeIds, userId, createDto.CompanyId);
+                
+                if (!areEmployeesValid)
+                {
+                    return null;
+                }
+            }
+            
             // Create new application
             var application = _mapper.Map<Application>(createDto);
             application.UserId = userId;
@@ -126,10 +141,18 @@ namespace GPBackend.Services.Implements
             application.CreatedAt = DateTime.UtcNow;
             application.UpdatedAt = DateTime.UtcNow;
             
-            // TODO: modify here to return the created object at once, not id
-
             // Save to database
             var applicationId = await _applicationRepository.CreateAsync(application);
+            
+            // Handle contacted employees
+            if (createDto.ContactedEmployeeIds != null && createDto.ContactedEmployeeIds.Any())
+            {
+                var success = await _employeeRepository.AddApplicationEmployeesAsync(applicationId, createDto.ContactedEmployeeIds);
+                if (!success)
+                {
+                    return null;
+                }
+            }
             
             // Retrieve the created application
             var createdApplication = await _applicationRepository.GetByIdAsync(applicationId);
@@ -141,6 +164,15 @@ namespace GPBackend.Services.Implements
             // Map to DTO
             var applicationDto = _mapper.Map<ApplicationResponseDto>(createdApplication);
             applicationDto.CompanyName = createdApplication.UserCompany?.Company?.Name ?? "Unknown Company";
+            applicationDto.Company = _mapper.Map<DTOs.Company.CompanyResponseDto>(createdApplication.UserCompany?.Company);
+            
+            // Map contacted employees
+            if (createdApplication.ApplicationEmployees != null && createdApplication.ApplicationEmployees.Any())
+            {
+                applicationDto.ContactedEmployees = _mapper.Map<List<EmployeeDto>>(
+                    createdApplication.ApplicationEmployees.Select(ae => ae.Employee).ToList()
+                );
+            }
             
             return applicationDto;
         }
@@ -154,9 +186,31 @@ namespace GPBackend.Services.Implements
                 return false;
             }
             
+            // Validate contacted employees if provided (null means don't update)
+            if (updateDto.ContactedEmployeeIds != null)
+            {
+                var areEmployeesValid = await _employeeRepository.ValidateEmployeeIdsAsync(
+                    updateDto.ContactedEmployeeIds, userId, application.CompanyId);
+                
+                if (!areEmployeesValid)
+                {
+                    return false;
+                }
+            }
+            
             // Update properties
             _mapper.Map(updateDto, application);
             application.UpdatedAt = DateTime.UtcNow;
+            
+            // Handle contacted employees if provided (null means don't update)
+            if (updateDto.ContactedEmployeeIds != null)
+            {
+                var success = await _employeeRepository.UpdateApplicationEmployeesAsync(id, updateDto.ContactedEmployeeIds);
+                if (!success)
+                {
+                    return false;
+                }
+            }
             
             // Save changes
             return await _applicationRepository.UpdateAsync(application);
