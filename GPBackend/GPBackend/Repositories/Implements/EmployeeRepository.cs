@@ -158,5 +158,86 @@ namespace GPBackend.Repositories.Implements
         {
             return await _context.Employees.AnyAsync(e => e.EmployeeId == id);
         }
+
+        public async Task<bool> ValidateEmployeeIdsAsync(List<int> employeeIds, int userId, int companyId)
+        {
+            if (employeeIds == null || !employeeIds.Any())
+                return true;
+
+            // Check if all employee IDs exist and belong to the same company and user
+            var validEmployeeCount = await _context.Employees
+                .CountAsync(e => employeeIds.Contains(e.EmployeeId) && 
+                               e.UserId == userId && 
+                               e.CompanyId == companyId && 
+                               !e.IsDeleted);
+
+            return validEmployeeCount == employeeIds.Count;
+        }
+
+        public async Task<bool> AddApplicationEmployeesAsync(int applicationId, List<int> employeeIds)
+        {
+            if (employeeIds == null || !employeeIds.Any())
+                return true;
+
+            try
+            {
+                var applicationEmployees = employeeIds.Select(employeeId => new ApplicationEmployee
+                {
+                    ApplicationId = applicationId,
+                    EmployeeId = employeeId
+                }).ToList();
+
+                _context.Set<ApplicationEmployee>().AddRange(applicationEmployees);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateApplicationEmployeesAsync(int applicationId, List<int> employeeIds)
+        {
+            try
+            {
+                // Remove existing relationships
+                await RemoveApplicationEmployeesAsync(applicationId);
+
+                // Add new relationships if provided
+                if (employeeIds != null && employeeIds.Any())
+                {
+                    return await AddApplicationEmployeesAsync(applicationId, employeeIds);
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> RemoveApplicationEmployeesAsync(int applicationId)
+        {
+            try
+            {
+                var existingRelationships = await _context.Set<ApplicationEmployee>()
+                    .Where(ae => ae.ApplicationId == applicationId)
+                    .ToListAsync();
+
+                if (existingRelationships.Any())
+                {
+                    _context.Set<ApplicationEmployee>().RemoveRange(existingRelationships);
+                    await _context.SaveChangesAsync();
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 } 

@@ -32,5 +32,7 @@ namespace GPBackend.DTOs.Application
         public string Status { get; set; } = null!;
         
         public DateOnly? SubmissionDate { get; set; }
+        
+        public List<int>? ContactedEmployeeIds { get; set; }
     }
 } 

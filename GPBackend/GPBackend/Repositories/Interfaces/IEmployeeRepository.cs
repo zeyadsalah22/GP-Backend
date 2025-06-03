@@ -12,5 +12,11 @@ namespace GPBackend.Repositories.Interfaces
         Task<Employee> CreateAsync(Employee employee);
         Task<bool> UpdateAsync(Employee employee);
         Task<bool> DeleteAsync(int id);
+        
+        // New methods for ApplicationEmployee relationship management
+        Task<bool> ValidateEmployeeIdsAsync(List<int> employeeIds, int userId, int companyId);
+        Task<bool> AddApplicationEmployeesAsync(int applicationId, List<int> employeeIds);
+        Task<bool> UpdateApplicationEmployeesAsync(int applicationId, List<int> employeeIds);
+        Task<bool> RemoveApplicationEmployeesAsync(int applicationId);
     }
 } 

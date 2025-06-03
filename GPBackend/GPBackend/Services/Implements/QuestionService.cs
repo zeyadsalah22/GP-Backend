@@ -50,11 +50,11 @@ namespace GPBackend.Services.Implements
             };
         }
 
-        public async Task<QuestionResponseDto?> GetQuestionById(int questionId, int applicationId)
+        public async Task<QuestionResponseDto?> GetQuestionById(int userId, int questionId)
         {
             var question = await _questionRepository.GetQuestionByIdAsync(questionId);
 
-            if (question == null || question.ApplicationId != applicationId)
+            if (question == null || question.Application.UserId != userId)
             {
                 return null;
             }
