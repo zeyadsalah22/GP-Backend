@@ -25,7 +25,7 @@ public partial class GPDBContext : DbContext
 
     public virtual DbSet<Interview> Interviews { get; set; }
 
-    public virtual DbSet<InterviewQuestion> InterviewQuestion { get; set; }
+    public virtual DbSet<InterviewQuestion> InterviewQuestions { get; set; }
 
     public virtual DbSet<Question> Questions { get; set; }
 
@@ -229,7 +229,7 @@ public partial class GPDBContext : DbContext
         {
             entity.HasKey(e => e.QuestionId);
 
-            entity.ToTable("Interview_Question");
+            entity.ToTable("Interview_Questions");
 
             entity.Property(e => e.QuestionId).HasColumnName("question_id");
             entity.Property(e => e.Answer).HasColumnName("answer");
@@ -245,9 +245,9 @@ public partial class GPDBContext : DbContext
                 .HasDefaultValueSql("(sysutcdatetime())")
                 .HasColumnName("updated_at");
 
-            entity.HasOne(d => d.Interview).WithMany(p => p.InterviewQuestion)
+            entity.HasOne(d => d.Interview).WithMany(p => p.InterviewQuestions)
                 .HasForeignKey(d => d.InterviewId)
-                .HasConstraintName("FK_Interview_Question_Interviews");
+                .HasConstraintName("FK_Interview_Questions_Interviews");
         });
 
         modelBuilder.Entity<Question>(entity =>
@@ -266,10 +266,10 @@ public partial class GPDBContext : DbContext
                 .HasDefaultValueSql("(sysutcdatetime())")
                 .HasColumnName("updated_at");
 
-            entity.HasOne(d => d.Application).WithMany(p => p.Question)
+            entity.HasOne(d => d.Application).WithMany(p => p.Questions)
                 .HasForeignKey(d => d.ApplicationId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Question_Applications");
+                .HasConstraintName("FK_Questions_Applications");
         });
 
         modelBuilder.Entity<Resume>(entity =>

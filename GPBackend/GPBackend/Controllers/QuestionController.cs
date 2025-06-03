@@ -64,16 +64,23 @@ namespace GPBackend.Controllers
                 try
                 {
                     var createdQuestion = await _QuestionService.CreateNewQuestion(userId, questionCreateDto);
-                    return CreatedAtAction(
-                        nameof(GetQuestionById),
-                        new { id = createdQuestion.QuestionId },
-                        createdQuestion
-                    );
+                    try
+                    {
+                        return CreatedAtAction(
+                            nameof(GetQuestionById),
+                            new { id = createdQuestion.QuestionId },
+                            createdQuestion
+                        );
+                    }
+                    catch (NullReferenceException ex)
+                    {
+                        return BadRequest(new { Message = ex.Message });
+                    }
                 }
-                catch (InvalidOperationException ex)
-                {
-                    return BadRequest(new { Message = ex.Message });
-                }
+                    catch (InvalidOperationException ex)
+                    {
+                        return BadRequest(new { Message = ex.Message });
+                    }
             }
             catch (UnauthorizedAccessException)
             {

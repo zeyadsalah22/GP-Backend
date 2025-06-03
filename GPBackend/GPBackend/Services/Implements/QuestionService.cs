@@ -39,7 +39,7 @@ namespace GPBackend.Services.Implements
         {
             var question = await _questionRepository.GetFilteredQuestionAsync(userId, questionQueryDto);
 
-            var questionDto = _mapper.Map<List<QuestionResponseDto>>(question);
+            var questionDto = _mapper.Map<List<QuestionResponseDto>>(question.Items);
 
             return new PagedResult<QuestionResponseDto>
             {
