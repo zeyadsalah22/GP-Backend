@@ -1,11 +1,12 @@
 {
   "Version": 1,
-  "Hash": "5poR4lL8LoP1CeOkFRmqAlEZxdfyxdsKcZQ4tzQk3KQ=",
+  "Hash": "Kh067LEQBepUKeFZJ1Initx10yX4D1nU8OpGf14nwbE=",
   "Source": "GPBackend",
   "BasePath": "_content/GPBackend",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
   "DiscoveryPatterns": [],
-  "Assets": []
+  "Assets": [],
+  "Endpoints": []
 }

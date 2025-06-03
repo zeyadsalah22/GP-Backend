@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GPBackend.Migrations
 {
     [DbContext(typeof(GPDBContext))]
-    [Migration("20250518190616_test")]
-    partial class test
+    [Migration("20250602233409_PossibleNullApplicationInInterviews")]
+    partial class PossibleNullApplicationInInterviews
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -291,11 +291,11 @@ namespace GPBackend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InterviewId"));
 
-                    b.Property<int>("ApplicationId")
+                    b.Property<int?>("ApplicationId")
                         .HasColumnType("int")
                         .HasColumnName("application_id");
 
-                    b.Property<int>("CompanyId")
+                    b.Property<int?>("CompanyId")
                         .HasColumnType("int")
                         .HasColumnName("company_id");
 
@@ -317,6 +317,9 @@ namespace GPBackend.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnName("is_deleted");
+
+                    b.Property<string>("JobDescription")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Position")
                         .HasMaxLength(100)
@@ -394,7 +397,7 @@ namespace GPBackend.Migrations
 
                     b.HasIndex("InterviewId");
 
-                    b.ToTable("Interview_Question", (string)null);
+                    b.ToTable("Interview_Questions", (string)null);
                 });
 
             modelBuilder.Entity("GPBackend.Models.Question", b =>
@@ -441,7 +444,7 @@ namespace GPBackend.Migrations
 
                     b.HasIndex("ApplicationId");
 
-                    b.ToTable("Question");
+                    b.ToTable("Questions");
                 });
 
             modelBuilder.Entity("GPBackend.Models.Resume", b =>
@@ -773,13 +776,11 @@ namespace GPBackend.Migrations
                     b.HasOne("GPBackend.Models.Application", "Application")
                         .WithMany("Interviews")
                         .HasForeignKey("ApplicationId")
-                        .IsRequired()
                         .HasConstraintName("FK_Interviews_Applications");
 
                     b.HasOne("GPBackend.Models.Company", "Company")
                         .WithMany("Interviews")
                         .HasForeignKey("CompanyId")
-                        .IsRequired()
                         .HasConstraintName("FK_Interviews_Companies");
 
                     b.HasOne("GPBackend.Models.User", "User")
@@ -798,11 +799,11 @@ namespace GPBackend.Migrations
             modelBuilder.Entity("GPBackend.Models.InterviewQuestion", b =>
                 {
                     b.HasOne("GPBackend.Models.Interview", "Interview")
-                        .WithMany("InterviewQuestion")
+                        .WithMany("InterviewQuestions")
                         .HasForeignKey("InterviewId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_Interview_Question_Interviews");
+                        .HasConstraintName("FK_Interview_Questions_Interviews");
 
                     b.Navigation("Interview");
                 });
@@ -810,10 +811,10 @@ namespace GPBackend.Migrations
             modelBuilder.Entity("GPBackend.Models.Question", b =>
                 {
                     b.HasOne("GPBackend.Models.Application", "Application")
-                        .WithMany("Question")
+                        .WithMany("Questions")
                         .HasForeignKey("ApplicationId")
                         .IsRequired()
-                        .HasConstraintName("FK_Question_Applications");
+                        .HasConstraintName("FK_Questions_Applications");
 
                     b.Navigation("Application");
                 });
@@ -892,7 +893,7 @@ namespace GPBackend.Migrations
 
                     b.Navigation("Interviews");
 
-                    b.Navigation("Question");
+                    b.Navigation("Questions");
                 });
 
             modelBuilder.Entity("GPBackend.Models.Company", b =>
@@ -909,7 +910,7 @@ namespace GPBackend.Migrations
 
             modelBuilder.Entity("GPBackend.Models.Interview", b =>
                 {
-                    b.Navigation("InterviewQuestion");
+                    b.Navigation("InterviewQuestions");
                 });
 
             modelBuilder.Entity("GPBackend.Models.Resume", b =>
