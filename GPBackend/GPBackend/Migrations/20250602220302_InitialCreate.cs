@@ -1,15 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace GPBackend.Migrations
 {
     /// <inheritdoc />
-    public partial class AddedJobDescriptionInInterviews : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // alter table Interview, add JobDescription column
             migrationBuilder.AddColumn<string>(
                 name: "JobDescription",
                 table: "Interviews",

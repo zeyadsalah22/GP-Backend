@@ -10,7 +10,7 @@ namespace GPBackend.Controllers
 {
     [Route("api/mockinterview")]
     [ApiController]
-    // [Authorize]
+    [Authorize]
     public class InterviewController : ControllerBase
     {
         private readonly IInterviewService _interviewService;
@@ -101,12 +101,20 @@ namespace GPBackend.Controllers
             try
             {
                 int userId = GetAuthenticatedUserId();
-                var createdInterview = await _interviewService.CreateInterviewAsync(userId, interviewCreateDto);
-                if (createdInterview == null)
+                try
                 {
-                    return StatusCode(500, new { message = "Failed to create interview." });
+                    var createdInterview = await _interviewService.CreateInterviewAsync(userId, interviewCreateDto);
+                    if (createdInterview == null)
+                    {
+                        return StatusCode(500, new { message = "Failed to create interview." });
+                    }
+                    return Created($"/api/mockinterview/{createdInterview.InterviewId}", createdInterview);
+
                 }
-                return CreatedAtAction(nameof(GetAllInterviewsAsync), new { id = createdInterview.InterviewId }, createdInterview);
+                catch (InvalidOperationException ex)
+                {
+                    return BadRequest(new { message = ex.Message });
+                }
             }
             catch (UnauthorizedAccessException)
             {

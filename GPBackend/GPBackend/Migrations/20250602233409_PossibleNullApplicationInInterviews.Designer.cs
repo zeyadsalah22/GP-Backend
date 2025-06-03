@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GPBackend.Migrations
 {
     [DbContext(typeof(GPDBContext))]
-    [Migration("20250602212253_AddedJobDescriptionInInterviews")]
-    partial class AddedJobDescriptionInInterviews
+    [Migration("20250602233409_PossibleNullApplicationInInterviews")]
+    partial class PossibleNullApplicationInInterviews
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -291,11 +291,11 @@ namespace GPBackend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InterviewId"));
 
-                    b.Property<int>("ApplicationId")
+                    b.Property<int?>("ApplicationId")
                         .HasColumnType("int")
                         .HasColumnName("application_id");
 
-                    b.Property<int>("CompanyId")
+                    b.Property<int?>("CompanyId")
                         .HasColumnType("int")
                         .HasColumnName("company_id");
 
@@ -776,13 +776,11 @@ namespace GPBackend.Migrations
                     b.HasOne("GPBackend.Models.Application", "Application")
                         .WithMany("Interviews")
                         .HasForeignKey("ApplicationId")
-                        .IsRequired()
                         .HasConstraintName("FK_Interviews_Applications");
 
                     b.HasOne("GPBackend.Models.Company", "Company")
                         .WithMany("Interviews")
                         .HasForeignKey("CompanyId")
-                        .IsRequired()
                         .HasConstraintName("FK_Interviews_Companies");
 
                     b.HasOne("GPBackend.Models.User", "User")

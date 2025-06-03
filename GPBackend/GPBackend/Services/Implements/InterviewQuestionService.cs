@@ -4,6 +4,7 @@ using GPBackend.Repositories.Implements;
 using GPBackend.Repositories.Interfaces;
 using GPBackend.Services.Interfaces;
 using GPBackend.Models;
+using System.Text.Json;
 
 namespace GPBackend.Services.Implements
 {
@@ -14,7 +15,7 @@ namespace GPBackend.Services.Implements
         private readonly IMapper _mapper;
         private readonly string ModelApiURL = "http://localhost:8000/generate-questions";
 
-        InterviewQuestionService(IInterviewQuestionRepository interviewQuestionRepository,
+        public InterviewQuestionService(IInterviewQuestionRepository interviewQuestionRepository,
                                  IApplicationRepository applicationRepository,
                                  IMapper mapper)
         {
@@ -98,15 +99,25 @@ namespace GPBackend.Services.Implements
                 throw new Exception("Failed to fetch interview questions from the model API.");
             }
 
-            var questions = await response.Content.ReadFromJsonAsync<List<InterviewQuestionResponseDto>>();
+            var raw = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(raw);
 
-            if (questions == null || questions.Count == 0)
+            var questions = await response.Content.ReadFromJsonAsync<InterviewQuestionAIDto>(
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            );
+
+            if (questions == null || questions.Questions == null || questions.Questions.Count == 0)
             {
                 throw new Exception("No questions were returned from the model API.");
             }
 
-            // Map the questions to InterviewQuestionResponseDto
-            return questions;
+            // Manually map each string to InterviewQuestionResponseDto
+            var questionDtos = questions.Questions
+                .Select(q => new InterviewQuestionResponseDto { Question = q })
+                .ToList();
+
+
+            return questionDtos;
 
         }
     }

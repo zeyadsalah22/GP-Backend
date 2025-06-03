@@ -8,8 +8,8 @@ namespace GPBackend.DTOs.Interview
     {
         [Required(ErrorMessage = "UserId is required.")]
         public int UserId { get; set; }
-        public int CompanyId { get; set; }
-        public int ApplicationId { get; set; }
+        public int? CompanyId { get; set; }
+        public int? ApplicationId { get; set; }
         public string? Position { get; set; }
         public string? JobDescription { get; set; }
         public string? Feedback { get; set; }

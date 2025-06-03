@@ -34,6 +34,7 @@ namespace GPBackend.Profiles
             // mapping from InterviewQuestionUpdateDto to InterviewQuestion
             CreateMap<InterviewQuestionUpdateDto, InterviewQuestion>()
                 .ForMember(dest => dest.QuestionId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.Question, opt => opt.Ignore())
                 .ForMember(dest => dest.Answer, opt => opt.MapFrom(src => src.Answer))
                 .ForMember(dest => dest.InterviewId, opt => opt.MapFrom(src => src.InterviewId))
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
@@ -44,6 +45,7 @@ namespace GPBackend.Profiles
                 .ForMember(dest => dest.InterviewId, opt => opt.MapFrom(src => src.InterviewId))
                 .ForMember(dest => dest.Question, opt => opt.MapFrom(src => src.Question))
                 .ForMember(dest => dest.Answer, opt => opt.MapFrom(src => src.Answer));
+
         }
     }
 }
