@@ -23,7 +23,9 @@ namespace GPBackend.Profiles
                 .ForMember(dest => dest.QuestionId, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
-                .ForMember(dest => dest.IsDeleted, opt => opt.Ignore());
+                .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
+                .ForMember(dest => dest.Question1, opt => opt.Condition(src => src.Question1 != null))
+                .ForMember(dest => dest.Answer, opt => opt.Condition(src => src.Answer != null));
                 
         }
     }
