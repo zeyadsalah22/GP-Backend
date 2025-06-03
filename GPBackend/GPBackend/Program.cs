@@ -123,7 +123,6 @@ namespace GPBackend
             builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
             builder.Services.AddScoped<ITodoListRepository, TodoListRepository>();
-
             
             // Register services
             builder.Services.AddScoped<IJwtService, JwtService>();
