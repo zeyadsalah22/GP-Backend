@@ -16,11 +16,23 @@ namespace GPBackend.Profiles
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
                 .ForMember(dest => dest.InterviewQuestions, opt => opt.MapFrom(src => src.InterviewQuestions));
 
-            // Map from InterviewQuestionUpdateDto to InterviewQuestion
-            CreateMap<InterviewQuestionUpdateDto, InterviewQuestion>()
-                .ForMember(dest => dest.QuestionId, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.Answer, opt => opt.MapFrom(src => src.Answer))
-                .ForMember(dest => dest.InterviewId, opt => opt.MapFrom(src => src.InterviewId));
+            // Map from InterviewResponseDto to Interview
+            CreateMap<InterviewResponseDto, Interview>()
+                .ForMember(dest => dest.InterviewId, opt => opt.MapFrom(src => src.InterviewId))
+                .ForMember(dest => dest.ApplicationId, opt => opt.MapFrom(src => src.ApplicationId))
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+                .ForMember(dest => dest.Position, opt => opt.MapFrom(src => src.Position))
+                .ForMember(dest => dest.Feedback, opt => opt.MapFrom(src => src.Feedback))
+                .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate))
+                .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration))
+                .ForMember(dest => dest.JobDescription, opt => opt.MapFrom(src => src.JobDescription))
+                .ForMember(dest => dest.InterviewQuestions, opt => opt.MapFrom(src => src.InterviewQuestions));
+
+            // // Map from InterviewQuestionUpdateDto to InterviewQuestion
+            // CreateMap<InterviewQuestionUpdateDto, InterviewQuestion>()
+            //     .ForMember(dest => dest.QuestionId, opt => opt.MapFrom(src => src.Id))
+            //     .ForMember(dest => dest.Answer, opt => opt.MapFrom(src => src.Answer))
+            //     .ForMember(dest => dest.InterviewId, opt => opt.MapFrom(src => src.InterviewId));
 
             // Map from InterviewCreateDto to Interview
             CreateMap<InterviewCreateDto, Interview>()
@@ -28,6 +40,7 @@ namespace GPBackend.Profiles
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
                 .ForMember(dest => dest.CompanyId, opt => opt.MapFrom(src => src.CompanyId))
                 .ForMember(dest => dest.Position, opt => opt.MapFrom(src => src.Position))
+                .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => 60)) // Default duration set to 60 minutes
                 .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => DateTime.UtcNow))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
@@ -45,6 +58,7 @@ namespace GPBackend.Profiles
                 .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration))
                 .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate))
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+                // .ForMember(dest => dest.InterviewQuestions, opt => opt.MapFrom(src => src.InterviewQuestions));
 
         }
     }

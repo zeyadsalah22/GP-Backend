@@ -12,7 +12,7 @@ namespace GPBackend.Repositories.Implements
     {
         private readonly GPDBContext _context;
 
-        InterviewRepository(GPDBContext context)
+        public InterviewRepository(GPDBContext context)
         {
             _context = context;
         }
@@ -21,6 +21,7 @@ namespace GPBackend.Repositories.Implements
         {
             return await _context.Interviews
                         .Include(a => a.Application)
+                        .Include(a => a.InterviewQuestions)
                         .Where(a => a.UserId == userId && !a.IsDeleted)
                         .OrderByDescending(a => a.CreatedAt)
                         .ToListAsync();
@@ -32,6 +33,7 @@ namespace GPBackend.Repositories.Implements
                 .Include(a => a.Application)
                 .Include(a => a.User)
                 .Include(a => a.Company)
+                .Include(a => a.InterviewQuestions)
                 .Where(a => a.UserId == userId && !a.IsDeleted);
 
             // Apply filters
@@ -90,6 +92,7 @@ namespace GPBackend.Repositories.Implements
             return await _context.Interviews
                     .Include(a => a.Application)
                     .Include(a => a.Company)
+                    .Include(a => a.InterviewQuestions)
                     .FirstOrDefaultAsync(a => a.InterviewId == interviewId && a.UserId == userId && !a.IsDeleted);
         }
 
@@ -103,7 +106,36 @@ namespace GPBackend.Repositories.Implements
         public async Task<bool> UpdateInterviewAsync(Interview interview)
         {
             interview.UpdatedAt = DateTime.UtcNow;
-            _context.Interviews.Update(interview);
+
+            // Attach the interview entity to the context
+            _context.Interviews.Attach(interview);
+
+            // Explicitly mark the properties you want to update
+            _context.Entry(interview).Property(i => i.StartDate).IsModified = true;
+            _context.Entry(interview).Property(i => i.Duration).IsModified = true;
+            _context.Entry(interview).Property(i => i.Position).IsModified = true;
+            _context.Entry(interview).Property(i => i.JobDescription).IsModified = true;
+            _context.Entry(interview).Property(i => i.Feedback).IsModified = true;
+            _context.Entry(interview).Property(i => i.UpdatedAt).IsModified = true;
+            _context.Entry(interview).Property(i => i.ApplicationId).IsModified = true;
+            _context.Entry(interview).Property(i => i.CompanyId).IsModified = true;
+            // _context.Entry(interview).Collection(i => i.InterviewQuestions).IsModified = false; // Do not update the questions here
+            
+            // update only answers in interview questions
+            if (interview.InterviewQuestions != null && interview.InterviewQuestions.Any())
+            {
+                foreach (var question in interview.InterviewQuestions)
+                {
+                    _context.InterviewQuestions.Attach(question);
+                    _context.Entry(question).Property(q => q.Answer).IsModified = true;
+                    _context.Entry(question).Property(q => q.UpdatedAt).IsModified = true;
+
+                    // set update time for each question
+                    question.UpdatedAt = DateTime.UtcNow;
+                }
+                // interview.InterviewQuestions.ForEach(q => q.UpdatedAt = DateTime.UtcNow);
+            }
+            // _context.Interviews.Update(interview);
             return await _context.SaveChangesAsync() > 0;
 
         }
@@ -114,6 +146,11 @@ namespace GPBackend.Repositories.Implements
             if (interview == null || interview.IsDeleted)
             {
                 return false; // Interview not found or already deleted
+            }
+            // Mark each question as deleted
+            foreach (var question in interview.InterviewQuestions)
+            {
+                question.IsDeleted = true;
             }
 
             interview.IsDeleted = true;

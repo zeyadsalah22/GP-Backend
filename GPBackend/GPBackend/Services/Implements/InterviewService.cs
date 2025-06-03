@@ -12,22 +12,15 @@ namespace GPBackend.Services.Implements
 {
     public class InterviewService : IInterviewService
     {
-        private readonly HttpClient _httpClient;
-
         private readonly IInterviewRepository _interviewRepository;
         private readonly IInterviewQuestionService _interviewQuestionService;
-        private readonly IApplicationRepository _applicationRepository;
         private readonly IMapper _mapper;
 
-        public InterviewService(HttpClient httpClient,
-                                IInterviewRepository interviewRepository,
+        public InterviewService(IInterviewRepository interviewRepository,
                                 IInterviewQuestionService interviewQuestionService,
-                                IApplicationRepository applicationRepository,
                                 IMapper mapper)
         {
-            _httpClient = httpClient;
             _interviewRepository = interviewRepository;
-            _applicationRepository = applicationRepository;
             _interviewQuestionService = interviewQuestionService;
             _mapper = mapper;
         }
@@ -67,7 +60,6 @@ namespace GPBackend.Services.Implements
             {
                 return null; // Interview not found or does not belong to the user
             }
-
             // Map the interview to the response DTO
             return _mapper.Map<InterviewResponseDto>(interview);
         }
@@ -79,29 +71,49 @@ namespace GPBackend.Services.Implements
             {
                 return null;
             }
+
+            // map from InterviewCreateDto to Interview
+            var interviewToCreate = _mapper.Map<Interview>(interviewCreateDto);
+
+            // check if the applicationId is provided
+            if (interviewCreateDto.ApplicationId == null)
+            {
+                if (interviewCreateDto.CompanyId == null || string.IsNullOrEmpty(interviewCreateDto.JobDescription) || string.IsNullOrEmpty(interviewCreateDto.Position))
+                {
+                    return null; // Job description and position are required if applicationId is not provided
+                }
+            }
+
+            // create the interview
+            var createdInterviewId = await _interviewRepository.CreateInterviewAsync(interviewToCreate);
+
+
             // start recording, return Questions ==> model
-            var AIModelQuestions = await _interviewQuestionService.GetInterviewQuestionsFromModelAsync(interviewCreateDto.ApplicationId,
+            var AIModelQuestions = await _interviewQuestionService.GetInterviewQuestionsFromModelAsync(interviewCreateDto.ApplicationId ?? 0,
                                                                                                     interviewCreateDto.JobDescription,
                                                                                                     interviewCreateDto.Position);
 
             // map from AIModelQuestions to InterviewQuestionCreateDto
             var interviewQuestionsToCreate = _mapper.Map<List<InterviewQuestionCreateDto>>(AIModelQuestions);
 
+
+            // set the InterviewId for each question
+            interviewQuestionsToCreate.ForEach(q => q.InterviewId = createdInterviewId);
+
             // tranform questions to interviewQuestions
             var createdInterviewQuestions = await _interviewQuestionService.CreateInterviewQuestionsAsync(interviewQuestionsToCreate);
 
-            // map from InterviewCreateDto to Interview
-            var interviewToCreate = _mapper.Map<Interview>(interviewCreateDto);
+            var createdInterview = await _interviewRepository.GetInterviewByIdAsync(userId, createdInterviewId);
             
-            interviewToCreate.InterviewQuestions = (ICollection<InterviewQuestion>)createdInterviewQuestions;
+            if(createdInterview == null || createdInterview.UserId != userId || createdInterview.InterviewId != createdInterviewId)
+            {
+                return null; // Failed to retrieve the created interview
+            }
 
-            // create the interview
-            var createdInterview = await _interviewRepository.CreateInterviewAsync(interviewToCreate);
+            createdInterview.InterviewQuestions = _mapper.Map<ICollection<InterviewQuestion>>(createdInterviewQuestions);
 
             // map from createdInterview to InterviewResponseDto
             var interviewResponseDto = _mapper.Map<InterviewResponseDto>(createdInterview);
-
-            interviewResponseDto.InterviewQuestions = createdInterviewQuestions;
 
             return interviewResponseDto;
         }
@@ -114,27 +126,24 @@ namespace GPBackend.Services.Implements
                 return false; // Interview not found or does not belong to the user
             }
 
-            var updatedQuestions = await _interviewQuestionService.UpdateInterviewQuestionAsync(updateInterviewDto.InterviewQuestions);
-            if (updatedQuestions == null)
-            {
-                return false; // Failed to update interview questions
-            }
-
             // Map the update DTO to the interview entity
-            var interviewToUpdate = _mapper.Map<Interview>(updateInterviewDto);
+            _mapper.Map(updateInterviewDto, interview);
+            interview.InterviewId = interviewId; // Ensure the ID is set for the update
+                                                 // interview.UserId = userId; // Ensure the user ID is set for the update
+                                                 // Update the interview in the repository
+            
+            var interviewQuestions = _mapper.Map<List<InterviewQuestion>>(updateInterviewDto.InterviewQuestions);
 
-            interviewToUpdate.InterviewQuestions = (ICollection<InterviewQuestion>)updatedQuestions;
+            interview.InterviewQuestions = interviewQuestions;
 
-            var updatedInterview = await _interviewRepository.UpdateInterviewAsync(interviewToUpdate);
-            if (updatedInterview == false)
+            var updateResult = await _interviewRepository.UpdateInterviewAsync(interview);
+            if (!updateResult)
             {
-                return false; // Failed to update interview
+                return false; // Update failed
             }
-
-            // Map the updated interview to the response DTO
-            _mapper.Map<InterviewResponseDto>(updatedInterview);
 
             return true;
+
         }
 
         public async Task<bool> DeleteInterviewByIdAsync(int userId, int interviewId)

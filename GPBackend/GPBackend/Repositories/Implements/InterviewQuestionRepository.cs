@@ -48,15 +48,22 @@ namespace GPBackend.Repositories.Implements
 
         public async Task<List<InterviewQuestion>> UpdateAsync(List<InterviewQuestion> interviewQuestions)
         {
-            // Implementation logic to update an existing InterviewQuestion
-            _context.InterviewQuestions.UpdateRange(interviewQuestions);
             foreach (InterviewQuestion iq in interviewQuestions)
             {
+                // Attach only by key, without replacing existing tracked values
+                _context.InterviewQuestions.Attach(iq);
+
+                // Explicitly mark only the fields you want to update
+                _context.Entry(iq).Property(q => q.Answer).IsModified = true;
+                _context.Entry(iq).Property(q => q.UpdatedAt).IsModified = true;
+
+                // Set the update time
                 iq.UpdatedAt = DateTime.UtcNow;
             }
 
             await _context.SaveChangesAsync();
             return interviewQuestions;
+
         }
 
         public async Task<bool> DeleteAsync(int id)

@@ -123,6 +123,9 @@ namespace GPBackend
             builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
             builder.Services.AddScoped<ITodoListRepository, TodoListRepository>();
+            builder.Services.AddScoped<IInterviewRepository, InterviewRepository>();
+            builder.Services.AddScoped<IInterviewQuestionRepository, InterviewQuestionRepository>();
+
             
 
             
@@ -137,6 +140,8 @@ namespace GPBackend
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
             builder.Services.AddScoped<IQuestionService, QuestionService>();
             builder.Services.AddScoped<ITodoListService, TodoListService>();
+            builder.Services.AddScoped<IInterviewService, InterviewService>();
+            builder.Services.AddScoped<IInterviewQuestionService, InterviewQuestionService>();
             // builder.Services.AddHttpClient<IInterviewService, InterviewService>();
 
             // Register TokenBlacklistService as Singleton (persistence across requests)
