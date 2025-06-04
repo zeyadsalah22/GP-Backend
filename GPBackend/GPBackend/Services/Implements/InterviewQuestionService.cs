@@ -78,8 +78,8 @@ namespace GPBackend.Services.Implements
                 }
                 response = await client.PostAsJsonAsync(ModelApiURL, new
                 {
-                    job_description = jobDescription,
-                    job_title = jobtitle
+                    description = jobDescription,
+                    num_questions = 3,
                 });
             }
             else
@@ -90,8 +90,8 @@ namespace GPBackend.Services.Implements
                 }
                 response = await client.PostAsJsonAsync(ModelApiURL, new
                 {
-                    job_description = application.Description,
-                    job_title = application.JobTitle
+                    description = application.Description,
+                    num_questions = 3,
                 });
             }
             if (!response.IsSuccessStatusCode)
@@ -99,8 +99,8 @@ namespace GPBackend.Services.Implements
                 throw new Exception("Failed to fetch interview questions from the model API.");
             }
 
-            var raw = await response.Content.ReadAsStringAsync();
-            Console.WriteLine(raw);
+            // var raw = await response.Content.ReadAsStringAsync();
+            // Console.WriteLine(raw);
 
             var questions = await response.Content.ReadFromJsonAsync<InterviewQuestionAIDto>(
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
