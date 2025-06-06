@@ -142,10 +142,15 @@ namespace GPBackend
             builder.Services.AddScoped<ITodoListService, TodoListService>();
             builder.Services.AddScoped<IInterviewService, InterviewService>();
             builder.Services.AddScoped<IInterviewQuestionService, InterviewQuestionService>();
-            // builder.Services.AddHttpClient<IInterviewService, InterviewService>();
+            builder.Services.AddScoped<IResumeMatchingService, ResumeMatchingService>();
+            builder.Services.AddScoped<ISkillExtractionService, RegexSkillExtractionService>();
+            builder.Services.AddScoped<ISkillMatchingApiClient, SkillMatchingApiClient>();
 
             // Register TokenBlacklistService as Singleton (persistence across requests)
             builder.Services.AddSingleton<ITokenBlacklistService, TokenBlacklistService>();
+
+            // Add HttpClient
+            builder.Services.AddHttpClient();
 
             var app = builder.Build();
 
