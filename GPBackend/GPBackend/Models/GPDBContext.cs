@@ -41,6 +41,8 @@ public partial class GPDBContext : DbContext
 
     public virtual DbSet<UserCompany> UserCompanies { get; set; }
 
+    public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Application>(entity =>
@@ -420,6 +422,31 @@ public partial class GPDBContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.UserCompanies)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("FK_User_Companies_Users");
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.Property(e => e.RefreshTokenId).HasColumnName("refresh_token_id");
+            entity.Property(e => e.Token)
+                .HasMaxLength(500)
+                .HasColumnName("token");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.ExpiryDate)
+                .HasPrecision(0)
+                .HasColumnName("expiry_date");
+            entity.Property(e => e.IsRevoked).HasColumnName("is_revoked");
+            entity.Property(e => e.IsUsed).HasColumnName("is_used");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.ReplacedByToken)
+                .HasMaxLength(500)
+                .HasColumnName("replaced_by_token");
+
+            entity.HasOne(d => d.User).WithMany(p => p.RefreshTokens)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_RefreshTokens_Users");
         });
 
         OnModelCreatingPartial(modelBuilder);

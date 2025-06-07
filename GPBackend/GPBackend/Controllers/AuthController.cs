@@ -17,17 +17,20 @@ namespace GPBackend.Controllers
         private readonly IUserService _userService;
         private readonly IJwtService _jwtService;
         private readonly ITokenBlacklistService _tokenBlacklistService;
+        private readonly IRefreshTokenService _refreshTokenService;
         private readonly IMapper _mapper;
 
         public AuthController(
             IUserService userService,
             IJwtService jwtService,
             ITokenBlacklistService tokenBlacklistService,
+            IRefreshTokenService refreshTokenService,
             IMapper mapper)
         {
             _userService = userService;
             _jwtService = jwtService;
             _tokenBlacklistService = tokenBlacklistService;
+            _refreshTokenService = refreshTokenService;
             _mapper = mapper;
         }
 
@@ -41,13 +44,16 @@ namespace GPBackend.Controllers
                 return Unauthorized(new { message = "Invalid email or password" });
 
             var token = _jwtService.GenerateToken(user);
+            var refreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(user);
             
             return Ok(new AuthResponseDto 
             { 
                 Token = token,
+                RefreshToken = refreshToken,
                 UserId = user.UserId,
                 Email = user.Email,
-                FullName = $"{user.Fname} {user.Lname}"
+                FullName = $"{user.Fname} {user.Lname}",
+                ExpiresAt = _jwtService.GetTokenExpiry(token)
             });
         }
 
@@ -72,20 +78,48 @@ namespace GPBackend.Controllers
             
             // Generate token
             var token = _jwtService.GenerateToken(userEntity);
+            var refreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(userEntity);
             
             return Ok(new AuthResponseDto 
             { 
                 Token = token,
+                RefreshToken = refreshToken,
                 UserId = userDto.UserId,
                 Email = userDto.Email,
-                FullName = $"{userDto.Fname} {userDto.Lname}"
+                FullName = $"{userDto.Fname} {userDto.Lname}",
+                ExpiresAt = _jwtService.GetTokenExpiry(token)
             });
+        }
+
+        // POST api/auth/refresh
+        [HttpPost("refresh")]
+        public async Task<ActionResult<AuthResponseDto>> RefreshToken(RefreshTokenDto refreshTokenDto)
+        {
+            var result = await _refreshTokenService.RefreshTokenAsync(refreshTokenDto.RefreshToken);
+            
+            if (result == null)
+                return Unauthorized(new { message = "Invalid or expired refresh token" });
+            
+            return Ok(result);
+        }
+
+        // POST api/auth/revoke
+        [Authorize]
+        [HttpPost("revoke")]
+        public async Task<IActionResult> RevokeToken(RefreshTokenDto refreshTokenDto)
+        {
+            var result = await _refreshTokenService.RevokeRefreshTokenAsync(refreshTokenDto.RefreshToken);
+            
+            if (!result)
+                return BadRequest(new { message = "Token not found" });
+            
+            return Ok(new { message = "Token revoked successfully" });
         }
 
         // POST api/auth/logout
         [Authorize]
         [HttpPost("logout")]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout(RefreshTokenDto? refreshTokenDto = null)
         {
             var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             
@@ -94,8 +128,14 @@ namespace GPBackend.Controllers
             var jwtToken = handler.ReadJwtToken(token);
             var expiry = jwtToken.ValidTo;
             
-            // Add token to blacklist until its expiry
+            // Add access token to blacklist until its expiry
             _tokenBlacklistService.BlacklistToken(token, expiry);
+            
+            // Revoke refresh token if provided
+            if (refreshTokenDto != null && !string.IsNullOrEmpty(refreshTokenDto.RefreshToken))
+            {
+                await _refreshTokenService.RevokeRefreshTokenAsync(refreshTokenDto.RefreshToken);
+            }
             
             return Ok(new { message = "Successfully logged out" });
         }

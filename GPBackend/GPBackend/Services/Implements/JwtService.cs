@@ -1,6 +1,7 @@
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using GPBackend.Models;
 using GPBackend.Services.Interfaces;
@@ -40,6 +41,14 @@ namespace GPBackend.Services.Implements
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        public string GenerateRefreshToken()
+        {
+            using var rng = RandomNumberGenerator.Create();
+            var randomBytes = new byte[64];
+            rng.GetBytes(randomBytes);
+            return Convert.ToBase64String(randomBytes);
+        }
+
         public int? ValidateToken(string token)
         {
             if (string.IsNullOrEmpty(token))
@@ -71,6 +80,13 @@ namespace GPBackend.Services.Implements
             {
                 return null;
             }
+        }
+
+        public DateTime GetTokenExpiry(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var jwtToken = tokenHandler.ReadJwtToken(token);
+            return jwtToken.ValidTo;
         }
     }
 } 

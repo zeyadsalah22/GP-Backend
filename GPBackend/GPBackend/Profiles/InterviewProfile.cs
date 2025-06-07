@@ -44,7 +44,12 @@ namespace GPBackend.Profiles
                 .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => DateTime.UtcNow))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
-                .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => false));
+                .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => false))
+                .ForMember(dest => dest.ApplicationId, opt => opt.Condition(src => src.ApplicationId != null))
+                .ForMember(dest => dest.CompanyId, opt => opt.Condition(src => src.CompanyId != null))
+                .ForMember(dest => dest.Position, opt => opt.Condition(src => src.Position != null))
+                .ForMember(dest => dest.JobDescription, opt => opt.Condition(src => src.JobDescription != null));
+
 
 
             // Map from InterviewUpdateDto to Interview
@@ -57,7 +62,17 @@ namespace GPBackend.Profiles
                 .ForMember(dest => dest.Feedback, opt => opt.MapFrom(src => src.Feedback))
                 .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration))
                 .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate))
-                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
+                .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => false))
+                .ForMember(dest => dest.ApplicationId, opt => opt.Condition(src => src.ApplicationId != null))
+                .ForMember(dest => dest.CompanyId, opt => opt.Condition(src => src.CompanyId != null))
+                .ForMember(dest => dest.Position, opt => opt.Condition(src => src.Position != null))
+                .ForMember(dest => dest.JobDescription, opt => opt.Condition(src => src.JobDescription != null))
+                .ForMember(dest => dest.InterviewQuestions, opt => opt.Condition(src => src.InterviewQuestions != null))
+                .ForMember(dest => dest.Duration, opt => opt.Condition(src => src.Duration != null))
+                .ForMember(dest => dest.StartDate, opt => opt.Condition(src => src.StartDate != null))
+                .ForMember(dest => dest.Feedback, opt => opt.Condition(src => src.Feedback != null));
+
                 // .ForMember(dest => dest.InterviewQuestions, opt => opt.MapFrom(src => src.InterviewQuestions));
 
         }
