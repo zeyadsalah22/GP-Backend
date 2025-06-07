@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.Models;
 
@@ -26,6 +27,8 @@ public partial class User
     public bool IsDeleted { get; set; }
 
     public byte[] Rowversion { get; set; } = null!;
+
+    public UserRole Role { get; set; } = UserRole.User;
 
     public virtual ICollection<Interview> Interviews { get; set; } = new List<Interview>();
 
