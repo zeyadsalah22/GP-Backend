@@ -53,6 +53,7 @@ namespace GPBackend.Controllers
                 UserId = user.UserId,
                 Email = user.Email,
                 FullName = $"{user.Fname} {user.Lname}",
+                Role = user.Role,
                 ExpiresAt = _jwtService.GetTokenExpiry(token)
             });
         }
@@ -87,6 +88,7 @@ namespace GPBackend.Controllers
                 UserId = userDto.UserId,
                 Email = userDto.Email,
                 FullName = $"{userDto.Fname} {userDto.Lname}",
+                Role = userEntity.Role,
                 ExpiresAt = _jwtService.GetTokenExpiry(token)
             });
         }

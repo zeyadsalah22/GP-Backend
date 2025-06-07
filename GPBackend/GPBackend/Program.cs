@@ -78,6 +78,16 @@ namespace GPBackend
                 };
             });
 
+            // Configure Authorization Policies
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AdminOnly", policy => 
+                    policy.RequireRole("Admin"));
+                
+                options.AddPolicy("UserOrAdmin", policy => 
+                    policy.RequireRole("User", "Admin"));
+            });
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>

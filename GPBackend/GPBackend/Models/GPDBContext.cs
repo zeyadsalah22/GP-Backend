@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.Models;
 
@@ -386,6 +387,10 @@ public partial class GPDBContext : DbContext
             entity.Property(e => e.Password)
                 .HasMaxLength(255)
                 .HasColumnName("password");
+            entity.Property(e => e.Role)
+                .HasConversion<int>()
+                .HasDefaultValue(UserRole.User)
+                .HasColumnName("role");
             entity.Property(e => e.Rowversion)
                 .IsRowVersion()
                 .IsConcurrencyToken()

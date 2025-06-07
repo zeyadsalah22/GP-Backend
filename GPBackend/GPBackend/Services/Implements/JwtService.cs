@@ -26,8 +26,8 @@ namespace GPBackend.Services.Implements
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Name, $"{user.Fname} {user.Lname}"),
-                new Claim(ClaimTypes.Email, user.Email)
-                // Add roles or other claims as needed
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role.ToString())
             };
 
             var token = new JwtSecurityToken(

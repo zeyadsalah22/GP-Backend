@@ -1,3 +1,5 @@
+using GPBackend.Models.Enums;
+
 namespace GPBackend.DTOs.Auth
 {
     public class AuthResponseDto
@@ -7,6 +9,7 @@ namespace GPBackend.DTOs.Auth
         public int UserId { get; set; }
         public string Email { get; set; } = null!;
         public string FullName { get; set; } = null!;
+        public UserRole Role { get; set; }
         public DateTime ExpiresAt { get; set; }
     }
 } 

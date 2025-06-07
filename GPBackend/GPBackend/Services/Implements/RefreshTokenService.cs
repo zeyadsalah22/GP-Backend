@@ -61,6 +61,7 @@ namespace GPBackend.Services.Implements
                 UserId = existingToken.User.UserId,
                 Email = existingToken.User.Email,
                 FullName = $"{existingToken.User.Fname} {existingToken.User.Lname}",
+                Role = existingToken.User.Role,
                 ExpiresAt = _jwtService.GetTokenExpiry(newAccessToken)
             };
         }
