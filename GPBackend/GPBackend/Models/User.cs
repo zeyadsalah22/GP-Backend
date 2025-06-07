@@ -34,4 +34,6 @@ public partial class User
     public virtual ICollection<TodoList> TodoLists { get; set; } = new List<TodoList>();
 
     public virtual ICollection<UserCompany> UserCompanies { get; set; } = new List<UserCompany>();
+
+    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }
