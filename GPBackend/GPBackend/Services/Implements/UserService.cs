@@ -2,6 +2,7 @@ using AutoMapper;
 using GPBackend.DTOs.Auth;
 using GPBackend.DTOs.User;
 using GPBackend.Models;
+using GPBackend.Models.Enums;
 using GPBackend.Repositories.Interfaces;
 using GPBackend.Services.Interfaces;
 using System.Security.Cryptography;
@@ -93,6 +94,18 @@ namespace GPBackend.Services.Implements
             
             // Update password using repository
             return await _userRepository.ChangePasswordAsync(id, hashedPassword);
+        }
+
+        public async Task<bool> ChangeUserRoleAsync(int userId, UserRole role)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                return false;
+
+            user.Role = role;
+            user.UpdatedAt = DateTime.UtcNow;
+            
+            return await _userRepository.UpdateAsync(user);
         }
 
         public async Task<bool> DeleteUserAsync(int id)

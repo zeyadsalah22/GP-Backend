@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.Models;
 
@@ -27,6 +28,8 @@ public partial class User
 
     public byte[] Rowversion { get; set; } = null!;
 
+    public UserRole Role { get; set; } = UserRole.User;
+
     public virtual ICollection<Interview> Interviews { get; set; } = new List<Interview>();
 
     public virtual ICollection<Resume> Resumes { get; set; } = new List<Resume>();
@@ -34,4 +37,6 @@ public partial class User
     public virtual ICollection<TodoList> TodoLists { get; set; } = new List<TodoList>();
 
     public virtual ICollection<UserCompany> UserCompanies { get; set; } = new List<UserCompany>();
+
+    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }

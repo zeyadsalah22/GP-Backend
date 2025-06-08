@@ -78,6 +78,16 @@ namespace GPBackend
                 };
             });
 
+            // Configure Authorization Policies
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AdminOnly", policy => 
+                    policy.RequireRole("Admin"));
+                
+                options.AddPolicy("UserOrAdmin", policy => 
+                    policy.RequireRole("User", "Admin"));
+            });
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
@@ -142,10 +152,17 @@ namespace GPBackend
             builder.Services.AddScoped<ITodoListService, TodoListService>();
             builder.Services.AddScoped<IInterviewService, InterviewService>();
             builder.Services.AddScoped<IInterviewQuestionService, InterviewQuestionService>();
+            builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+            
+            // Register repositories
+            builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             // builder.Services.AddHttpClient<IInterviewService, InterviewService>();
 
             // Register TokenBlacklistService as Singleton (persistence across requests)
             builder.Services.AddSingleton<ITokenBlacklistService, TokenBlacklistService>();
+            
+            // Register background services
+            builder.Services.AddHostedService<TokenCleanupService>();
 
             var app = builder.Build();
 
