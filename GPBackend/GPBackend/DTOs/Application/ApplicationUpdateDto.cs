@@ -19,6 +19,7 @@ namespace GPBackend.DTOs.Application
         
         public int? SubmittedCvId { get; set; }
         
+        [Range(0, 100, ErrorMessage = "ATS score must be between 0 and 100")]
         public int? AtsScore { get; set; }
         
         [StringLength(50, ErrorMessage = "Stage cannot exceed 50 characters")]

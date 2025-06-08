@@ -20,6 +20,7 @@ namespace GPBackend.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous] // Allow listing companies for all users
         public async Task<ActionResult<IEnumerable<CompanyResponseDto>>> GetAllCompanies([FromQuery] CompanyQueryDto queryDto)
         {
             var result = await _companyService.GetFilteredCompaniesAsync(queryDto);
@@ -48,6 +49,7 @@ namespace GPBackend.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult<CompanyResponseDto>> CreateCompany(CompanyCreateDto companyDto)
         {
             var createdCompany = await _companyService.CreateCompanyAsync(companyDto);
@@ -55,6 +57,7 @@ namespace GPBackend.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> UpdateCompany(int id, CompanyUpdateDto companyDto)
         {
             var result = await _companyService.UpdateCompanyAsync(id, companyDto);
@@ -67,6 +70,7 @@ namespace GPBackend.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> DeleteCompany(int id)
         {
             var result = await _companyService.DeleteCompanyAsync(id);

@@ -1,6 +1,7 @@
 using GPBackend.DTOs.Auth;
 using GPBackend.DTOs.User;
 using GPBackend.Models;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.Services.Interfaces
 {
@@ -16,6 +17,7 @@ namespace GPBackend.Services.Interfaces
         Task<IEnumerable<UserResponseDto>> GetAllUsersAsync();
         Task<bool> UpdateUserAsync(int id, UserUpdateDto userUpdateDto);
         Task<bool> ChangePasswordAsync(int id, string currentPassword, string newPassword);
+        Task<bool> ChangeUserRoleAsync(int userId, UserRole role);
         Task<bool> DeleteUserAsync(int id);
     }
 } 
