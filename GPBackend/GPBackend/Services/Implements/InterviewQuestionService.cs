@@ -61,7 +61,7 @@ namespace GPBackend.Services.Implements
             return _mapper.Map<List<InterviewQuestionResponseDto>>(interviewQuestions);
         }
 
-        public async Task<List<InterviewQuestionResponseDto>> GetInterviewQuestionsFromModelAsync(int applicationId, string jobDescription, string jobtitle)
+        public async Task<List<InterviewQuestionResponseDto>> GetInterviewQuestionsFromModelAsync(int applicationId, string jobDescription, string jobTitle)
         {
             // fetch questions from the model API
             var client = new HttpClient();
@@ -72,15 +72,20 @@ namespace GPBackend.Services.Implements
 
             if (application == null)
             {
-                if (jobDescription == null || jobtitle == null)
+                if (jobDescription == null || jobTitle == null)
                 {
                     throw new ArgumentException("Job description and title cannot be null when application is not found.");
                 }
                 response = await client.PostAsJsonAsync(ModelApiURL, new
                 {
                     description = jobDescription,
+                    // job_title = jobTitle,
                     num_questions = 3,
                 });
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception("Failed to fetch interview questions from the model API using job description and title.");
+                }
             }
             else
             {
@@ -91,13 +96,18 @@ namespace GPBackend.Services.Implements
                 response = await client.PostAsJsonAsync(ModelApiURL, new
                 {
                     description = application.Description,
+                    // job_title = application.JobTitle,
                     num_questions = 3,
                 });
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new Exception("Failed to fetch interview questions from the model API using application data.");
+                }
             }
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new Exception("Failed to fetch interview questions from the model API.");
-            }
+            // if (!response.IsSuccessStatusCode)
+            // {
+            //     throw new Exception("Failed to fetch interview questions from the model API.");
+            // }
 
             // var raw = await response.Content.ReadAsStringAsync();
             // Console.WriteLine(raw);
