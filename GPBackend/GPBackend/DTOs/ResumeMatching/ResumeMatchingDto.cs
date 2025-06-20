@@ -17,7 +17,8 @@ namespace GPBackend.DTOs.ResumeMatching
         public int AtsScore { get; set; }
         public DateTime TestDate { get; set; }
         public string JobDescription { get; set; }
-        public List<string> ExtractedSkills { get; set; }
+        public List<string> BestMatchingSkills { get; set; }
+        public List<string> MissingSkills { get; set; }
     }
 
     // DTOs for AI Model Communication
@@ -30,5 +31,26 @@ namespace GPBackend.DTOs.ResumeMatching
     internal class SkillMatchingResponseDto
     {
         public double Score { get; set; }
+        public List<string> BestMatchingSkills { get; set; }
+        public List<string> MissingSkills { get; set; }
+    }
+
+    public class ResumeTestListItemDto
+    {
+        public int TestId { get; set; }
+        public int ResumeId { get; set; }
+        public int AtsScore { get; set; }
+        public DateTime TestDate { get; set; }
+        public string JobDescription { get; set; }
+    }
+
+    public class ResumeTestDetailDto
+    {
+        public int TestId { get; set; }
+        public int ResumeId { get; set; }
+        public int AtsScore { get; set; }
+        public DateTime TestDate { get; set; }
+        public string JobDescription { get; set; }
+        public List<string> MissingSkills { get; set; }
     }
 } 
