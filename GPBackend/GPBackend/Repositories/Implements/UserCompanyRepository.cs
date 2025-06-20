@@ -82,12 +82,12 @@ namespace GPBackend.Repositories.Implements
         {
             return sortBy switch
             {
-                "CompanyName" => descending ? 
+                "name" => descending ? 
                     query.OrderByDescending(uc => uc.Company.Name) : 
                     query.OrderBy(uc => uc.Company.Name),
-                "UserName" => descending ? 
-                    query.OrderByDescending(uc => uc.User.Fname) : 
-                    query.OrderBy(uc => uc.User.Fname),
+                "location" => descending ? 
+                    query.OrderByDescending(uc => uc.Company.Location) : 
+                    query.OrderBy(uc => uc.Company.Location),
                 "CreatedAt" => descending ? 
                     query.OrderByDescending(uc => uc.CreatedAt) : 
                     query.OrderBy(uc => uc.CreatedAt),
