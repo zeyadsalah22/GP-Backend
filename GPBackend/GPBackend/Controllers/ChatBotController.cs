@@ -5,8 +5,11 @@ using Microsoft.AspNetCore.Authorization;
 using System.Text;
 using System.Text.Json;
 using GPBackend.DTOs.Chatbot;
+using GPBackend.DTOs.Application;
+using GPBackend.DTOs.Question;
 using System.Security.Claims;
 
+[Authorize(Policy = "AdminOnly")]
 [ApiController]
 [Route("api/chatbot")]
 public class ChatBotController : ControllerBase
@@ -41,10 +44,10 @@ public class ChatBotController : ControllerBase
         try
         {
             // Get user's applications and questions data from your database
-            var applicationsData = await _applicationService.GetAllApplicationsByUserIdAsync(userId);
-            var questionsData = await _questionService.GetAllQuestion(userId);
+            var applicationsData = await _applicationService.GetFilteredApplicationsAsync(userId, new ApplicationQueryDto { PageSize = 100 });
+            var questionsData = await _questionService.GetFilteredQuestionBasedOnQuery(userId, new QuestionQueryDto { PageSize = 100 });
 
-            if (applicationsData == null)
+            if (applicationsData.Items.Count == 0)
             {
                 return BadRequest("No applications found, please create an application first");
             }
