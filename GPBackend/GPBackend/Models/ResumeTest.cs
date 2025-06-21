@@ -9,7 +9,7 @@ public partial class ResumeTest
 
     public int ResumeId { get; set; }
 
-    public int AtsScore { get; set; }
+    public double AtsScore { get; set; }
 
     public DateTime TestDate { get; set; }
 

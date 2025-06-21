@@ -1,28 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Lenovo\\OneDrive - Egypt Japan University Of Science and Technology (E-JUST)\\Desktop\\EJUST\\GP - Senior year\\GPBackend\\GP-Backend\\GPBackend\\GPBackend\\GPBackend.csproj": {}
+    "D:\\UNI\\Semester 8\\Graduation Project 1\\Final 3\\GP-Backend\\GPBackend\\GPBackend\\GPBackend.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Lenovo\\OneDrive - Egypt Japan University Of Science and Technology (E-JUST)\\Desktop\\EJUST\\GP - Senior year\\GPBackend\\GP-Backend\\GPBackend\\GPBackend\\GPBackend.csproj": {
+    "D:\\UNI\\Semester 8\\Graduation Project 1\\Final 3\\GP-Backend\\GPBackend\\GPBackend\\GPBackend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Lenovo\\OneDrive - Egypt Japan University Of Science and Technology (E-JUST)\\Desktop\\EJUST\\GP - Senior year\\GPBackend\\GP-Backend\\GPBackend\\GPBackend\\GPBackend.csproj",
+        "projectUniqueName": "D:\\UNI\\Semester 8\\Graduation Project 1\\Final 3\\GP-Backend\\GPBackend\\GPBackend\\GPBackend.csproj",
         "projectName": "GPBackend",
-        "projectPath": "C:\\Users\\Lenovo\\OneDrive - Egypt Japan University Of Science and Technology (E-JUST)\\Desktop\\EJUST\\GP - Senior year\\GPBackend\\GP-Backend\\GPBackend\\GPBackend\\GPBackend.csproj",
-        "packagesPath": "C:\\Users\\Lenovo\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Lenovo\\OneDrive - Egypt Japan University Of Science and Technology (E-JUST)\\Desktop\\EJUST\\GP - Senior year\\GPBackend\\GP-Backend\\GPBackend\\GPBackend\\obj\\",
+        "projectPath": "D:\\UNI\\Semester 8\\Graduation Project 1\\Final 3\\GP-Backend\\GPBackend\\GPBackend\\GPBackend.csproj",
+        "packagesPath": "C:\\Users\\LENOVO\\.nuget\\packages\\",
+        "outputPath": "D:\\UNI\\Semester 8\\Graduation Project 1\\Final 3\\GP-Backend\\GPBackend\\GPBackend\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Lenovo\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\LENOVO\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -108,7 +105,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.303/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.411/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
