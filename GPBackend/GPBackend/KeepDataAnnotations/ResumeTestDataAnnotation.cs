@@ -23,7 +23,7 @@ namespace GPBackend.Models
 
         public DateTime TestDate { get; set; }
 
-        [StringLength(1000)]
+        [StringLength(4000)]
         public string? JobDescription { get; set; }
 
         public virtual Resume Resume { get; set; } = null!;
