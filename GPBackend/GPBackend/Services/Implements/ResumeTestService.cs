@@ -112,8 +112,8 @@ namespace GPBackend.Services.Implements
 
             if (aiAnalysis != null)
             {
-                // Update the ATS score
-                await _resumeTestMissingSkillsService.UpdateAtsScoreAsync(createdResumeTest.TestId, aiAnalysis.Score);
+                // Update the ATS score, no need to call database again
+                createdResumeTest.AtsScore = (int)aiAnalysis.ResumeScore;
 
                 // Store missing skills
                 if (aiAnalysis.MissingSkills != null && aiAnalysis.MissingSkills.Count > 0)
@@ -123,15 +123,15 @@ namespace GPBackend.Services.Implements
             }
 
             // Get the complete resume test with skills
-            var completeResumeTest = await _resumeTestRepository.GetResumeTestByIdAsync(createdResumeTest.TestId, userId);
-            if (completeResumeTest == null)
-            {
-                return null;
-            }
+            // var completeResumeTest = await _resumeTestRepository.GetResumeTestByIdAsync(createdResumeTest.TestId, userId);
+            // if (completeResumeTest == null)
+            // {
+            //     return null;
+            // }
 
             // Map to response DTO
-            var responseDto = _mapper.Map<ResumeTestResponseDto>(completeResumeTest);
-            responseDto.MissingSkills = completeResumeTest.Skills.Select(s => s.Skill1).ToList();
+            var responseDto = _mapper.Map<ResumeTestResponseDto>(createdResumeTest);
+            responseDto.MissingSkills = createdResumeTest.Skills.Select(s => s.Skill1).ToList();
 
             return responseDto;
         }

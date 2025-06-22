@@ -31,14 +31,34 @@ namespace GPBackend.Services.Implements
 
                 var requestData = new
                 {
-                    resume_file = resumeBase64,
-                    job_description = jobDescription
+                    file = resumeBase64,
+                    JobDescription = jobDescription
                 };
 
-                var response = await client.PostAsJsonAsync(ModelApiURL, requestData);
-                
+                // debug request data
+                Console.WriteLine($"Request Data: {JsonSerializer.Serialize(requestData)}");
+
+                // By default, System.Text.Json uses camelCase for property names when serializing anonymous types.
+                // To preserve PascalCase, use a custom JsonSerializerOptions with PropertyNamingPolicy = null.
+
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = null // Preserve property names as-is (PascalCase)
+                };
+
+                var jsonContent = new StringContent(
+                    JsonSerializer.Serialize(requestData, jsonOptions),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+
+                var response = await client.PostAsync(ModelApiURL, jsonContent);
+
                 if (!response.IsSuccessStatusCode)
                 {
+                    // Log the response content for debugging
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Error Response: {errorContent}");
                     throw new Exception($"Failed to fetch resume matching from the model API. Status: {response.StatusCode}");
                 }
 
@@ -52,8 +72,11 @@ namespace GPBackend.Services.Implements
                 }
 
                 // Convert double score to integer (0-100 range)
-                result.Score = ConvertDoubleToInteger(result.Score);
+                Console.WriteLine($"Raw Score: {result.ResumeScore}");
 
+                result.ResumeScore = ConvertDoubleToInteger(result.ResumeScore);
+
+                Console.WriteLine($"Converted Score: {result.ResumeScore}");
                 return result;
             }
             catch (TaskCanceledException)
@@ -152,7 +175,7 @@ namespace GPBackend.Services.Implements
 
             return new ResumeTestAIDto
             {
-                Score = resumeTest.AtsScore,
+                ResumeScore = resumeTest.AtsScore,
                 MissingSkills = missingSkills,
                 MatchingSkills = new List<string>() // Not stored in database, would need to be calculated
             };
@@ -161,7 +184,7 @@ namespace GPBackend.Services.Implements
         private int ConvertDoubleToInteger(double score)
         {
             // Round to nearest integer and ensure 0-100 range
-            return Math.Max(0, Math.Min(100, (int)Math.Round(score)));
+            return (int)(score * 100);
         }
     }
 } 
