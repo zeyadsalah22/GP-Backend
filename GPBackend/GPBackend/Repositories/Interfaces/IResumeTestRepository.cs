@@ -6,10 +6,18 @@ namespace GPBackend.Repositories.Interfaces
 {
     public interface IResumeTestRepository
     {
-        Task<ResumeTest?> GetByIdAsync(int testId, int userId); // choose a specific test
-        Task<IEnumerable<ResumeTest>> GetAllByUserIdAsync(int userId); // get all tests for a user
-        Task<PagedResult<ResumeTest>> GetFilteredResumeTestsAsync(int userId, ResumeTestQueryDto queryDto); // get tests with filters
-        Task<ResumeTest> CreateAsync(ResumeTest resumeTest); // create a test
-        Task<bool> DeleteAsync(int testId, int userId); // userId for validation
+        Task<IEnumerable<ResumeTest>> GetAllResumeTestsAsync(int userId); 
+
+        Task<PagedResult<ResumeTest>> GetFilteredResumeTestAsync(int userId, ResumeTestQueryDto resumeTestQueryDto); 
+
+        Task<ResumeTest?> GetResumeTestByIdAsync(int testId, int userId); // more restricted users only
+
+        // Task<ResumeTest?> GetResumeTestByIdAsync(int testId); // more general access (admin users)
+
+        Task<ResumeTest> CreateResumeTestAsync(ResumeTest resumeTest);
+        
+        Task<bool> DeleteResumeTestAsync(int testId, int userId);
+
+        Task<bool> UpdateResumeTestAsync(ResumeTest resumeTest);
     }
 } 

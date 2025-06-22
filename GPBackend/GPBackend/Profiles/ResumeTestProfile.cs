@@ -10,8 +10,7 @@ namespace GPBackend.Profiles
         {
             // ResumeTest mappings
             CreateMap<ResumeTest, ResumeTestResponseDto>()
-                .ForMember(dest => dest.MissingSkills, opt => opt.Ignore())
-                .ForMember(dest => dest.MatchingSkills, opt => opt.Ignore());
+                .ForMember(dest => dest.MissingSkills, opt => opt.Ignore()); // Will be populated manually
 
             CreateMap<ResumeTestCreateDto, ResumeTest>()
                 .ForMember(dest => dest.TestId, opt => opt.Ignore())

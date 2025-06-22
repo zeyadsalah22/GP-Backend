@@ -1,8 +1,10 @@
 using GPBackend.DTOs.Common;
 using GPBackend.DTOs.ResumeTest;
+using GPBackend.DTOs.Skill;
 using GPBackend.Models;
 using GPBackend.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace GPBackend.Repositories.Implements
 {
@@ -15,16 +17,7 @@ namespace GPBackend.Repositories.Implements
             _context = context;
         }
 
-        public async Task<ResumeTest?> GetByIdAsync(int testId, int userId)
-        {
-            return await _context.ResumeTests
-                .Include(rt => rt.Resume)
-                .Include(rt => rt.Skills)
-                .Where(rt => rt.TestId == testId && rt.Resume.UserId == userId)
-                .FirstOrDefaultAsync();
-        }
-
-        public async Task<IEnumerable<ResumeTest>> GetAllByUserIdAsync(int userId)
+        public async Task<IEnumerable<ResumeTest>> GetAllResumeTestsAsync(int userId)
         {
             return await _context.ResumeTests
                 .Include(rt => rt.Resume)
@@ -33,8 +26,8 @@ namespace GPBackend.Repositories.Implements
                 .OrderByDescending(rt => rt.TestDate)
                 .ToListAsync();
         }
-
-        public async Task<PagedResult<ResumeTest>> GetFilteredResumeTestsAsync(int userId, ResumeTestQueryDto queryDto)
+       
+        public async Task<PagedResult<ResumeTest>> GetFilteredResumeTestAsync(int userId, ResumeTestQueryDto resumeTestQueryDto)
         {
             var query = _context.ResumeTests
                 .Include(rt => rt.Resume)
@@ -42,68 +35,146 @@ namespace GPBackend.Repositories.Implements
                 .Where(rt => rt.Resume.UserId == userId);
 
             // Apply filters
-            if (queryDto.ResumeId.HasValue)
+
+            if (resumeTestQueryDto.ResumeId.HasValue) // Filter by specific resume
             {
-                query = query.Where(rt => rt.ResumeId == queryDto.ResumeId.Value);
+                query = query.Where(rt => rt.ResumeId == resumeTestQueryDto.ResumeId.Value);
             }
 
-            if (queryDto.FromDate.HasValue)
+            /*
+            if (!string.IsNullOrWhiteSpace(resumeTestQueryDto.JobDescription)) // Filter by job description
             {
-                query = query.Where(rt => rt.TestDate >= queryDto.FromDate.Value);
+                query = query.Where(rt => rt.JobDescription != null && rt.JobDescription.Contains(resumeTestQueryDto.JobDescription));
+            }
+            */
+
+            if (resumeTestQueryDto.TestDate.HasValue) // Filter by date
+            {
+                query = query.Where(rt => rt.TestDate >= resumeTestQueryDto.TestDate.Value);
+            }
+            
+            /*
+            if (resumeTestQueryDto.ATSScore.HasValue)
+            {
+                query = query.Where(rt => rt.AtsScore >= resumeTestQueryDto.ATSScore.Value);
             }
 
-            if (queryDto.ToDate.HasValue)
+            if (resumeTestQueryDto.MaxScore.HasValue)
             {
-                query = query.Where(rt => rt.TestDate <= queryDto.ToDate.Value);
+                query = query.Where(rt => rt.AtsScore <= resumeTestQueryDto.MaxScore.Value);
+            }
+            */
+
+            if (resumeTestQueryDto.AtsScore.HasValue) // Filter by score
+            {
+                query = query.Where(rt => rt.AtsScore >= resumeTestQueryDto.AtsScore.Value);
             }
 
-            if (queryDto.MinScore.HasValue)
+            /*
+            // Apply search term filter
+            if (!string.IsNullOrWhiteSpace(resumeTestQueryDto.SearchTerm))
             {
-                query = query.Where(rt => rt.AtsScore >= queryDto.MinScore.Value);
+                var searchTerm = resumeTestQueryDto.SearchTerm.ToLower();
+                query = query.Where(rt => 
+                    (rt.JobDescription != null && rt.JobDescription.ToLower().Contains(searchTerm)) ||
+                    rt.AtsScore.ToString().Contains(searchTerm) ||
+                    rt.TestDate.ToString().Contains(searchTerm)
+                );
+            }
+            */
+
+            // Apply sorting
+            if (!string.IsNullOrWhiteSpace(resumeTestQueryDto.SortBy))
+            {
+                query = ApplySorting(query, resumeTestQueryDto.SortBy, resumeTestQueryDto.SortDescending);
+            }
+            else
+            {
+                // Default sorting by start date descending
+                query = query.OrderByDescending(rt => rt.TestDate);
             }
 
-            if (queryDto.MaxScore.HasValue)
+            /*
+            query = resumeTestQueryDto.SortBy?.ToLower() switch
             {
-                query = query.Where(rt => rt.AtsScore <= queryDto.MaxScore.Value);
-            }
-
-            // Get total count
-            var totalCount = await query.CountAsync();
+                "atsScore" => resumeTestQueryDto.SortDescending ? query.OrderByDescending(rt => rt.AtsScore) : query.OrderBy(rt => rt.AtsScore),
+                "jobDescription" => resumeTestQueryDto.SortDescending ? query.OrderByDescending(rt => rt.JobDescription) : query.OrderBy(rt => rt.JobDescription),
+                "resumeId" => resumeTestQueryDto.SortDescending ? query.OrderByDescending(rt => rt.ResumeId) : query.OrderBy(rt => rt.ResumeId),
+                _ => resumeTestQueryDto.SortDescending ? query.OrderByDescending(rt => rt.TestDate) : query.OrderBy(rt => rt.TestDate)
+            };
+            */
 
             // Apply pagination
-            var items = await query
-                .OrderByDescending(rt => rt.TestDate)
-                .Skip((queryDto.PageNumber - 1) * queryDto.PageSize)
-                .Take(queryDto.PageSize)
+            int totalCount = await query.CountAsync();
+            var tests = await query
+                .Skip((resumeTestQueryDto.PageNumber - 1) * resumeTestQueryDto.PageSize)
+                .Take(resumeTestQueryDto.PageSize)
                 .ToListAsync();
 
             return new PagedResult<ResumeTest>
             {
-                Items = items,
+                Items = tests,
                 TotalCount = totalCount,
-                PageSize = queryDto.PageSize,
-                PageNumber = queryDto.PageNumber
+                PageSize = resumeTestQueryDto.PageSize,
+                PageNumber = resumeTestQueryDto.PageNumber
             };
         }
 
-        public async Task<ResumeTest> CreateAsync(ResumeTest resumeTest)
+
+        public async Task<ResumeTest?> GetResumeTestByIdAsync(int testId, int userId)
+        {
+            return await _context.ResumeTests
+                .Include(rt => rt.Resume)
+                .Include(rt => rt.Skills)
+                .FirstOrDefaultAsync(rt => rt.TestId == testId && rt.Resume.UserId == userId); // also check if isDeleted
+             
+        }
+
+        public async Task<ResumeTest> CreateResumeTestAsync(ResumeTest resumeTest)
         {
             _context.ResumeTests.Add(resumeTest);
             await _context.SaveChangesAsync();
             return resumeTest;
         }
 
-        public async Task<bool> DeleteAsync(int testId, int userId)
+        public async Task<bool> UpdateResumeTestAsync(ResumeTest resumeTest)
         {
-            var resumeTest = await GetByIdAsync(testId, userId);
+            try
+            {
+                _context.ResumeTests.Update(resumeTest);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteResumeTestAsync(int testId, int userId)
+        {
+            var resumeTest = await GetResumeTestByIdAsync(testId, userId);
             if (resumeTest == null)
             {
                 return false;
             }
-
+            
             _context.ResumeTests.Remove(resumeTest);
-            await _context.SaveChangesAsync();
-            return true;
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        private IQueryable<ResumeTest> ApplySorting(IQueryable<ResumeTest> query, string sortBy, bool sortDescending)
+        {
+            Expression<Func<ResumeTest, object>> keySelector = sortBy.ToLower() switch
+            {
+                "testDate" => rt => rt.TestDate,    
+                "atsScore" => rt => rt.AtsScore,
+                "resumeId" => rt => rt.ResumeId,
+                
+
+                _ => rt => rt.TestDate // Default sorting by test start date
+            };
+            return sortDescending ? query.OrderByDescending(keySelector) : query.OrderBy(keySelector);
         }
     }
 } 

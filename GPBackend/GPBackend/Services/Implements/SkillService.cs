@@ -19,7 +19,7 @@ namespace GPBackend.Services.Implements
         public async Task<SkillResponseDto?> CreateSkillAsync(int userId, SkillCreateDto createDto)
         {
             // Verify that the test belongs to the user
-            var resumeTest = await _resumeTestRepository.GetByIdAsync(createDto.TestId, userId);
+            var resumeTest = await _resumeTestRepository.GetResumeTestByIdAsync(createDto.TestId, userId);
             if (resumeTest == null)
             {
                 return null; // Test not found or doesn't belong to the user
@@ -57,7 +57,7 @@ namespace GPBackend.Services.Implements
             }
 
             // Verify that the test belongs to the user
-            var resumeTest = await _resumeTestRepository.GetByIdAsync(skill.TestId, userId);
+            var resumeTest = await _resumeTestRepository.GetResumeTestByIdAsync(skill.TestId, userId);
             if (resumeTest == null)
             {
                 return null; // Test not found or doesn't belong to the user
@@ -90,7 +90,7 @@ namespace GPBackend.Services.Implements
             }
 
             // Verify that the test belongs to the user
-            var resumeTest = await _resumeTestRepository.GetByIdAsync(skill.TestId, userId);
+            var resumeTest = await _resumeTestRepository.GetResumeTestByIdAsync(skill.TestId, userId);
             if (resumeTest == null)
             {
                 return false; // Test not found or doesn't belong to the user
