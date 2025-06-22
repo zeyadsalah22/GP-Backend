@@ -163,6 +163,9 @@ namespace GPBackend
             // Register TokenBlacklistService as Singleton (persistence across requests)
             builder.Services.AddSingleton<ITokenBlacklistService, TokenBlacklistService>();
             
+            // Register HttpClient for ChatBotController
+            builder.Services.AddHttpClient();
+            
             // Register background services
             builder.Services.AddHostedService<TokenCleanupService>();
 
