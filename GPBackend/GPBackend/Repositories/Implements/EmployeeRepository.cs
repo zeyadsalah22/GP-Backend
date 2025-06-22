@@ -27,7 +27,7 @@ namespace GPBackend.Repositories.Implements
             // Apply search filter
             if (!string.IsNullOrWhiteSpace(queryDto.Search))
             {
-                query = query.Where(e => 
+                query = query.Where(e =>
                     e.Name.Contains(queryDto.Search) ||
                     (e.JobTitle != null && e.JobTitle.Contains(queryDto.Search)) ||
                     (e.Contacted != null && e.Contacted.Contains(queryDto.Search)));
@@ -42,39 +42,11 @@ namespace GPBackend.Repositories.Implements
             // Apply sorting
             if (!string.IsNullOrWhiteSpace(queryDto.SortBy))
             {
-                // Normalize the sort field name
-                string sortBy = char.ToUpper(queryDto.SortBy[0]) + queryDto.SortBy.Substring(1).ToLower();
-                
-                // Apply appropriate sorting based on property name
-                switch (sortBy)
-                {
-                    case "Name":
-                        query = queryDto.SortDescending 
-                            ? query.OrderByDescending(e => e.Name)
-                            : query.OrderBy(e => e.Name);
-                        break;
-                    case "JobTitle":
-                        query = queryDto.SortDescending 
-                            ? query.OrderByDescending(e => e.JobTitle)
-                            : query.OrderBy(e => e.JobTitle);
-                        break;
-                    case "CreatedAt":
-                        query = queryDto.SortDescending 
-                            ? query.OrderByDescending(e => e.CreatedAt)
-                            : query.OrderBy(e => e.CreatedAt);
-                        break;
-                    case "Email":
-                        query = queryDto.SortDescending 
-                            ? query.OrderByDescending(e => e.Email)
-                            : query.OrderBy(e => e.Email);
-                        break;
-                    default:
-                        query = query.OrderByDescending(e => e.CreatedAt);
-                        break;
-                }
+                query = ApplySorting(query, queryDto.SortBy, queryDto.SortDescending);
             }
             else
             {
+                // Default sorting by CreatedAt if no sortBy is specified
                 query = query.OrderByDescending(e => e.CreatedAt);
             }
 
@@ -115,7 +87,7 @@ namespace GPBackend.Repositories.Implements
         {
             _context.Employees.Add(employee);
             await _context.SaveChangesAsync();
-            
+
             // Reload the employee with UserCompany and Company data
             return await _context.Employees
                 .Include(e => e.UserCompany)
@@ -166,9 +138,9 @@ namespace GPBackend.Repositories.Implements
 
             // Check if all employee IDs exist and belong to the same company and user
             var validEmployeeCount = await _context.Employees
-                .CountAsync(e => employeeIds.Contains(e.EmployeeId) && 
-                               e.UserId == userId && 
-                               e.CompanyId == companyId && 
+                .CountAsync(e => employeeIds.Contains(e.EmployeeId) &&
+                               e.UserId == userId &&
+                               e.CompanyId == companyId &&
                                !e.IsDeleted);
 
             return validEmployeeCount == employeeIds.Count;
@@ -238,6 +210,21 @@ namespace GPBackend.Repositories.Implements
             {
                 return false;
             }
+        }
+
+        private IQueryable<Employee> ApplySorting(IQueryable<Employee> query, string sortBy, bool sortDescending)
+        {
+            Expression<Func<Employee, object>> keySelector = sortBy.ToLower() switch
+            {
+                "email" => e => e.Email,
+                "name" => e => e.Name,
+                "createdat" => e => e.CreatedAt,
+                "updatedat" => e => e.UpdatedAt,
+                "companyname" => e => e.UserCompany.Company.Name,
+                "jobtitle" => e => e.JobTitle,
+                _ => e => e.CreatedAt // Default sorting by created at
+            };
+            return sortDescending ? query.OrderByDescending(keySelector) : query.OrderBy(keySelector);
         }
     }
 } 
