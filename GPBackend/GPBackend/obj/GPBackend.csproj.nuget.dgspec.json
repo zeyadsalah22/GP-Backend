@@ -1,24 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\E-JUST\\Grad proj\\GP-Backend\\GPBackend\\GPBackend\\GPBackend.csproj": {}
+    "D:\\UNI\\Semester 8\\Graduation Project 1\\Final 3\\GP-Backend\\GPBackend\\GPBackend\\GPBackend.csproj": {}
   },
   "projects": {
-    "C:\\E-JUST\\Grad proj\\GP-Backend\\GPBackend\\GPBackend\\GPBackend.csproj": {
+    "D:\\UNI\\Semester 8\\Graduation Project 1\\Final 3\\GP-Backend\\GPBackend\\GPBackend\\GPBackend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\E-JUST\\Grad proj\\GP-Backend\\GPBackend\\GPBackend\\GPBackend.csproj",
+        "projectUniqueName": "D:\\UNI\\Semester 8\\Graduation Project 1\\Final 3\\GP-Backend\\GPBackend\\GPBackend\\GPBackend.csproj",
         "projectName": "GPBackend",
-        "projectPath": "C:\\E-JUST\\Grad proj\\GP-Backend\\GPBackend\\GPBackend\\GPBackend.csproj",
-        "packagesPath": "C:\\Users\\LEGION\\.nuget\\packages\\",
-        "outputPath": "C:\\E-JUST\\Grad proj\\GP-Backend\\GPBackend\\GPBackend\\obj\\",
+        "projectPath": "D:\\UNI\\Semester 8\\Graduation Project 1\\Final 3\\GP-Backend\\GPBackend\\GPBackend\\GPBackend.csproj",
+        "packagesPath": "C:\\Users\\LENOVO\\.nuget\\packages\\",
+        "outputPath": "D:\\UNI\\Semester 8\\Graduation Project 1\\Final 3\\GP-Backend\\GPBackend\\GPBackend\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\LEGION\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config"
+          "C:\\Users\\LENOVO\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -41,8 +37,7 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "9.0.200"
+        }
       },
       "frameworks": {
         "net8.0": {
@@ -110,7 +105,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.205/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.411/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

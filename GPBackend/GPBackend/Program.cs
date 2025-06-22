@@ -135,10 +135,9 @@ namespace GPBackend
             builder.Services.AddScoped<ITodoListRepository, TodoListRepository>();
             builder.Services.AddScoped<IInterviewRepository, InterviewRepository>();
             builder.Services.AddScoped<IInterviewQuestionRepository, InterviewQuestionRepository>();
+            builder.Services.AddScoped<IResumeTestRepository, ResumeTestRepository>();
+            builder.Services.AddScoped<ISkillRepository, SkillRepository>();
 
-            
-
-            
             // Register services
             builder.Services.AddScoped<IJwtService, JwtService>();
             builder.Services.AddScoped<IUserService, UserService>();
@@ -153,6 +152,9 @@ namespace GPBackend
             builder.Services.AddScoped<IInterviewService, InterviewService>();
             builder.Services.AddScoped<IInterviewQuestionService, InterviewQuestionService>();
             builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+            builder.Services.AddScoped<IResumeTestService, ResumeTestService>();
+            builder.Services.AddScoped<IResumeTestMissingSkillsService, ResumeTestMissingSkillsService>();
+            builder.Services.AddScoped<ISkillService, SkillService>();
             
             // Register repositories
             builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();

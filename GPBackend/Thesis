@@ -18,11 +18,126 @@
 \newpage
 
 \chapter{Introduction}
+
 \section{Background and Motivation}
+
+The global job market continues to evolve rapidly due to automation, remote work trends, and an increasingly competitive pool of job applicants. Yet, this transformation has also led to increased stress, disorientation, and inefficiency in the job search process.
+
+According to a comprehensive report by \textit{Jobvite (2021)}, over \textbf{70\% of job seekers} report the interview process as being overly stressful, with nearly \textbf{65\% stating they never receive feedback} after applying. The same report indicates that \textbf{88\% of applications} are filtered out by ATS (Applicant Tracking Systems) before reaching a human recruiter.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\linewidth]{images/interview-stats.png}
+  \caption{Interview Process Statistics (Source: \href{https://novoresume.com/career-blog/interview-statistics}{Novoresume})}
+\end{figure}
+
+In Egypt, youth unemployment remains a major issue. The World Bank's report in 2023 noted that the youth unemployment rate in Egypt exceeded \textbf{24\%}, with graduates citing lack of job-readiness, interview anxiety, and resume mismatches as key barriers.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{images/egypt-unemployment.png}
+  \caption{Youth Unemployment Rate in Egypt (Source: \href{https://www.macrotrends.net/countries/EGY/egypt/youth-unemployment-rate}{Macrotrends})}
+\end{figure}
+
+From personal testimonials shared on platforms like Reddit's \textit{r/jobs} and LinkedIn, many candidates express confusion over why they fail to pass interviews despite strong technical backgrounds. A common theme is the lack of mock interview preparation, ineffective resumes, and difficulty understanding job descriptions' exact requirements.
+
 \section{Problem Definition}
+
+Despite the widespread availability of online job boards, career resources, and resume builders, job seekers around the world continue to face persistent and overwhelming challenges in securing employment. These challenges stem from both technological systems and human resource practices that create barriers instead of providing support. In this section, we elaborate on the main issues facing job applicants today.
+
+\subsubsection{Automated Rejections and the Role of ATS (Applicant Tracking Systems)}
+
+Applicant Tracking Systems (ATS) have become a major hurdle for job applicants. Research indicates that more than \textbf{75\% of resumes} are never seen by human eyes due to ATS filters \cite{jobscan2024}. These systems often screen out candidates due to formatting issues, lack of specific keywords, or algorithmic biases.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{images/ats-rejection.png}
+  \caption{Percentage of Resumes Rejected by ATS (Source: \href{https://www.topresume.com/career-advice/why-youre-not-getting-hired}{TopResume})}
+\end{figure}
+
+This problem is worsened by the lack of feedback. According to a 2021 \textit{Greenhouse Hiring Report}, \textbf{63\% of job applicants never hear back} after applying, leaving them confused and demotivated.
+
+\subsubsection{Interview Preparation Challenges and Anxiety}
+
+Interviews are one of the most anxiety-inducing parts of the job process. A report by Novoresume shows that \textbf{93\% of candidates experience interview anxiety}, with a major cause being unfamiliarity with the format or nature of the questions asked \cite{novoresume2023}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\linewidth]{images/interview-stats.png}
+  \caption{Interview Process Statistics (Source: \href{https://novoresume.com/career-blog/interview-statistics}{Novoresume})}
+\end{figure}
+
+Generic question sets found online are not aligned with specific job descriptions. As a result, candidates practice ineffectively, which leads to poor performance in technical or situational interviews.
+
+\subsubsection{Resume Mismatches and Lack of Optimization}
+
+One of the primary reasons for candidate rejection is misalignment between the resume content and the job description. Studies show that recruiters spend only \textbf{6-8 seconds} scanning a resume \cite{ladders2018}. Therefore, if the resume is not well-structured, targeted, and optimized for the specific job, it is likely to be ignored.
+
+Furthermore, in Egypt, where youth unemployment hovers above \textbf{24\%} \cite{macrotrends2024}, graduates often lack the guidance needed to tailor resumes to market expectations.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\linewidth]{images/egypt-unemployment.png}
+  \caption{Youth Unemployment Rate in Egypt (Source: \href{https://www.macrotrends.net/countries/EGY/egypt/youth-unemployment-rate}{Macrotrends})}
+\end{figure}
+
+\subsubsection{Lack of Feedback and Transparency in the Hiring Process}
+
+Job applicants frequently report the absence of actionable feedback after submitting applications or attending interviews. In a 2022 survey by Jobvite, only \textbf{7\% of rejected candidates} said they received feedback that helped them improve for future interviews.
+
+Many candidates, particularly recent graduates, are left uncertain about where they failed — whether in the resume screening, interview phase, or even during the application form submission.
+
+\subsubsection{Scattered Job Application Management and Tracking}
+
+One overlooked yet critical challenge is the difficulty in managing multiple job applications. Applicants often apply to hundreds of jobs across various platforms (e.g., LinkedIn, Glassdoor, company portals), but lack a centralized system to track:
+
+\begin{itemize}
+  \item Application dates
+  \item Status updates (interview scheduled, rejected, no response)
+  \item Personal notes and follow-ups
+\end{itemize}
+
+A LinkedIn Career Report revealed that job seekers apply to an average of \textbf{30 to 50 positions per month}, often without any structured method to track them \cite{linkedinreport2023}. This not only leads to missed opportunities but also hinders preparation and timely follow-ups.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.85\linewidth]{images/job-tracking-stats.png}
+  \caption{Job Tracking Difficulties Among Applicants (Source: \href{https://www.linkedin.com/pulse/top-job-search-frustrations-how-overcome-them/}{LinkedIn Career Insights})}
+\end{figure}
+
+
+
 \section{Project Objectives}
+
+Our project seeks to solve the above challenges through the following objectives:
+
+\begin{itemize}
+  \item Automate generation of technical interview questions tailored to specific job roles using advanced AI models.
+  \item Match resumes to job descriptions using natural language processing to highlight gaps and suggest improvements.
+  \item Build a centralized, structured platform where candidates can track job applications, store notes, and receive real-time AI support.
+\end{itemize}
+
 \section{Overview of the Proposed System}
-\section{Thesis Structure}
+
+Our AI-Powered Career Coaching Platform consists of two main components:
+
+\begin{itemize}
+  \item \textbf{AI-Powered Features:}
+  \begin{itemize}
+    \item \textbf{Technical Interview Question Generation:} Leveraging language models like GPT-4 to generate job-specific questions.
+    \item \textbf{Resume Matching:} NLP-based analysis to parse resumes and job descriptions, score matches, and identify gaps.
+  \end{itemize}
+
+  \item \textbf{Web-Based Application:}
+  \begin{itemize}
+    \item Built with ASP.NET Core (backend) and React (frontend) using a modular architecture.
+    \item Features include job application tracking, mock interviews, resume uploading and feedback, notification system, and admin management panel.
+  \end{itemize}
+\end{itemize}
+
+By integrating AI with a structured web interface, our system provides a holistic solution that not only automates key steps in the job search process but also personalizes the journey for each user. This addresses the market need for intelligent, accessible, and centralized career tools.
+
+
 
 \chapter{Literature Review}
 \section{Related Work in Career Coaching Tools}
@@ -178,6 +293,54 @@ The system architecture incorporates several established design patterns and pri
     \item \textbf{Single Responsibility Principle}: Each class and component has a single, well-defined purpose
 \end{itemize}
 This architectural design ensures the system is maintainable, scalable, and follows industry best practices for modern web application development.
+
+\subsection{Security and Role-Based Authentication Feature Implementation}
+
+The Security and Role-Based Authentication feature implements comprehensive user authentication, authorization, and session management for the AI-Powered Career Coaching Platform. The system utilizes JWT-based stateless authentication with refresh token rotation, role-based access control, and automated token management through frontend interceptors.
+
+\subsubsection{Authentication Architecture}
+
+\paragraph{JWT Token Strategy}
+The authentication system employs a dual-token approach with short-lived access tokens (15-minute expiration) and long-lived refresh tokens (7-day expiration). Access tokens contain user identity, role claims, and authorization data, digitally signed using HMAC-SHA256. Refresh tokens are cryptographically secure 64-byte values that enable automatic token rotation, where each refresh operation invalidates the previous token and issues a new pair.
+
+\paragraph{Role-Based Access Control}
+The platform implements RBAC with two primary roles: User (default with standard permissions) and Admin (elevated privileges). Role claims are automatically injected into JWT tokens during authentication. Administrative functions including user management, role assignment, and company CRUD operations are restricted to Admin users through ASP.NET Core's authorization policies.
+
+\paragraph{Security Measures}
+Token security includes Bearer token transmission, comprehensive validation (signature, expiration, claims), token blacklisting for secure logout, and background cleanup services for expired tokens. The system maintains audit trails for authentication events and implements single-use refresh token consumption.
+
+\subsubsection{Authentication Flow}
+
+The authentication system implements a multi-stage flow integrating frontend user experience with backend security. Figure \ref{fig:auth_flow} illustrates the complete workflow from initial login through automatic token refresh and logout scenarios.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{auth_diagram.png}
+    \caption{Complete Authentication and Token Management Flow}
+    \label{fig:auth_flow}
+\end{figure}
+
+The flow encompasses three main scenarios: initial login with credential validation and token generation, transparent protected resource access through HTTP interceptors, and automatic token refresh when access tokens expire. Failed refresh operations trigger secure logout with token cleanup and user redirection.
+
+\subsubsection{Frontend Integration}
+
+\paragraph{State Management}
+Frontend authentication utilizes browser local storage for token persistence and combines Zustand for global state with React Query for server state management. The system maintains user information, authentication status, and implements reactive updates across components.
+
+\paragraph{Route Protection}
+Protected routes use React Router with custom authentication guards that evaluate user status and role permissions. The system implements automatic redirection for unauthorized users while preserving intended destinations for post-authentication navigation.
+
+\paragraph{HTTP Client Configuration}
+Axios interceptors handle authentication header injection and automatic token refresh. Request interceptors attach access tokens while response interceptors detect authentication failures and trigger refresh procedures transparently, ensuring seamless user experience.
+
+\subsubsection{Backend Services}
+
+\paragraph{Authentication Services}
+The backend implements dedicated services for JWT operations (generation, validation, management), refresh token lifecycle (creation, rotation, cleanup), and user authentication (credential validation, password verification, audit logging). Services maintain separation of concerns while coordinating authentication workflows.
+
+\paragraph{Database Integration}
+The database schema includes dedicated tables for user authentication and refresh token storage with appropriate indexing and constraints. Password storage uses industry-standard hashing with unique salts, while refresh tokens include comprehensive metadata for lifecycle management and security auditing.
+
 \subsection{Applications Tracking feature Implementation}
 
 The Applications Tracking feature implementation encompasses a multi-entity system that provides comprehensive job application monitoring capabilities through interconnected data models, analytical dashboard components, and sophisticated query mechanisms. The implementation leverages Entity Framework Core's advanced features for complex relationship management and implements custom aggregation logic for real-time analytics.
@@ -280,7 +443,95 @@ The application tracking interface coordinates state across multiple specialized
 The form validation system implements both client-side immediate feedback and server-side validation integration, providing comprehensive error handling and user guidance throughout the application creation and modification process.
 
 This technical implementation provides a robust foundation for comprehensive application tracking with real-time analytics, advanced querying capabilities, and seamless integration between multiple related entities within the job search workflow.
-\subsection{Mock Interviews feature Implementation}
+\subsection{Mock Interviews Feature Implementation}
+
+The Mock Interviews feature provides comprehensive interview preparation capabilities through AI-generated questions, real-time speech recognition, and session management. The implementation integrates a microservice architecture for AI model deployment with traditional web application components, enabling dynamic question generation based on job requirements and automated answer transcription through browser-based speech recognition APIs.
+
+\subsubsection{System Architecture and AI Integration}
+
+\paragraph{Microservice Architecture}
+The mock interview system employs a distributed architecture where the AI question generation model operates as an independent microservice deployed on \texttt{localhost:8000}. This separation enables scalable model deployment, independent versioning, and resource optimization for computationally intensive AI operations. The main ASP.NET Core application communicates with the AI service through RESTful HTTP requests, maintaining loose coupling between the web application and machine learning components.
+
+The \texttt{InterviewQuestionService} implements the integration layer, managing HTTP communications with the AI microservice through the \texttt{/generate-questions} endpoint. The service handles request serialization, response parsing, and error management for AI model interactions while maintaining consistent interfaces with the main application architecture.
+
+\paragraph{Entity Relationship Design}
+The mock interview system implements a multi-entity data model with the \texttt{Interview} entity serving as the central aggregate root. Each interview maintains relationships with \texttt{User}, \texttt{Application}, and \texttt{Company} entities, enabling contextual question generation based on specific job applications or manual job descriptions. The \texttt{InterviewQuestion} entity implements a one-to-many relationship with interviews, storing generated questions alongside user responses and metadata.
+
+The database schema supports flexible interview creation through optional \texttt{ApplicationId} references, allowing users to create interviews either from existing job applications or by providing manual job descriptions and positions. This design accommodates various user workflows while maintaining referential integrity and data consistency.
+
+\paragraph{Question Generation Integration}
+The AI integration process utilizes job descriptions and position titles to generate contextually relevant interview questions. The \texttt{GetInterviewQuestionsFromModelAsync} method orchestrates the communication with the AI microservice, sending structured requests containing job descriptions and receiving arrays of generated questions. The implementation handles both application-based and manual job description scenarios, ensuring consistent question generation regardless of the interview creation method.
+
+Error handling mechanisms include comprehensive validation of AI service responses, timeout management for network communications, and fallback procedures for service unavailability. The system maintains audit trails for AI service interactions, supporting performance monitoring and debugging capabilities.
+
+\subsubsection{Interview Session Management}
+
+The interview session workflow encompasses creation, execution, and completion phases, each implementing specific business logic and data management requirements. Figure \ref{fig:mock_interview_flow} illustrates the complete process flow from interview creation through AI question generation to session completion with speech recognition integration.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{mock_interview_diagram.png}
+    \caption{Mock Interview Process Flow with AI Integration and Speech Recognition}
+    \label{fig:mock_interview_flow}
+\end{figure}
+
+\paragraph{Interview Creation Process}
+The interview creation process begins with input validation through custom validation attributes that ensure either \texttt{ApplicationId} is provided or both \texttt{Position} and \texttt{JobDescription} are supplied. The \texttt{InterviewValidationAttribute} implements comprehensive validation logic that accommodates different interview creation scenarios while maintaining data integrity requirements.
+
+Upon successful validation, the system creates the interview record in the database and immediately triggers the AI question generation process. The \texttt{CreateInterviewAsync} method coordinates between interview creation, AI service invocation, and question storage, ensuring atomic operations through appropriate transaction management. Generated questions are automatically associated with the created interview and returned as part of the response payload.
+
+\paragraph{Session State Management}
+Interview sessions maintain state information including start times, duration tracking, and completion status. The system implements optimistic concurrency control through entity versioning, preventing data corruption during concurrent session updates. Session metadata supports analytics and reporting capabilities, enabling analysis of interview patterns and user engagement metrics.
+
+The \texttt{InterviewUpdateDto} enables session updates with answer submissions, feedback recording, and duration tracking. The update process validates user ownership, maintains audit trails, and supports partial updates for incremental answer submission during interview sessions.
+
+\subsubsection{Speech Recognition Implementation}
+
+\paragraph{Browser-Based Speech Recognition}
+The frontend implements speech recognition through the Web Speech API, specifically utilizing \texttt{webkitSpeechRecognition} for cross-browser compatibility. The \texttt{SpeechToTextRecorder} component provides a reusable interface for speech-to-text conversion with configurable parameters for language selection, continuous recognition, and interim result processing.
+
+The implementation handles browser compatibility detection, gracefully degrading functionality for unsupported browsers while providing clear user feedback. Recognition parameters include continuous listening mode for natural conversation flow and interim results processing for real-time transcript updates during speech input.
+
+\paragraph{Transcript Processing and Management}
+The speech recognition system processes audio input through event-driven callbacks that distinguish between interim and final recognition results. Final transcripts are captured and stored locally before transmission to the backend for persistent storage. The system implements automatic transcript cleanup and reset capabilities for multi-question interview sessions.
+
+Error handling includes recognition failure recovery, microphone access management, and network connectivity issues during transcript submission. The implementation provides user feedback for recognition status, transcript accuracy, and submission confirmation throughout the interview process.
+
+\paragraph{Integration with Interview Workflow}
+Speech recognition integrates seamlessly with the interview question presentation flow, enabling users to provide spoken responses that are automatically transcribed and associated with specific questions. The \texttt{onTranscriptComplete} callback mechanism ensures proper coordination between speech recognition completion and answer submission processes.
+
+The system supports manual transcript editing before submission, accommodating recognition errors and user preferences for response refinement. Integration patterns maintain separation of concerns between speech processing, transcript management, and interview session coordination while providing cohesive user experiences.
+
+\subsubsection{Backend Service Implementation}
+
+\paragraph{Interview Service Architecture}
+The \texttt{InterviewService} implements comprehensive business logic for interview management, coordinating between repository operations, AI service integration, and data validation. The service maintains clear separation of concerns through dependency injection patterns, enabling comprehensive unit testing and modular component replacement.
+
+Service methods implement consistent error handling patterns, input validation, and authorization checks to ensure data security and operational reliability. The \texttt{CreateInterviewAsync} method demonstrates complex workflow coordination, managing interview creation, AI question generation, and question storage within appropriate transaction boundaries.
+
+\paragraph{Repository Pattern Implementation}
+The \texttt{InterviewRepository} provides data access abstraction with support for complex queries, filtering operations, and pagination requirements. The repository implements eager loading strategies for related entities, minimizing database round trips while maintaining query performance for large datasets.
+
+Query optimization includes strategic use of LINQ expressions, database indexing, and projection queries for analytics operations. The repository supports advanced filtering capabilities through dynamic query building, enabling flexible search and filtering requirements for interview management interfaces.
+
+\paragraph{API Endpoint Design}
+The \texttt{InterviewController} exposes RESTful endpoints following consistent naming conventions and HTTP semantics. Endpoints support comprehensive CRUD operations with appropriate authorization checks, input validation, and response formatting. The API design includes pagination headers, filtering parameters, and sorting capabilities for efficient client-side data management.
+
+Error handling implements consistent response formats, appropriate HTTP status codes, and detailed error messages for client application integration. The controller maintains clean separation between HTTP concerns and business logic through service layer delegation while providing comprehensive API documentation through Swagger integration.
+
+\subsubsection{Data Transfer Object Architecture}
+
+\paragraph{Request and Response DTOs}
+The system implements comprehensive DTO patterns for data encapsulation and API contract management. \texttt{InterviewCreateDto}, \texttt{InterviewUpdateDto}, and \texttt{InterviewResponseDto} provide clear interfaces for interview operations while maintaining versioning flexibility and backward compatibility.
+
+DTO validation includes both attribute-based validation and custom validation logic through \texttt{ValidationAttribute} implementations. The \texttt{InterviewValidationAttribute} demonstrates complex validation scenarios that span multiple properties and conditional logic requirements.
+
+\paragraph{AI Integration DTOs}
+Specialized DTOs manage AI service integration, including \texttt{InterviewQuestionAIDto} for parsing AI service responses and \texttt{InterviewQuestionCreateDto} for question persistence operations. These DTOs abstract AI service response formats from internal data models, enabling AI service evolution without impacting core application logic.
+
+The DTO mapping strategy utilizes AutoMapper for consistent object transformations while maintaining performance through optimized mapping configurations. Profile implementations ensure proper handling of nested objects, collections, and complex property mappings throughout the interview workflow.
+
+This comprehensive mock interview implementation provides robust AI-integrated interview preparation capabilities while maintaining architectural consistency, performance optimization, and user experience quality throughout the job search preparation workflow.
 \subsection{Resume Matching feature Implementation}
 
 \subsection{Documentation}
@@ -316,11 +567,11 @@ Use case diagrams captured all functional requirements from the user's perspecti
 
 \subsection{Frontend Development and UI/UX Implementation}
 
-The frontend development phase started with creating detailed UI mockups and prototypes that transformed user requirements into concrete interface designs. The team focused on creating intuitive navigation patterns, consistent visual design elements, and accessible user interfaces that would provide an optimal user experience.
+The front-end development phase started with creating detailed UI mockups and prototypes that transformed user requirements into concrete interface designs. The team focused on creating intuitive navigation patterns, consistent visual design elements, and accessible user interfaces that would provide an optimal user experience.
 
-The initial frontend development involved implementing static data representations to establish the component architecture and validate design concepts. This approach allowed the team to iterate quickly on user interface elements while the backend architecture was being developed. The static implementation served multiple important purposes: validating design decisions with stakeholders, establishing reusable component patterns, defining state management structures, and creating a solid foundation for future backend integration.
+The initial front-end development involved implementing static data representations to establish the component architecture and validate design concepts. This approach allowed the team to iterate quickly on the user interface elements while the back-end architecture was being developed. The static implementation served multiple important purposes: validating design decisions with stakeholders, establishing reusable component patterns, defining state management structures, and creating a solid foundation for future back-end integration.
 
-The frontend architecture was designed to support the three-tier system architecture, maintaining clear separation between presentation components, state management logic, and API communication layers. The team established comprehensive coding standards, component naming conventions, and project structure guidelines to ensure long-term maintainability and scalability.
+The front-end architecture was designed to support the three-tier system architecture, maintaining clear separation between presentation components, state management logic, and API communication layers. The team established comprehensive coding standards, component naming conventions, and project structure guidelines to ensure long-term maintainability and scalability.
 
 \begin{figure}[H]
     \centering
@@ -332,21 +583,21 @@ The frontend architecture was designed to support the three-tier system architec
 
 \subsection{API Design and Documentation Phase}
 
-Parallel to frontend development, the team worked on comprehensive API design and documentation using Swagger/OpenAPI specifications. This phase was essential for establishing clear communication contracts between frontend and backend teams, which enabled parallel development while minimizing integration complications.
+Parallel to front-end development, the team worked on comprehensive API design and documentation using Swagger/OpenAPI specifications. This phase was essential for establishing clear communication contracts between frontend and backend teams, which enabled parallel development while minimizing integration complications.
 
 The API design process included defining RESTful endpoints for all system functions, establishing consistent naming conventions, designing comprehensive request/response schemas, implementing appropriate HTTP status code usage, and defining robust authentication and authorization mechanisms. Each endpoint received detailed documentation including request parameters, response formats, error handling scenarios, and practical usage examples.
 
-The Swagger documentation evolved as a living specification throughout the development process. It provided interactive API exploration capabilities, supported automated testing procedures, and established clear communication protocols between development teams. The documentation included detailed examples for complex operations such as filtered application queries, file upload procedures, and multi-step authentication workflows.
+The Swagger documentation evolved as a living specification throughout the development process. Provided interactive API exploration capabilities, supported automated testing procedures, and established clear communication protocols between development teams. The documentation included detailed examples for complex operations such as filtered application queries, file upload procedures, and multi-step authentication workflows.
 
-The API design emphasized consistency across all endpoints in terms of data formats, error handling patterns, and pagination mechanisms. The team established standard response wrappers for all endpoints, ensuring predictable client-side handling of both success and error scenarios. Comprehensive input validation schemas and clear error messaging standards were implemented to provide meaningful feedback for client applications.
+The API design emphasized consistency across all endpoints in terms of data formats, error handling patterns, and pagination mechanisms. The team established standard response wrappers for all endpoints, ensuring predictable client-side handling of both success and error scenarios. Comprehensive input validation schemas and clear error messaging standards were implemented to provide meaningful feedback to client applications.
 
 \subsection{Backend Development and Clean Architecture Implementation}
 
-The backend development phase began with implementing a clean architecture pattern that ensured proper separation of concerns, comprehensive testability, and long-term maintainability. The team established a well-defined layered architecture with clear dependencies and interfaces, following SOLID principles and established industry best practices for enterprise application development.
+The back-end development phase began with implementing a clean architecture pattern that ensured proper separation of concerns, comprehensive testability, and long-term maintainability. The team established a well-defined layered architecture with clear dependencies and interfaces, following SOLID principles and established industry best practices for enterprise application development.
 
-Development started with database schema implementation using Entity Framework Core Code-First migrations. The team carefully translated the ERD designs into entity models with appropriate relationships, constraints, and indexing strategies. Database performance considerations were incorporated from the beginning, including strategic indexing, query optimization, and caching mechanisms for anticipated high-traffic scenarios.
+Development started with the implementation of the database schema using Entity Framework Core Code-First migrations. The team carefully translated the ERD designs into entity models with appropriate relationships, constraints, and indexing strategies. Database performance considerations were incorporated from the beginning, including strategic indexing, query optimization, and caching mechanisms for anticipated high-traffic scenarios.
 
-The repository pattern implementation followed the database layer, providing necessary abstraction over data access operations and enabling comprehensive unit testing capabilities. The repositories encapsulated complex queries, aggregations, and data manipulation logic while maintaining clean interfaces for the service layer. Each repository was designed to handle specific entity operations while supporting necessary cross-entity queries.
+The implementation of the repository pattern followed the database layer, providing the necessary abstraction of data access operations and enabling comprehensive unit testing capabilities. The repositories encapsulated complex queries, aggregations, and data manipulation logic while maintaining clean interfaces for the service layer. Each repository was designed to handle specific entity operations while supporting necessary cross-entity queries.
 
 Service layer implementation focused on business logic encapsulation, transaction management, and coordination between repositories. Services implemented validation rules, business constraints, and complex workflows spanning multiple entities. The team prioritized comprehensive error handling, logging capabilities, and monitoring features throughout the service implementations.
 
@@ -359,15 +610,15 @@ Service layer implementation focused on business logic encapsulation, transactio
 
 \subsection{Feature Integration and Development Coordination}
 
-The feature development process was organized around implementing core platform functionalities in a coordinated manner that maximized team efficiency and minimized integration challenges. Each feature followed a consistent development pattern where backend API endpoints were implemented and thoroughly tested before frontend integration commenced. The team used Swagger documentation as the integration contract, ensuring both frontend and backend implementations adhered to agreed specifications.
+The feature development process was organized around implementing core platform functionalities in a coordinated manner that maximized team efficiency and minimized integration challenges. Each feature followed a consistent development pattern in which the back-end API endpoints were implemented and thoroughly tested before front-end integration began. The team used Swagger documentation as the integration contract, ensuring that both front-end and back-end implementations adhered to agreed specifications.
 
 \subsubsection{Applications Tracking Feature Development}
 
 The Applications Tracking functionality served as the foundational feature for the platform due to its central role in the user workflow and its integration with multiple system components including companies, employees, resumes, and analytics dashboard.
 
-The backend implementation for Applications Tracking encompassed complete CRUD operations, advanced filtering capabilities, pagination mechanisms, and analytical aggregations for the dashboard. The team implemented comprehensive error handling, input validation, and security measures including JWT authentication and authorization checks. Database queries were optimized for performance through strategic use of eager loading, projection queries, and appropriate caching mechanisms.
+The back-end implementation for Applications Tracking encompassed complete CRUD operations, advanced filtering capabilities, pagination mechanisms, and analytical aggregations for the dashboard. The team implemented comprehensive error handling, input validation, and security measures including JWT authentication and authorization checks. Database queries were optimized for performance through strategic use of eager loading, projection queries, and appropriate caching mechanisms.
 
-Frontend integration involved connecting React components to the backend APIs using Axios with custom interceptors for authentication and error handling. The team implemented React Query for effective state management, providing caching capabilities, background updates, and optimistic UI updates that improved user experience. Form validation was implemented on both client and server sides to ensure data integrity while providing immediate user feedback. The dashboard components were developed to display real-time analytics including application statistics, time series data, and stage progression metrics.
+Front-end integration involved connecting React components to the back-end APIs using Axios with custom interceptors for authentication and error handling. The team implemented React Query for effective state management, providing caching capabilities, background updates, and optimistic UI updates that improved user experience. Form validation was implemented on both client and server sides to ensure data integrity while providing immediate user feedback. The dashboard components were developed to display real-time analytics including application statistics, time series data, and stage progression metrics.
 
 \subsubsection{Mock Interview Feature Development}
 
@@ -375,7 +626,7 @@ The Mock Interview feature development involved both traditional web application
 
 The AI component integration required deploying the interview question generation model and creating API endpoints for model invocation. The team developed a microservice architecture approach that allowed the AI model to be scaled independently of the main application. RESTful APIs were created to abstract the complexity of model invocation while providing flexible parameters for question generation based on job requirements, difficulty levels, and technical domains.
 
-The frontend implementation included interview session interfaces, question display components, timer functionality, and response recording mechanisms. The team ensured seamless integration between the traditional web components and AI-generated content, providing users with a cohesive interview preparation experience.
+The fron-tend implementation included interview session interfaces, question display components, timer functionality, and response recording mechanisms. The team ensured seamless integration between the traditional web components and AI-generated content, providing users with a cohesive interview preparation experience.
 
 \subsubsection{Resume Matching Feature Development}
 
@@ -389,9 +640,9 @@ Frontend integration involved developing file upload components with progress tr
 
 Throughout the development lifecycle, the team maintained rigorous testing strategies to ensure code quality, functional correctness, and system reliability. Unit testing was implemented for all service layer components, repository operations, and utility functions. Integration testing validated API endpoints, database operations, and cross-component interactions.
 
-The testing strategy included automated testing pipelines, manual testing protocols, and user acceptance testing procedures. The team utilized appropriate testing frameworks for each technology stack: Jest for frontend testing, xUnit for backend testing, and Postman for API testing. Test coverage metrics were maintained above 80% for critical system components.
+The testing strategy included automated testing pipelines, manual testing protocols, and user acceptance testing procedures. The team utilized appropriate testing frameworks for each technology stack: Jest for front-end testing, xUnit for back-end testing, and Postman for API testing. Test coverage metrics were maintained above 80% for critical system components.
 
-Performance testing was conducted to validate system behavior under load, including database query performance, API response times, and frontend rendering performance. The team established baseline performance metrics and implemented monitoring systems to ensure production deployment readiness.
+Performance testing was conducted to validate system behavior under load, including database query performance, API response times, and front-end rendering performance. The team established baseline performance metrics and implemented monitoring systems to ensure production deployment readiness.
 
 \subsection{Development Workflow and Team Coordination}
 
