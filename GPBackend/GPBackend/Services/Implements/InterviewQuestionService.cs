@@ -80,7 +80,7 @@ namespace GPBackend.Services.Implements
                 {
                     description = jobDescription,
                     // job_title = jobTitle,
-                    num_questions = 3,
+                    num_questions = 8,
                 });
                 if (!response.IsSuccessStatusCode)
                 {

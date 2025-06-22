@@ -17,7 +17,7 @@ public class ChatBotController : ControllerBase
     private readonly HttpClient _httpClient;
     private readonly IApplicationService _applicationService;
     private readonly IQuestionService _questionService;
-    private readonly string _pythonServiceUrl = "http://localhost:8000"; // Configure this
+    private readonly string _pythonServiceUrl = "http://localhost:8001"; // Configure this
 
     public ChatBotController(HttpClient httpClient, IApplicationService applicationService, IQuestionService questionService)
     {
@@ -69,7 +69,7 @@ public class ChatBotController : ControllerBase
                 var responseContent = await response.Content.ReadAsStringAsync();
                 return Ok(JsonSerializer.Deserialize<object>(responseContent));
             }
-
+            
             return BadRequest("Failed to initialize chat session");
         }
         catch (Exception ex)
