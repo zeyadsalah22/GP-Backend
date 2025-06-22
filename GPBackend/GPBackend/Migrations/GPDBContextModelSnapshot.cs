@@ -117,7 +117,7 @@ namespace GPBackend.Migrations
 
                     b.HasIndex(new[] { "SubmittedCvId" }, "IX_Applications_SubmittedCvId");
 
-                    b.ToTable("Applications");
+                    b.ToTable("Applications", (string)null);
                 });
 
             modelBuilder.Entity("GPBackend.Models.ApplicationEmployee", b =>
@@ -208,7 +208,7 @@ namespace GPBackend.Migrations
                     b.HasIndex(new[] { "Name" }, "UQ_Companies_Name")
                         .IsUnique();
 
-                    b.ToTable("Companies");
+                    b.ToTable("Companies", (string)null);
                 });
 
             modelBuilder.Entity("GPBackend.Models.Employee", b =>
@@ -276,7 +276,7 @@ namespace GPBackend.Migrations
 
                     b.HasIndex("UserId", "CompanyId");
 
-                    b.ToTable("Employees");
+                    b.ToTable("Employees", (string)null);
                 });
 
             modelBuilder.Entity("GPBackend.Models.Interview", b =>
@@ -347,7 +347,7 @@ namespace GPBackend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Interviews");
+                    b.ToTable("Interviews", (string)null);
                 });
 
             modelBuilder.Entity("GPBackend.Models.InterviewQuestion", b =>
@@ -441,7 +441,7 @@ namespace GPBackend.Migrations
 
                     b.HasIndex("ApplicationId");
 
-                    b.ToTable("Questions");
+                    b.ToTable("Questions", (string)null);
                 });
 
             modelBuilder.Entity("GPBackend.Models.RefreshToken", b =>
@@ -492,7 +492,7 @@ namespace GPBackend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("GPBackend.Models.Resume", b =>
@@ -531,7 +531,7 @@ namespace GPBackend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Resumes");
+                    b.ToTable("Resumes", (string)null);
                 });
 
             modelBuilder.Entity("GPBackend.Models.ResumeTest", b =>
@@ -567,7 +567,7 @@ namespace GPBackend.Migrations
 
                     b.HasIndex("ResumeId");
 
-                    b.ToTable("ResumeTests");
+                    b.ToTable("ResumeTests", (string)null);
                 });
 
             modelBuilder.Entity("GPBackend.Models.Skill", b =>
@@ -594,7 +594,7 @@ namespace GPBackend.Migrations
                     b.HasIndex(new[] { "TestId", "Skill1" }, "UQ_Skills_TestSkill")
                         .IsUnique();
 
-                    b.ToTable("Skills");
+                    b.ToTable("Skills", (string)null);
                 });
 
             modelBuilder.Entity("GPBackend.Models.TodoList", b =>
@@ -651,7 +651,7 @@ namespace GPBackend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("TodoLists");
+                    b.ToTable("TodoLists", (string)null);
                 });
 
             modelBuilder.Entity("GPBackend.Models.User", b =>
@@ -732,7 +732,7 @@ namespace GPBackend.Migrations
                     b.HasIndex(new[] { "Email" }, "UQ_Users_Email")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("GPBackend.Models.UserCompany", b =>
