@@ -54,11 +54,6 @@ namespace GPBackend.Repositories.Implements
             }
             
             /*
-            if (resumeTestQueryDto.ATSScore.HasValue)
-            {
-                query = query.Where(rt => rt.AtsScore >= resumeTestQueryDto.ATSScore.Value);
-            }
-
             if (resumeTestQueryDto.MaxScore.HasValue)
             {
                 query = query.Where(rt => rt.AtsScore <= resumeTestQueryDto.MaxScore.Value);
@@ -70,19 +65,16 @@ namespace GPBackend.Repositories.Implements
                 query = query.Where(rt => rt.AtsScore >= resumeTestQueryDto.AtsScore.Value);
             }
 
-            /*
+            
             // Apply search term filter
             if (!string.IsNullOrWhiteSpace(resumeTestQueryDto.SearchTerm))
             {
                 var searchTerm = resumeTestQueryDto.SearchTerm.ToLower();
                 query = query.Where(rt => 
-                    (rt.JobDescription != null && rt.JobDescription.ToLower().Contains(searchTerm)) ||
-                    rt.AtsScore.ToString().Contains(searchTerm) ||
-                    rt.TestDate.ToString().Contains(searchTerm)
+                    rt.JobDescription != null && rt.JobDescription.ToLower().Contains(searchTerm)
                 );
             }
-            */
-
+            
             // Apply sorting
             if (!string.IsNullOrWhiteSpace(resumeTestQueryDto.SortBy))
             {
