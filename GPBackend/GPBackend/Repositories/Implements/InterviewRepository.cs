@@ -164,7 +164,8 @@ namespace GPBackend.Repositories.Implements
                 "startdate" => a => a.StartDate,
                 "createdat" => a => a.CreatedAt,
                 "updatedat" => a => a.UpdatedAt,
-                "jobtitle" => a => a.Position,
+                "position" => a => a.Position,
+                "duration" => a => a.Duration,
                 "companyname" => a => a.Company.Name,
                 "applicationid" => a => a.ApplicationId,
                 _ => a => a.StartDate // Default sorting by start date
