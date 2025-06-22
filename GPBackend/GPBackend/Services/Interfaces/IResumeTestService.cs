@@ -5,41 +5,6 @@ namespace GPBackend.Services.Interfaces
 {
     public interface IResumeTestService
     {
-
-
-        /*
-
-        Task<List<ResumeTestResponseDto>> CreateResumeTestAsync(List<ResumeTestCreateDto> ResumeTestCreateDto);
-        Task<bool> DeleteResumeTestAsync(int testId);
-        Task<ResumeTestResponseDto> GetResumeTestByIdAsync(int testId);
-        Task<PagedResult<ResumeTestResponseDto>> GetFilteredResumeTestsAsync(int userId, ResumeTestQueryDto queryDto);
-        Task<List<ResumeTestResponseDto>> GetResumeTestsFromModelAsync(resume.ResumeFile, createDto.JobDescription);
-
-        ///////
-
-        Task<List<InterviewQuestionResponseDto>> GetAllByInterviewIdAsync(int interviewId);
-
-        ///////
-
-        Task<IEnumerable<ResumeTest>> GetAllResumeTestsAsync(int userId); 
-
-        Task<PagedResult<ResumeTest>> GetFilteredResumeTestAsync(int userId, ResumeTestQueryDto resumeTestQueryDto); 
-
-        Task<ResumeTest?> GetResumeTestByIdAsync(int testId, int userId); // more restricted users only
-
-        // Task<ResumeTest?> GetResumeTestByIdAsync(int testId); // more general access (admin users)
-
-        Task<ResumeTest> CreateResumeTestAsync(ResumeTest resumeTest);
-        
-        Task<bool> DeleteResumeTestAsync(int testId, int userId);
-
-
-        -----------------------------------------------
-
-    }
-
-    */
-
         /// <summary>
         /// Get all resume tests for a user
         /// </summary>
