@@ -9,7 +9,7 @@ using System.Security.Claims;
 namespace GPBackend.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/resumetest")]
     [Authorize]
     public class ResumeTestController : ControllerBase
     {

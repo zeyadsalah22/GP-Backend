@@ -90,6 +90,7 @@ public partial class GPDBContext : DbContext
 
             entity.HasOne(d => d.SubmittedCv).WithMany(p => p.Applications)
                 .HasForeignKey(d => d.SubmittedCvId)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_Applications_Resumes");
 
             entity.HasOne(d => d.UserCompany).WithMany(p => p.Applications)
@@ -311,7 +312,7 @@ public partial class GPDBContext : DbContext
 
             entity.HasOne(d => d.Resume).WithMany(p => p.ResumeTests)
                 .HasForeignKey(d => d.ResumeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_ResumeTests_Resumes");
         });
 

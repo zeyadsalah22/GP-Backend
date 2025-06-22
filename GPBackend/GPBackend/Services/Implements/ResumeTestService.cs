@@ -112,8 +112,13 @@ namespace GPBackend.Services.Implements
 
             if (aiAnalysis != null)
             {
-                // Update the ATS score, no need to call database again
+                if (aiAnalysis.MissingSkills == null || aiAnalysis.MissingSkills.Count == 0)
+                {
+                    aiAnalysis.ResumeScore = 100; // Default score if missing skills were not found
+                }
+                // Update the ATS score and save to database
                 createdResumeTest.AtsScore = (int)aiAnalysis.ResumeScore;
+                await _resumeTestRepository.UpdateResumeTestAsync(createdResumeTest);
 
                 // Store missing skills
                 if (aiAnalysis.MissingSkills != null && aiAnalysis.MissingSkills.Count > 0)
