@@ -155,7 +155,7 @@ namespace GPBackend
             builder.Services.AddScoped<IResumeTestService, ResumeTestService>();
             builder.Services.AddScoped<IResumeTestMissingSkillsService, ResumeTestMissingSkillsService>();
             builder.Services.AddScoped<ISkillService, SkillService>();
-            
+            builder.Services.AddScoped<IEmailService, EmailService>();
             // Register repositories
             builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             // builder.Services.AddHttpClient<IInterviewService, InterviewService>();
