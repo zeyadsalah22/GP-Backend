@@ -14,11 +14,15 @@ namespace GPBackend.Services.Implements
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
+        private readonly IEmailService _emailService;
+        private readonly ILogger<UserService> _logger;
 
-        public UserService(IUserRepository userRepository, IMapper mapper)
+        public UserService(IUserRepository userRepository, IMapper mapper, IEmailService emailService, ILogger<UserService> logger)
         {
             _userRepository = userRepository;
             _mapper = mapper;
+            _emailService = emailService;
+            _logger = logger;
         }
 
         public async Task<User?> AuthenticateAsync(string email, string password)
@@ -47,7 +51,28 @@ namespace GPBackend.Services.Implements
             // Set password and other fields not in DTO
             user.Password = HashPassword(registerDto.Password);
 
-            return await _userRepository.CreateAsync(user);
+            var userId = await _userRepository.CreateAsync(user);
+
+            // Send welcome email asynchronously (don't wait for it to complete)
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var welcomeEmailDto = new WelcomeEmailDto{
+                        Email = registerDto.Email,
+                        FirstName = registerDto.Fname,
+                        LastName = registerDto.Lname,
+                        RegistrationDate = DateTime.UtcNow
+                    };
+                    await _emailService.SendWelcomeEmailAsync(welcomeEmailDto);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send welcome email to {Email}", registerDto.Email);
+                }
+            });
+
+            return userId;
         }
 
         public async Task<UserResponseDto?> GetUserByIdAsync(int id)
