@@ -1,6 +1,7 @@
 using AutoMapper;
 using GPBackend.DTOs.Auth;
 using GPBackend.DTOs.User;
+using GPBackend.DTOs.Email;
 using GPBackend.Models;
 using GPBackend.Models.Enums;
 using GPBackend.Repositories.Interfaces;
