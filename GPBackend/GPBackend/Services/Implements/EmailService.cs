@@ -21,7 +21,8 @@ namespace GPBackend.Services.Implements{
             var emailDto = new EmailDto{
                 To = welcomeEmailDto.Email,
                 Subject = "Welcome to Job Lander " + welcomeEmailDto.FirstName,
-                Body = "Welcome to Job Lander " + welcomeEmailDto.FirstName + " " + welcomeEmailDto.LastName + "! We're excited to have you on board. Your registration was successful on " + welcomeEmailDto.RegistrationDate.ToString("MM/dd/yyyy") + ".",
+                Body = GenerateWelcomeEmailTemplate(welcomeEmailDto),
+                IsHtml = true,
             };
             return await SendEmailAsync(emailDto);
         }
@@ -80,6 +81,62 @@ namespace GPBackend.Services.Implements{
                 Body = "Please click the link below to reset your password: " + _configuration["AppSettings:ClientUrl"] + "/reset-password?token=" + token,
             };
             return await SendEmailAsync(emailDto);
+        }
+
+        private string GenerateWelcomeEmailTemplate(WelcomeEmailDto welcomeEmailDto){
+            return $@"
+                <html>
+                <body style='font-family: Arial, sans-serif; color: #333;'>
+                    <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                        <div style='text-align: center; margin-bottom: 30px;'>
+                            <h1 style='color: #2c3e50; margin-bottom: 10px;'>Welcome to Job Lander!</h1>
+                            <div style='width: 50px; height: 3px; background-color: #3498db; margin: 0 auto;'></div>
+                        </div>
+                        
+                        <div style='background-color: #f8f9fa; padding: 25px; border-radius: 8px; margin-bottom: 25px;'>
+                            <h2 style='color: #2c3e50; margin-top: 0;'>
+                                Hello {welcomeEmailDto.FirstName} {welcomeEmailDto.LastName}!
+                            </h2>
+                            <p style='font-size: 16px; line-height: 1.6;'>
+                                Thank you for joining Job Lander. We're excited to have you on board!
+                            </p>
+                        </div>
+                        
+                        <div style='margin-bottom: 25px;'>
+                            <h3 style='color: #2c3e50;'>What's next?</h3>
+                            <ul style='line-height: 1.8;'>
+                                <li>Complete your profile to get personalized recommendations</li>
+                                <li>Explore our features and tools</li>
+                                <li>Connect with other users in your industry</li>
+                                <li>Start building your professional network</li>
+                                 </ul>
+                        </div>
+                        
+                        <div style='text-align: center; margin: 30px 0;'>
+                            <a href='{_configuration["AppSettings:ClientUrl"]}/dashboard' 
+                               style='background-color: #3498db; color: white; padding: 15px 30px; 
+                                      text-decoration: none; border-radius: 5px; display: inline-block;
+                                      font-weight: bold;'>
+                                Get Started
+                            </a>
+                        </div>
+                        
+                        <div style='background-color: #ecf0f1; padding: 20px; border-radius: 5px; margin-top: 30px;'>
+                            <p style='margin: 0; color: #666; text-align: center;'>
+                                <strong>Registration Details:</strong><br>
+                                Email: {welcomeEmailDto.Email}<br>
+                                Registered on: {welcomeEmailDto.RegistrationDate:MMMM dd, yyyy}
+                            </p>
+                        </div>
+                        
+                        <hr style='margin-top: 30px; border: none; border-top: 1px solid #eee;'>
+                        <p style='color: #999; font-size: 12px; text-align: center;'>
+                            This is an automated message, please do not reply to this email.<br>
+                            If you have any questions, please contact our support team.
+                        </p>
+                    </div>
+                </body>
+                </html>";
         }
     }
 }
