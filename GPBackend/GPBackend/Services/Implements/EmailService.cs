@@ -74,11 +74,32 @@ namespace GPBackend.Services.Implements{
             }
         }
 
-        public async Task<bool> SendPasswordResetEmailAsync(string email, string token){
+        public async Task<bool> SendPasswordResetEmailAsync(string email, string resetLink){
+            var subject = "Reset your Job Lander password";
+            var body = $@"
+                <html>
+                <body style='font-family: Arial, sans-serif; color: #333;'>
+                    <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                        <h2 style='color: #2c3e50;'>Password Reset Request</h2>
+                        <p>We received a request to reset your password. Click the button below to proceed:</p>
+                        <div style='margin: 24px 0;'>
+                            <a href='{resetLink}'
+                               style='background:#3498db;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;display:inline-block;'>
+                                Reset Password
+                            </a>
+                        </div>
+                        <p style='color:#666'>This link will expire soon. If you didn't request this, you can safely ignore this email.</p>
+                        <hr style='border:none;border-top:1px solid #eee;margin-top:28px'>
+                        <p style='color:#999;font-size:12px'>This is an automated message. Please do not reply.</p>
+                    </div>
+                </body>
+                </html>";
+
             var emailDto = new EmailDto{
                 To = email,
-                Subject = "Password Reset Request",
-                Body = "Please click the link below to reset your password: " + _configuration["AppSettings:ClientUrl"] + "/reset-password?token=" + token,
+                Subject = subject,
+                Body = body,
+                IsHtml = true
             };
             return await SendEmailAsync(emailDto);
         }

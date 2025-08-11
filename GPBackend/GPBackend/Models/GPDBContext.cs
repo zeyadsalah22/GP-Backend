@@ -44,6 +44,8 @@ public partial class GPDBContext : DbContext
 
     public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
+    public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Application>(entity =>
@@ -453,6 +455,36 @@ public partial class GPDBContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.RefreshTokens)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("FK_RefreshTokens_Users");
+        });
+
+        modelBuilder.Entity<PasswordResetToken>(entity =>
+        {
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.TokenHash)
+                .HasMaxLength(32)
+                .IsRequired()
+                .HasColumnName("token_hash");
+            entity.HasIndex(e => e.TokenHash).IsUnique();
+            entity.Property(e => e.ExpiresAt)
+                .HasPrecision(0)
+                .HasColumnName("expires_at");
+            entity.Property(e => e.UsedAt)
+                .HasPrecision(0)
+                .HasColumnName("used_at");
+            entity.Property(e => e.CreatedIp)
+                .HasColumnName("created_ip");
+            entity.Property(e => e.CreatedUserAgent)
+                .HasColumnName("created_user_agent");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.PasswordResetTokens)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_PasswordResetTokens_Users");
         });
 
         OnModelCreatingPartial(modelBuilder);

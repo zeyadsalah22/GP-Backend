@@ -19,19 +19,22 @@ namespace GPBackend.Controllers
         private readonly ITokenBlacklistService _tokenBlacklistService;
         private readonly IRefreshTokenService _refreshTokenService;
         private readonly IMapper _mapper;
-
+        private readonly IPasswordResetService _passwordResetService;
+        
         public AuthController(
             IUserService userService,
             IJwtService jwtService,
             ITokenBlacklistService tokenBlacklistService,
             IRefreshTokenService refreshTokenService,
-            IMapper mapper)
+            IMapper mapper,
+            IPasswordResetService passwordResetService)
         {
             _userService = userService;
             _jwtService = jwtService;
             _tokenBlacklistService = tokenBlacklistService;
             _refreshTokenService = refreshTokenService;
             _mapper = mapper;
+            _passwordResetService = passwordResetService;
         }
 
         // POST api/auth/login
@@ -140,6 +143,25 @@ namespace GPBackend.Controllers
             }
             
             return Ok(new { message = "Successfully logged out" });
+        }
+
+        [AllowAnonymous]
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = Request.Headers["User-Agent"].ToString();
+            await _passwordResetService.RequestPasswordResetAsync(dto.Email, ip, userAgent);
+            return Ok(new { message = "If the email exists, a reset link has been sent." });
+        }
+
+        [AllowAnonymous]
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            var ok = await _passwordResetService.ResetPasswordAsync(dto.Token, dto.NewPassword);
+            if (!ok) return BadRequest(new { message = "Invalid or expired token" });
+            return Ok(new { message = "Password reset successful" });
         }
     }
 } 
