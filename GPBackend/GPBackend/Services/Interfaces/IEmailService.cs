@@ -6,6 +6,6 @@ namespace GPBackend.Services.Interfaces
     {
         Task<bool> SendWelcomeEmailAsync(WelcomeEmailDto welcomeEmailDto);
         Task<bool> SendEmailAsync(EmailDto emailDto);
-        Task<bool> SendPasswordResetEmailAsync(string email, string token);
+        Task<bool> SendPasswordResetEmailAsync(string email, string resetLink);
     }
 }

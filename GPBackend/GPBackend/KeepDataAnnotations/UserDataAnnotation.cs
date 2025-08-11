@@ -41,5 +41,8 @@ namespace GPBackend.Models
 
         public virtual ICollection<UserCompany> UserCompanies { get; set; } = new List<UserCompany>();
 
+        public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+
+        public virtual ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();
     }
 }

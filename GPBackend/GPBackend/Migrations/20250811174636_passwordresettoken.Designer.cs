@@ -4,6 +4,7 @@ using GPBackend.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GPBackend.Migrations
 {
     [DbContext(typeof(GPDBContext))]
-    partial class GPDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250811174636_passwordresettoken")]
+    partial class passwordresettoken
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -401,54 +404,37 @@ namespace GPBackend.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
+                        .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(0)
-                        .HasColumnType("datetime2(0)")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("(sysutcdatetime())");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedIp")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("created_ip");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CreatedUserAgent")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("created_user_agent");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("ExpiresAt")
-                        .HasPrecision(0)
-                        .HasColumnType("datetime2(0)")
-                        .HasColumnName("expires_at");
+                        .HasColumnType("datetime2");
 
                     b.Property<byte[]>("TokenHash")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("varbinary(32)")
-                        .HasColumnName("token_hash");
+                        .HasColumnType("varbinary(max)");
 
                     b.Property<DateTime?>("UsedAt")
-                        .HasPrecision(0)
-                        .HasColumnType("datetime2(0)")
-                        .HasColumnName("used_at");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("int")
-                        .HasColumnName("user_id");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TokenHash")
-                        .IsUnique();
-
                     b.HasIndex("UserId");
 
-                    b.ToTable("PasswordResetTokens");
+                    b.ToTable("PasswordResetToken");
                 });
 
             modelBuilder.Entity("GPBackend.Models.Question", b =>
@@ -923,8 +909,7 @@ namespace GPBackend.Migrations
                         .WithMany("PasswordResetTokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_PasswordResetTokens_Users");
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
