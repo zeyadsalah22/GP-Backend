@@ -62,6 +62,7 @@ namespace GPBackend.Controllers
         }
 
         // POST api/auth/register
+        [EnableRateLimiting("CustomUserLimiter")]
         [HttpPost("register")]
         public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto registerDto)
         {
@@ -146,6 +147,7 @@ namespace GPBackend.Controllers
         }
 
         [AllowAnonymous]
+        [EnableRateLimiting("CustomUserLimiter")]
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
         {
@@ -156,6 +158,7 @@ namespace GPBackend.Controllers
         }
 
         [AllowAnonymous]
+        [EnableRateLimiting("CustomUserLimiter")]
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
         {
