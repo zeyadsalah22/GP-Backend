@@ -96,6 +96,7 @@ namespace GPBackend.Controllers
         }
 
         // PUT: api/users/change-password
+        [EnableRateLimiting("CustomUserLimiter")]
         [HttpPut("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto model)
         {

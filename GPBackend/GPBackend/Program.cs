@@ -12,6 +12,9 @@ using Microsoft.OpenApi.Models;
 using System.IdentityModel.Tokens.Jwt;
 using GPBackend.Repositories;
 using GPBackend.Services;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Security.Claims;
 
 namespace GPBackend
 {
@@ -171,6 +174,59 @@ namespace GPBackend
             // Register background services
             builder.Services.AddHostedService<TokenCleanupService>();
 
+            builder.Services.AddRateLimiter(options => {
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+                // Default: per-IP global limit
+                options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+                {
+                    var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                    return RateLimitPartition.GetFixedWindowLimiter(ip, _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 120, // 120 req/min per IP
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0
+                    });
+                });
+
+                // Add a custom limiter for the /api/chatbot endpoint
+                options.AddPolicy("ChatbotPerIp", context =>
+                {
+                    var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                    return RateLimitPartition.GetFixedWindowLimiter(ip, _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 10,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0
+                    });
+                });
+
+                // Add a custom limiter for forgot-password, reset-password, register and verify-email endpoints
+                options.AddPolicy("CustomUserLimiter", context =>
+                {
+                    var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                    return RateLimitPartition.GetFixedWindowLimiter(ip, _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 3, // 3 req/min per IP
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0
+                    });
+                });
+
+                // Per-user policy for authenticated endpoints
+                options.AddPolicy("PerUser", ctx =>
+                {
+                    var userId = ctx.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "anon";
+                    return RateLimitPartition.GetSlidingWindowLimiter(userId, _ => new SlidingWindowRateLimiterOptions
+                    {
+                        PermitLimit = 60, // 60 requests / 1 min per user
+                        Window = TimeSpan.FromMinutes(1),
+                        SegmentsPerWindow = 6,
+                        QueueLimit = 0
+                    });
+                });
+            });
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -188,6 +244,8 @@ namespace GPBackend
             // Must be called before UseAuthorization
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseRateLimiter();
 
             app.MapControllers();
 

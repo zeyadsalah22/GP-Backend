@@ -8,8 +8,10 @@ using GPBackend.DTOs.Chatbot;
 using GPBackend.DTOs.Application;
 using GPBackend.DTOs.Question;
 using System.Security.Claims;
+using Microsoft.AspNetCore.RateLimiting;
 
 [Authorize(Policy = "AdminOnly")]
+[EnableRateLimiting("ChatbotPerIp")]
 [ApiController]
 [Route("api/chatbot")]
 public class ChatBotController : ControllerBase
