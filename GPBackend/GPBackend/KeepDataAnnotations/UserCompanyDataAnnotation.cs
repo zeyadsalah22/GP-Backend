@@ -19,10 +19,13 @@ namespace GPBackend.Models
         [ForeignKey("Company")]
         public int CompanyId { get; set; }
 
-        [StringLength(255)]
-        [Required]
+        [StringLength(2000)]
+        public string? PersonalNotes { get; set; }
 
-        public string? Description { get; set; }
+        [Required]
+        public Models.Enums.InterestLevel InterestLevel { get; set; }
+
+        public bool Favorite { get; set; }
 
         public DateTime CreatedAt { get; set; }
 

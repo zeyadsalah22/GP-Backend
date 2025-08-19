@@ -10,5 +10,6 @@ namespace GPBackend.Services.Interfaces
         Task<EmployeeDto> CreateEmployeeAsync(EmployeeCreationDto employeeDto);
         Task<EmployeeDto> UpdateEmployeeAsync(int id, int userId, EmployeeUpdateDto employeeDto);
         Task<bool> DeleteEmployeeAsync(int id, int userId);
+        Task<int> BulkDeleteEmployeesAsync(IEnumerable<int> ids, int userId);
     }
 } 

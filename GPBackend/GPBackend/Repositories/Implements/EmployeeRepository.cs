@@ -126,6 +126,26 @@ namespace GPBackend.Repositories.Implements
             return await UpdateAsync(employee);
         }
 
+        public async Task<int> BulkSoftDeleteAsync(IEnumerable<int> ids, int userId)
+        {
+            if (ids == null) return 0;
+            var idList = ids.Distinct().ToList();
+            if (idList.Count == 0) return 0;
+
+            var employees = await _context.Employees
+                .Where(e => idList.Contains(e.EmployeeId) && !e.IsDeleted && e.UserCompany.UserId == userId)
+                .ToListAsync();
+
+            foreach (var e in employees)
+            {
+                e.IsDeleted = true;
+                e.UpdatedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+            return employees.Count;
+        }
+
         private async Task<bool> EmployeeExistsAsync(int id)
         {
             return await _context.Employees.AnyAsync(e => e.EmployeeId == id);

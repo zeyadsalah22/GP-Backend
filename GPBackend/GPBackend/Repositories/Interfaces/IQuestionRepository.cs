@@ -21,5 +21,7 @@ namespace GPBackend.Repositories.Interfaces
 
         Task<bool> ExistsAsync(int questionId);
 
+        Task<int> BulkSoftDeleteAsync(IEnumerable<int> ids, int userId);
+
     }
 }

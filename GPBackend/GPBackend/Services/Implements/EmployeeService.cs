@@ -70,5 +70,10 @@ namespace GPBackend.Services
             await _employeeRepository.DeleteAsync(id);
             return true;
         }
+
+        public async Task<int> BulkDeleteEmployeesAsync(IEnumerable<int> ids, int userId)
+        {
+            return await _employeeRepository.BulkSoftDeleteAsync(ids, userId);
+        }
     }
 } 

@@ -157,6 +157,30 @@ namespace GPBackend.Repositories.Implements
             return await _context.SaveChangesAsync() > 0;
         }
 
+        public async Task<int> BulkSoftDeleteAsync(int userId, IEnumerable<int> ids)
+        {
+            if (ids == null) return 0;
+            var idList = ids.Distinct().ToList();
+            if (idList.Count == 0) return 0;
+
+            var interviews = await _context.Interviews
+                .Where(i => idList.Contains(i.InterviewId) && !i.IsDeleted && i.UserId == userId)
+                .Include(i => i.InterviewQuestions)
+                .ToListAsync();
+
+            foreach (var i in interviews)
+            {
+                i.IsDeleted = true;
+                foreach (var q in i.InterviewQuestions)
+                {
+                    q.IsDeleted = true;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return interviews.Count;
+        }
+
         private IQueryable<Interview> ApplySorting(IQueryable<Interview> query, string sortBy, bool sortDescending)
         {
             Expression<Func<Interview, object>> keySelector = sortBy.ToLower() switch

@@ -155,6 +155,22 @@ namespace GPBackend.Repositories.Implements
             return await _context.SaveChangesAsync() > 0;
         }
 
+        public async Task<int> BulkDeleteAsync(int userId, IEnumerable<int> ids)
+        {
+            if (ids == null) return 0;
+            var idList = ids.Distinct().ToList();
+            if (idList.Count == 0) return 0;
+
+            var tests = await _context.ResumeTests
+                .Include(rt => rt.Resume)
+                .Where(rt => idList.Contains(rt.TestId) && rt.Resume.UserId == userId)
+                .ToListAsync();
+
+            _context.ResumeTests.RemoveRange(tests);
+            await _context.SaveChangesAsync();
+            return tests.Count;
+        }
+
         private IQueryable<ResumeTest> ApplySorting(IQueryable<ResumeTest> query, string sortBy, bool sortDescending)
         {
             Expression<Func<ResumeTest, object>> keySelector = sortBy.ToLower() switch

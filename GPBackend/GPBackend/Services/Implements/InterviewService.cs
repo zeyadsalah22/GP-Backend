@@ -158,5 +158,10 @@ namespace GPBackend.Services.Implements
             // Delete the interview
             return await _interviewRepository.DeleteInterviewByIdAsync(interviewId);
         }
+
+        public async Task<int> BulkDeleteInterviewsAsync(int userId, IEnumerable<int> ids)
+        {
+            return await _interviewRepository.BulkSoftDeleteAsync(userId, ids);
+        }
     }
 }

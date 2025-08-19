@@ -64,5 +64,10 @@ namespace GPBackend.Services.Interfaces
         /// Delete a resume test for a specific user
         /// </summary>
         Task<bool> DeleteResumeTestAsync(int userId, int testId);
+
+        /// <summary>
+        /// Bulk delete resume tests for a specific user
+        /// </summary>
+        Task<int> BulkDeleteResumeTestsAsync(int userId, IEnumerable<int> ids);
     }
 } 

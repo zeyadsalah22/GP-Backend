@@ -10,6 +10,8 @@ namespace GPBackend.DTOs.Company
         // Filter parameters
         public string? Location { get; set; }
         public string? Name { get; set; }
+        public int? IndustryId { get; set; }
+        public GPBackend.Models.Enums.CompanySize? CompanySize { get; set; }
         
         // Pagination parameters
         [Range(1, int.MaxValue, ErrorMessage = "Page number must be greater than 0")]

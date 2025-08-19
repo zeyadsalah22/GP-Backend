@@ -145,5 +145,10 @@ namespace GPBackend.Services.Implements
         {    
             return await _resumeTestRepository.DeleteResumeTestAsync(testId, userId);
         }
+
+        public async Task<int> BulkDeleteResumeTestsAsync(int userId, IEnumerable<int> ids)
+        {
+            return await _resumeTestRepository.BulkDeleteAsync(userId, ids);
+        }
     }
 } 

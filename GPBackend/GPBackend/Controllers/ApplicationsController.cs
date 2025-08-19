@@ -4,6 +4,8 @@ using GPBackend.DTOs.Application;
 using GPBackend.DTOs.Common;
 using GPBackend.Services.Interfaces;
 using System.Security.Claims;
+using System.ComponentModel.DataAnnotations;
+using GPBackend.DTOs.Common;
 
 namespace GPBackend.Controllers
 {
@@ -154,6 +156,26 @@ namespace GPBackend.Controllers
                 }
                 
                 return NoContent();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+        }
+
+        // POST: api/applications/bulk-delete
+        [HttpPost("bulk-delete")]
+        public async Task<IActionResult> BulkDeleteApplications([FromBody][Required] BulkDeleteRequestDto request)
+        {
+            try
+            {
+                int userId = GetAuthenticatedUserId();
+                if (request == null || request.Ids == null || request.Ids.Count == 0)
+                {
+                    return BadRequest(new { message = "Ids list is required" });
+                }
+                var deleted = await _applicationService.BulkDeleteApplicationsAsync(request.Ids, userId);
+                return Ok(new { deletedCount = deleted });
             }
             catch (UnauthorizedAccessException)
             {

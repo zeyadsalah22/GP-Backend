@@ -15,6 +15,7 @@ namespace GPBackend.Services.Interfaces
 
         Task<bool> UpdateQuestionById(int questionId, int userId, QuestionUpdateDto QuestionUpdateDto);
 
-        Task<bool> DeleteQuestionById(int questionId, int userId);  
+        Task<bool> DeleteQuestionById(int questionId, int userId);
+        Task<int> BulkDeleteQuestionsAsync(IEnumerable<int> ids, int userId);
     }
 }

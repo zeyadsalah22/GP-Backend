@@ -6,6 +6,8 @@ using GPBackend.Services.Interfaces;
 using System.Security.Claims;
 using GPBackend.Models;
 using Microsoft.DotNet.Scaffolding.Shared.Messaging;
+using GPBackend.DTOs.Common;
+using System.ComponentModel.DataAnnotations;
 
 namespace GPBackend.Controllers
 {
@@ -139,6 +141,25 @@ namespace GPBackend.Controllers
                     return NotFound();
                 }
                 return NoContent();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+        }
+
+        [HttpPost("bulk-delete")]
+        public async Task<IActionResult> BulkDeleteQuestions([FromBody][Required] BulkDeleteRequestDto request)
+        {
+            try
+            {
+                int userID = GetAuthenticatedUserId();
+                if (request == null || request.Ids == null || request.Ids.Count == 0)
+                {
+                    return BadRequest(new { message = "Ids list is required" });
+                }
+                var deleted = await _QuestionService.BulkDeleteQuestionsAsync(request.Ids, userID);
+                return Ok(new { deletedCount = deleted });
             }
             catch (UnauthorizedAccessException)
             {

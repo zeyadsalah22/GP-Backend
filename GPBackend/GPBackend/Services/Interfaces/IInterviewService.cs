@@ -17,6 +17,7 @@ namespace GPBackend.Services.Interfaces
         Task<InterviewResponseDto?> CreateInterviewAsync(int userId, InterviewCreateDto interviewCreateDto);
         Task<bool> UpdateInterviewByIdAsync(int userId, int interviewId, InterviewUpdateDto interviewUpdateDto);
         Task<bool> DeleteInterviewByIdAsync(int userId, int interviewId);
+        Task<int> BulkDeleteInterviewsAsync(int userId, IEnumerable<int> ids);
 
 
     }

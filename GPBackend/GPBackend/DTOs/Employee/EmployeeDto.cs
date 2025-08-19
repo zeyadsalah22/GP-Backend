@@ -15,6 +15,8 @@ namespace GPBackend.DTOs.Employee
         public string? Email { get; set; }
         public string? JobTitle { get; set; }
         public string? Contacted { get; set; }
+        public string? Phone { get; set; }
+        public string? Department { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public bool IsDeleted { get; set; }
