@@ -140,6 +140,27 @@ namespace GPBackend.Repositories.Implements
         {
             return await _context.Questions.AnyAsync(q => q.QuestionId == questionId && !q.IsDeleted);
         }
+
+        public async Task<int> BulkSoftDeleteAsync(IEnumerable<int> ids, int userId)
+        {
+            if (ids == null) return 0;
+            var idList = ids.Distinct().ToList();
+            if (idList.Count == 0) return 0;
+
+            var questions = await _context.Questions
+                .Include(q => q.Application)
+                .Where(q => idList.Contains(q.QuestionId) && !q.IsDeleted && q.Application.UserId == userId)
+                .ToListAsync();
+
+            foreach (var q in questions)
+            {
+                q.IsDeleted = true;
+                q.UpdatedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+            return questions.Count;
+        }
         
         private IQueryable<Question> ApplySorting(IQueryable<Question> query, string sortBy, bool descending)
         {

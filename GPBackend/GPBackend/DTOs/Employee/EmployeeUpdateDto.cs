@@ -20,5 +20,11 @@ namespace GPBackend.DTOs.Employee
 
         [StringLength(255)]
         public string? Contacted { get; set; }
+
+        [StringLength(50)]
+        public string? Phone { get; set; }
+
+        [StringLength(100)]
+        public string? Department { get; set; }
     }
 } 

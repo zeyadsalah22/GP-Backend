@@ -4,6 +4,7 @@ using GPBackend.Services.Interfaces;
 using GPBackend.DTOs.Company;
 using GPBackend.DTOs.Common;
 using Microsoft.AspNetCore.Authorization;
+using System.ComponentModel.DataAnnotations;
 
 namespace GPBackend.Controllers
 {
@@ -80,6 +81,20 @@ namespace GPBackend.Controllers
             }
 
             return NoContent();
+        }
+
+        // POST: api/companies/bulk-delete
+        [HttpPost("bulk-delete")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> BulkDeleteCompanies([FromBody][Required] BulkDeleteRequestDto request)
+        {
+            if (request == null || request.Ids == null || request.Ids.Count == 0)
+            {
+                return BadRequest(new { message = "Ids list is required" });
+            }
+
+            var deleted = await _companyService.BulkDeleteCompaniesAsync(request.Ids);
+            return Ok(new { deletedCount = deleted });
         }
     }
 } 

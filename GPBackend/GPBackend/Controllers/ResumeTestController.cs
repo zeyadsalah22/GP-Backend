@@ -5,6 +5,8 @@ using GPBackend.DTOs.ResumeTest;
 using GPBackend.Services.Interfaces;
 using GPBackend.Models;
 using System.Security.Claims;
+using GPBackend.DTOs.Common;
+using System.ComponentModel.DataAnnotations;
 
 namespace GPBackend.Controllers
 {
@@ -124,6 +126,25 @@ namespace GPBackend.Controllers
                     return NotFound(new { message = "Resume Test not found." });
                 }
                 return NoContent();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized(new { message = "User is not authenticated properly." });
+            }
+        }
+
+        [HttpPost("bulk-delete")]
+        public async Task<IActionResult> BulkDelete([FromBody][Required] BulkDeleteRequestDto request)
+        {
+            try
+            {
+                int userId = GetAuthenticatedUserId();
+                if (request == null || request.Ids == null || request.Ids.Count == 0)
+                {
+                    return BadRequest(new { message = "Ids list is required" });
+                }
+                var deleted = await _resumeTestService.BulkDeleteResumeTestsAsync(userId, request.Ids);
+                return Ok(new { deletedCount = deleted });
             }
             catch (UnauthorizedAccessException)
             {

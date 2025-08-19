@@ -6,6 +6,7 @@ using GPBackend.Services.Interfaces;
 using System.Security.Claims;
 using GPBackend.DTOs.Auth;
 using GPBackend.DTOs.User;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace GPBackend.Controllers
 {

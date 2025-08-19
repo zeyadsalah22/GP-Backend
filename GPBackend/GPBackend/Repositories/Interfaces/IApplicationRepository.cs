@@ -15,5 +15,6 @@ namespace GPBackend.Repositories.Interfaces
         Task<bool> UpdateAsync(Application application);
         Task<bool> DeleteAsync(int id);
         Task<bool> ExistsAsync(int id);
+        Task<int> BulkSoftDeleteAsync(IEnumerable<int> ids, int userId);
     }
 } 

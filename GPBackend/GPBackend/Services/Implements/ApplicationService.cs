@@ -233,5 +233,10 @@ namespace GPBackend.Services.Implements
         {
             return await _applicationRepository.ExistsAsync(id);
         }
+
+        public async Task<int> BulkDeleteApplicationsAsync(IEnumerable<int> ids, int userId)
+        {
+            return await _applicationRepository.BulkSoftDeleteAsync(ids, userId);
+        }
     }
 } 

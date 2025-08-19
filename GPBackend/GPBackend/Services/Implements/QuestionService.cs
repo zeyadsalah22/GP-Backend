@@ -128,5 +128,10 @@ namespace GPBackend.Services.Implements
 
             return await _questionRepository.DeleteQuestionByIdAsync(questionId);
         }
+
+        public async Task<int> BulkDeleteQuestionsAsync(IEnumerable<int> ids, int userId)
+        {
+            return await _questionRepository.BulkSoftDeleteAsync(ids, userId);
+        }
     }
 }

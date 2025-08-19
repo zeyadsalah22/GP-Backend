@@ -3,6 +3,8 @@ using GPBackend.Services.Interfaces;
 using GPBackend.DTOs.Employee;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using GPBackend.DTOs.Common;
+using System.ComponentModel.DataAnnotations;
 
 namespace GPBackend.Controllers
 {
@@ -120,6 +122,18 @@ namespace GPBackend.Controllers
             {
                 return StatusCode(500, "Internal server error: " + ex.Message);
             }
+        }
+
+        [HttpPost("bulk-delete")]
+        public async Task<IActionResult> BulkDeleteEmployees([FromBody][Required] BulkDeleteRequestDto request)
+        {
+            var userId = GetAuthenticatedUserId();
+            if (request == null || request.Ids == null || request.Ids.Count == 0)
+            {
+                return BadRequest(new { message = "Ids list is required" });
+            }
+            var deleted = await _employeeService.BulkDeleteEmployeesAsync(request.Ids, userId);
+            return Ok(new { deletedCount = deleted });
         }
     }
 } 

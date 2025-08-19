@@ -18,5 +18,15 @@ namespace GPBackend.DTOs.Company
         [StringLength(255)]
         [Url]
         public string? LinkedinLink { get; set; }
+
+        [Required]
+        public int IndustryId { get; set; }
+
+        [Required]
+        public Models.Enums.CompanySize CompanySize { get; set; }
+
+        public string? Description { get; set; }
+
+        public byte[]? Logo { get; set; }
     }
 } 

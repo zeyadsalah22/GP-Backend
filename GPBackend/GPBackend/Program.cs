@@ -15,6 +15,7 @@ using GPBackend.Services;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 
 namespace GPBackend
 {
@@ -164,6 +165,9 @@ namespace GPBackend
             // Register repositories
             builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             // builder.Services.AddHttpClient<IInterviewService, InterviewService>();
+
+            builder.Services.AddControllers()
+                .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
             // Register TokenBlacklistService as Singleton (persistence across requests)
             builder.Services.AddSingleton<ITokenBlacklistService, TokenBlacklistService>();

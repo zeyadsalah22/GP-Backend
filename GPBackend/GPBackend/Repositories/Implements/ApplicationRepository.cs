@@ -162,6 +162,26 @@ namespace GPBackend.Repositories.Implements
             return await _context.SaveChangesAsync() > 0;
         }
 
+        public async Task<int> BulkSoftDeleteAsync(IEnumerable<int> ids, int userId)
+        {
+            if (ids == null) return 0;
+            var idList = ids.Distinct().ToList();
+            if (idList.Count == 0) return 0;
+
+            var applications = await _context.Applications
+                .Where(a => idList.Contains(a.ApplicationId) && !a.IsDeleted && a.UserId == userId)
+                .ToListAsync();
+
+            foreach (var a in applications)
+            {
+                a.IsDeleted = true;
+                a.UpdatedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+            return applications.Count;
+        }
+
         public async Task<bool> ExistsAsync(int id)
         {
             return await _context.Applications.AnyAsync(a => a.ApplicationId == id && !a.IsDeleted);

@@ -12,5 +12,6 @@ namespace GPBackend.Services.Interfaces
         Task<bool> UpdateApplicationAsync(int id, int userId, ApplicationUpdateDto updateDto);
         Task<bool> DeleteApplicationAsync(int id, int userId);
         Task<bool> ApplicationExistsAsync(int id);
+        Task<int> BulkDeleteApplicationsAsync(IEnumerable<int> ids, int userId);
     }
 } 

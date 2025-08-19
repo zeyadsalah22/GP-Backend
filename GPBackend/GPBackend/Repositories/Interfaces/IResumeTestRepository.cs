@@ -19,5 +19,6 @@ namespace GPBackend.Repositories.Interfaces
         Task<bool> DeleteResumeTestAsync(int testId, int userId);
 
         Task<bool> UpdateResumeTestAsync(ResumeTest resumeTest);
+        Task<int> BulkDeleteAsync(int userId, IEnumerable<int> ids);
     }
 } 

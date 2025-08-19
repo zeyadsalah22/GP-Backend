@@ -21,5 +21,6 @@ namespace GPBackend.Repositories.Interfaces
         Task<int> CreateInterviewAsync(Interview interview);
         Task<bool> UpdateInterviewAsync(Interview interview);
         Task<bool> DeleteInterviewByIdAsync(int interviewId);
+        Task<int> BulkSoftDeleteAsync(int userId, IEnumerable<int> ids);
     }
 }

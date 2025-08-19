@@ -12,5 +12,6 @@ namespace GPBackend.Services.Interfaces
         Task<CompanyResponseDto> CreateCompanyAsync(CompanyCreateDto companyDto);
         Task<bool> UpdateCompanyAsync(int id, CompanyUpdateDto companyDto);
         Task<bool> DeleteCompanyAsync(int id);
+        Task<int> BulkDeleteCompaniesAsync(IEnumerable<int> ids);
     }
 } 
