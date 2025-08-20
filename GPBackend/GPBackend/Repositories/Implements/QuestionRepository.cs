@@ -20,6 +20,7 @@ namespace GPBackend.Repositories.Implements
         {
             return await _context.Questions
                         .Include(q => q.Application)
+                        .Include(q => q.Tags)
                         .Where(q => q.Application.UserId == userId && !q.IsDeleted)
                         .OrderBy(q => q.CreatedAt)
                         .ToListAsync();
@@ -29,11 +30,37 @@ namespace GPBackend.Repositories.Implements
         {
             IQueryable<Question> query = _context.Questions
                         .Include(q => q.Application)
+                        .Include(q => q.Tags)
                         .Where(q => q.Application.UserId == userId && !q.IsDeleted);
 
             if (questionQueryDto.ApplicationId.HasValue)
             {
                 query = query.Where(q => q.ApplicationId == questionQueryDto.ApplicationId);
+            }
+
+            if (questionQueryDto.Type.HasValue)
+            {
+                query = query.Where(q => q.Type == questionQueryDto.Type.Value);
+            }
+
+            if (questionQueryDto.AnswerStatus.HasValue)
+            {
+                query = query.Where(q => q.AnswerStatus == questionQueryDto.AnswerStatus.Value);
+            }
+
+            if (questionQueryDto.Difficulty.HasValue)
+            {
+                query = query.Where(q => q.Difficulty == questionQueryDto.Difficulty.Value);
+            }
+
+            if (questionQueryDto.Favorite.HasValue)
+            {
+                query = query.Where(q => q.Favorite == questionQueryDto.Favorite.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(questionQueryDto.Tag))
+            {
+                query = query.Where(q => q.Tags.Any(t => t.Tag == questionQueryDto.Tag));
             }
 
             if (!string.IsNullOrWhiteSpace(questionQueryDto.Question))
@@ -50,7 +77,8 @@ namespace GPBackend.Repositories.Implements
             {
                 query = query.Where(q =>
                     q.Question1.Contains(questionQueryDto.SearchTerm) ||
-                    q.Answer != null && q.Answer.Contains(questionQueryDto.SearchTerm)
+                    (q.Answer != null && q.Answer.Contains(questionQueryDto.SearchTerm)) ||
+                    q.Tags.Any(t => t.Tag.Contains(questionQueryDto.SearchTerm))
                 );
             }
 
@@ -91,6 +119,7 @@ namespace GPBackend.Repositories.Implements
         {
             return await _context.Questions
                         .Include(q => q.Application)
+                        .Include(q => q.Tags)
                         .FirstOrDefaultAsync(q => q.QuestionId == questionId && !q.IsDeleted);
         }
 
@@ -168,6 +197,10 @@ namespace GPBackend.Repositories.Implements
             {
                 "question" => a => a.Question1,
                 "answer" => a => a.Answer,
+                "type" => a => a.Type!,
+                "answerstatus" => a => a.AnswerStatus!,
+                "difficulty" => a => a.Difficulty!,
+                "favorite" => a => a.Favorite,
                 "createdat" => a => a.CreatedAt,
                 "updatedat" => a => a.UpdatedAt,
                 _ => a => a.CreatedAt // Default sorting by submission date
