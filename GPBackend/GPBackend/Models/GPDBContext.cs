@@ -31,6 +31,7 @@ public partial class GPDBContext : DbContext
     public virtual DbSet<InterviewQuestion> InterviewQuestions { get; set; }
 
     public virtual DbSet<Question> Questions { get; set; }
+    public virtual DbSet<QuestionTag> QuestionTags { get; set; }
 
     public virtual DbSet<Resume> Resumes { get; set; }
 
@@ -305,6 +306,17 @@ public partial class GPDBContext : DbContext
             entity.Property(e => e.QuestionId).HasColumnName("question_id");
             entity.Property(e => e.Answer).HasColumnName("answer");
             entity.Property(e => e.ApplicationId).HasColumnName("application_id");
+            entity.Property(e => e.Type)
+                .HasConversion<int>()
+                .HasColumnName("type");
+            entity.Property(e => e.AnswerStatus)
+                .HasConversion<int>()
+                .HasColumnName("answer_status");
+            entity.Property(e => e.Difficulty).HasColumnName("difficulty");
+            entity.Property(e => e.PreparationNote)
+                .HasMaxLength(1000)
+                .HasColumnName("preparation_note");
+            entity.Property(e => e.Favorite).HasColumnName("favorite");
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
                 .HasDefaultValueSql("(sysutcdatetime())")
@@ -320,6 +332,24 @@ public partial class GPDBContext : DbContext
                 .HasForeignKey(d => d.ApplicationId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Questions_Applications");
+        });
+
+        modelBuilder.Entity<QuestionTag>(entity =>
+        {
+            entity.ToTable("Question_Tags");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.QuestionId).HasColumnName("question_id");
+            entity.Property(e => e.Tag).HasMaxLength(50).HasColumnName("tag");
+            entity.Property(e => e.CreatedAt).HasPrecision(0).HasDefaultValueSql("(sysdatetime())").HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt).HasPrecision(0).HasDefaultValueSql("(sysdatetime())").HasColumnName("updated_at");
+
+            entity.HasIndex(e => new { e.QuestionId, e.Tag }).IsUnique();
+
+            entity.HasOne(d => d.Question)
+                .WithMany(p => p.Tags)
+                .HasForeignKey(d => d.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_QuestionTags_Questions");
         });
 
         modelBuilder.Entity<Resume>(entity =>

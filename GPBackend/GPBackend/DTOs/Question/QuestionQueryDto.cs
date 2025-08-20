@@ -1,6 +1,7 @@
 using GPBackend.DTOs.Common;
 using System;
 using System.ComponentModel.DataAnnotations;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.DTOs.Question
 {
@@ -14,6 +15,13 @@ namespace GPBackend.DTOs.Question
         public string? Answer { get; set; }
 
         public string? SearchTerm { get; set; }
+
+        public QuestionType? Type { get; set; }
+        public AnswerStatus? AnswerStatus { get; set; }
+        [Range(1,5)]
+        public int? Difficulty { get; set; }
+        public bool? Favorite { get; set; }
+        public string? Tag { get; set; }
 
         // Pagination parameters
         [Range(1, int.MaxValue, ErrorMessage = "Page number must be greater than 0")]

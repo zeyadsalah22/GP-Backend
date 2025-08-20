@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.DTOs.Question
 {
@@ -12,5 +14,19 @@ namespace GPBackend.DTOs.Question
 
         [Required(ErrorMessage = "Application field is required")]
         public int ApplicationId { get; set; }
+
+        public QuestionType? Type { get; set; }
+
+        public AnswerStatus? AnswerStatus { get; set; }
+
+        [Range(1,5)]
+        public int? Difficulty { get; set; }
+
+        [StringLength(1000)]
+        public string? PreparationNote { get; set; }
+
+        public bool Favorite { get; set; } = false;
+
+        public List<string>? Tags { get; set; }
     }
 }
