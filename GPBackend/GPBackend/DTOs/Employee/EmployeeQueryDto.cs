@@ -8,6 +8,8 @@ namespace GPBackend.DTOs.Employee
         public int? CompanyId { get; set; }
         public string? CompanyName { get; set; }
         public string? JobTitle { get; set; }
+        public string? Department { get; set; }
+        public string? ContactStatus { get; set; }
 
         public string? SortBy { get; set; }
         public bool SortDescending { get; set; } = false;

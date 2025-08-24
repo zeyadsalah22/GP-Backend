@@ -19,6 +19,7 @@ namespace GPBackend.Profiles
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
+                .ForMember(dest => dest.Tags, opt => opt.Ignore())
                 .AfterMap((src, dest) =>
                 {
                     dest.Tags = new System.Collections.Generic.List<QuestionTag>();
@@ -42,6 +43,7 @@ namespace GPBackend.Profiles
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
+                .ForMember(dest => dest.Tags, opt => opt.Ignore())
                 .ForMember(dest => dest.Question1, opt => opt.Condition(src => src.Question1 != null))
                 .ForMember(dest => dest.Answer, opt => opt.Condition(src => src.Answer != null))
                 .ForMember(dest => dest.Favorite, opt => opt.Condition(src => src.Favorite.HasValue))

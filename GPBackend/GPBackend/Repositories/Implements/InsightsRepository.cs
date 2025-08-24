@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using GPBackend.DTOs;
 using GPBackend.Models;
 using Microsoft.EntityFrameworkCore;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.Repositories
 {
@@ -29,8 +30,8 @@ namespace GPBackend.Repositories
                 .ToListAsync();
 
             var total_applications = applications.Count;
-            var rejected_applications = applications.Count(a => a.Status.ToLower() == "rejected");
-            var accepted_applications = applications.Count(a => a.Status.ToLower() == "accepted");
+            var rejected_applications = applications.Count(a => a.Status == ApplicationDecisionStatus.Rejected);
+            var accepted_applications = applications.Count(a => a.Status == ApplicationDecisionStatus.Accepted);
 
             var result = new StatisticsDTO
             {
@@ -41,14 +42,14 @@ namespace GPBackend.Repositories
                 last_application = applications.OrderByDescending(a => a.SubmissionDate).FirstOrDefault()?.SubmissionDate != null
                     ? applications.OrderByDescending(a => a.SubmissionDate).FirstOrDefault().SubmissionDate.ToDateTime(TimeOnly.MinValue)
                     : null,
-                last_rejection = applications.Where(a => a.Status.ToLower() == "rejected").OrderByDescending(a => a.SubmissionDate).FirstOrDefault()?.SubmissionDate != null
-                    ? applications.Where(a => a.Status.ToLower() == "rejected").OrderByDescending(a => a.SubmissionDate).FirstOrDefault().SubmissionDate.ToDateTime(TimeOnly.MinValue)
+                last_rejection = applications.Where(a => a.Status == ApplicationDecisionStatus.Rejected).OrderByDescending(a => a.SubmissionDate).FirstOrDefault()?.SubmissionDate != null
+                    ? applications.Where(a => a.Status == ApplicationDecisionStatus.Rejected).OrderByDescending(a => a.SubmissionDate).FirstOrDefault().SubmissionDate.ToDateTime(TimeOnly.MinValue)
                     : null,
-                last_acceptance = applications.Where(a => a.Status.ToLower() == "accepted").OrderByDescending(a => a.SubmissionDate).FirstOrDefault()?.SubmissionDate != null
-                    ? applications.Where(a => a.Status.ToLower() == "accepted").OrderByDescending(a => a.SubmissionDate).FirstOrDefault().SubmissionDate.ToDateTime(TimeOnly.MinValue)
+                last_acceptance = applications.Where(a => a.Status == ApplicationDecisionStatus.Accepted).OrderByDescending(a => a.SubmissionDate).FirstOrDefault()?.SubmissionDate != null
+                    ? applications.Where(a => a.Status == ApplicationDecisionStatus.Accepted).OrderByDescending(a => a.SubmissionDate).FirstOrDefault().SubmissionDate.ToDateTime(TimeOnly.MinValue)
                     : null,
-                last_pending = applications.Where(a => a.Status.ToLower() == "pending").OrderByDescending(a => a.SubmissionDate).FirstOrDefault()?.SubmissionDate != null
-                    ? applications.Where(a => a.Status.ToLower() == "pending").OrderByDescending(a => a.SubmissionDate).FirstOrDefault().SubmissionDate.ToDateTime(TimeOnly.MinValue)
+                last_pending = applications.Where(a => a.Status == ApplicationDecisionStatus.Pending).OrderByDescending(a => a.SubmissionDate).FirstOrDefault()?.SubmissionDate != null
+                    ? applications.Where(a => a.Status == ApplicationDecisionStatus.Pending).OrderByDescending(a => a.SubmissionDate).FirstOrDefault().SubmissionDate.ToDateTime(TimeOnly.MinValue)
                     : null
             };
 
@@ -89,10 +90,10 @@ namespace GPBackend.Repositories
 
                 var total_applications = applications.Count(a => a.SubmissionDate >= currentDateOnly &&
                                                           a.SubmissionDate < nextDateOnly);
-                var rejections = applications.Count(a => a.Status.ToLower() == "rejected" &&
+                var rejections = applications.Count(a => a.Status == ApplicationDecisionStatus.Rejected &&
                                             a.SubmissionDate >= currentDateOnly &&
                                             a.SubmissionDate < nextDateOnly);
-                var acceptances = applications.Count(a => a.Status.ToLower() == "accepted" &&
+                var acceptances = applications.Count(a => a.Status == ApplicationDecisionStatus.Accepted &&
                                                  a.SubmissionDate >= currentDateOnly &&
                                                  a.SubmissionDate < nextDateOnly);
 
@@ -115,7 +116,7 @@ namespace GPBackend.Repositories
         public async Task<PercentsDTO> GetPercentsAsync(int userId)
         {
             var applications = await _context.Applications
-                .Where(a => a.UserId == userId && !a.IsDeleted && (a.Status.ToLower() == "accepted" || a.Status.ToLower() == "rejected"))
+                .Where(a => a.UserId == userId && !a.IsDeleted && (a.Status == ApplicationDecisionStatus.Accepted || a.Status == ApplicationDecisionStatus.Rejected))
                 .Select(a => new
                 {
                     a.Stage
@@ -127,11 +128,11 @@ namespace GPBackend.Repositories
             var percentsDTO = new PercentsDTO
             {
                 total_applications = totalCount,
-                applied_stage = applications.Count(a => a.Stage.ToLower() == "applied"),
-                phonescreen_stage = applications.Count(a => a.Stage.ToLower() == "phonescreen"),
-                assessment_stage = applications.Count(a => a.Stage.ToLower() == "assessment"),
-                interview_stage = applications.Count(a => a.Stage.ToLower() == "interview"),
-                offer_stage = applications.Count(a => a.Stage.ToLower() == "offer")
+                applied_stage = applications.Count(a => a.Stage == ApplicationStage.Applied),
+                phonescreen_stage = applications.Count(a => a.Stage == ApplicationStage.PhoneScreen),
+                assessment_stage = applications.Count(a => a.Stage == ApplicationStage.Assessment),
+                interview_stage = applications.Count(a => a.Stage == ApplicationStage.HrInterview) + applications.Count(a => a.Stage == ApplicationStage.TechnicalInterview),
+                offer_stage = applications.Count(a => a.Stage == ApplicationStage.Offer)
             };
 
             return percentsDTO;

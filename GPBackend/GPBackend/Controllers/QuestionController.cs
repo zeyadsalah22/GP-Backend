@@ -58,10 +58,18 @@ namespace GPBackend.Controllers
 
         // TODO: Check nullability 
         [HttpPost]
-        public async Task<ActionResult<QuestionResponseDto>> CreateNewQuestion(QuestionCreateDto questionCreateDto)
+        public async Task<ActionResult<QuestionResponseDto>> CreateNewQuestion([FromBody][Required] QuestionCreateDto questionCreateDto)
         {
             try
             {
+                if (questionCreateDto == null)
+                {
+                    return BadRequest(new { Message = "Request body is required" });
+                }
+                if (!ModelState.IsValid)
+                {
+                    return ValidationProblem(ModelState);
+                }
                 int userId = GetAuthenticatedUserId();
                 try
                 {
@@ -111,10 +119,18 @@ namespace GPBackend.Controllers
         }
 
         [HttpPatch("{id}")]
-        public async Task<IActionResult> UpdateQuestionById(int id, QuestionUpdateDto questionUpdateDto)
+        public async Task<IActionResult> UpdateQuestionById(int id, [FromBody][Required] QuestionUpdateDto questionUpdateDto)
         {
             try
             {
+                if (questionUpdateDto == null)
+                {
+                    return BadRequest(new { Message = "Request body is required" });
+                }
+                if (!ModelState.IsValid)
+                {
+                    return ValidationProblem(ModelState);
+                }
                 int userID = GetAuthenticatedUserId();
                 var result = await _QuestionService.UpdateQuestionById(id, userID, questionUpdateDto);
                 if (!result)

@@ -24,7 +24,8 @@ namespace GPBackend.Profiles
                 .ForMember(dest => dest.Company, opt => opt.Ignore())
                 .ForMember(dest => dest.User, opt => opt.Ignore())
                 .ForMember(dest => dest.Applications, opt => opt.Ignore())
-                .ForMember(dest => dest.Employees, opt => opt.Ignore());
+                .ForMember(dest => dest.Employees, opt => opt.Ignore())
+                .ForMember(dest => dest.Tags, opt => opt.Ignore());
 
             CreateMap<UserCompanyUpdateDto, UserCompany>()
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
@@ -35,7 +36,8 @@ namespace GPBackend.Profiles
                 .ForMember(dest => dest.Company, opt => opt.Ignore())
                 .ForMember(dest => dest.User, opt => opt.Ignore())
                 .ForMember(dest => dest.Applications, opt => opt.Ignore())
-                .ForMember(dest => dest.Employees, opt => opt.Ignore());
+                .ForMember(dest => dest.Employees, opt => opt.Ignore())
+                .ForMember(dest => dest.Tags, opt => opt.Ignore());
         }
     }
 } 

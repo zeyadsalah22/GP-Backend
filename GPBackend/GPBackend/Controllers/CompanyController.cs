@@ -51,16 +51,32 @@ namespace GPBackend.Controllers
 
         [HttpPost]
         [Authorize(Policy = "AdminOnly")]
-        public async Task<ActionResult<CompanyResponseDto>> CreateCompany(CompanyCreateDto companyDto)
+        public async Task<ActionResult<CompanyResponseDto>> CreateCompany([FromBody][Required] CompanyCreateDto companyDto)
         {
+            if (companyDto == null)
+            {
+                return BadRequest(new { message = "Request body is required" });
+            }
+            if (!ModelState.IsValid)
+            {
+                return ValidationProblem(ModelState);
+            }
             var createdCompany = await _companyService.CreateCompanyAsync(companyDto);
             return CreatedAtAction(nameof(GetCompanyById), new { id = createdCompany.CompanyId }, createdCompany);
         }
 
         [HttpPut("{id}")]
         [Authorize(Policy = "AdminOnly")]
-        public async Task<IActionResult> UpdateCompany(int id, CompanyUpdateDto companyDto)
+        public async Task<IActionResult> UpdateCompany(int id, [FromBody][Required] CompanyUpdateDto companyDto)
         {
+            if (companyDto == null)
+            {
+                return BadRequest(new { message = "Request body is required" });
+            }
+            if (!ModelState.IsValid)
+            {
+                return ValidationProblem(ModelState);
+            }
             var result = await _companyService.UpdateCompanyAsync(id, companyDto);
             if (!result)
             {

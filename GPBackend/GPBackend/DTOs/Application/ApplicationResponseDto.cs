@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using GPBackend.DTOs.Company;
 using GPBackend.DTOs.Employee;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.DTOs.Application
 {
@@ -18,11 +19,12 @@ namespace GPBackend.DTOs.Application
         public string? Link { get; set; }
         public int? SubmittedCvId { get; set; }
         public int? AtsScore { get; set; }
-        public string Stage { get; set; } = null!;
-        public string Status { get; set; } = null!;
+        public ApplicationStage Stage { get; set; }
+        public ApplicationDecisionStatus Status { get; set; }
         public DateOnly SubmissionDate { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public List<EmployeeDto> ContactedEmployees { get; set; } = new List<EmployeeDto>();
+        public List<ApplicationStageHistoryDto> Timeline { get; set; } = new List<ApplicationStageHistoryDto>();
     }
 } 

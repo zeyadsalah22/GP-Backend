@@ -3,6 +3,7 @@ using GPBackend.DTOs.Application;
 using GPBackend.DTOs.Company;
 using GPBackend.DTOs.Employee;
 using GPBackend.Models;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.Profiles
 {
@@ -14,7 +15,11 @@ namespace GPBackend.Profiles
             CreateMap<Application, ApplicationResponseDto>()
                 .ForMember(dest => dest.CompanyName, opt => opt.MapFrom(src => src.UserCompany.Company.Name))
                 .ForMember(dest => dest.Company, opt => opt.MapFrom(src => src.UserCompany.Company))
-                .ForMember(dest => dest.ContactedEmployees, opt => opt.Ignore()); // We handle this manually in the service
+                .ForMember(dest => dest.ContactedEmployees, opt => opt.Ignore()) // We handle this manually in the service
+                .ForMember(dest => dest.Timeline, opt => opt.MapFrom(src => src.StageHistory));
+
+            CreateMap<ApplicationStageHistory, ApplicationStageHistoryDto>()
+                .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.ReachedDate));
                 
             // Map from Company to CompanyResponseDto for nested mapping
             CreateMap<Company, CompanyResponseDto>();

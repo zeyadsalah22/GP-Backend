@@ -89,10 +89,18 @@ namespace GPBackend.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ResumeTestResponseDto>> CreateResumeTestAsync(ResumeTestCreateDto ResumeTestCreateDto)
+        public async Task<ActionResult<ResumeTestResponseDto>> CreateResumeTestAsync([FromBody][Required] ResumeTestCreateDto ResumeTestCreateDto)
         {
             try
             {
+                if (ResumeTestCreateDto == null)
+                {
+                    return BadRequest(new { message = "Request body is required" });
+                }
+                if (!ModelState.IsValid)
+                {
+                    return ValidationProblem(ModelState);
+                }
                 int userId = GetAuthenticatedUserId();
                 try
                 {
@@ -145,6 +153,36 @@ namespace GPBackend.Controllers
                 }
                 var deleted = await _resumeTestService.BulkDeleteResumeTestsAsync(userId, request.Ids);
                 return Ok(new { deletedCount = deleted });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized(new { message = "User is not authenticated properly." });
+            }
+        }
+
+        [HttpGet("scores")]
+        public async Task<ActionResult<GPBackend.DTOs.ResumeTest.ResumeTestScoresDistributionDto>> GetScoresDistribution()
+        {
+            try
+            {
+                int userId = GetAuthenticatedUserId();
+                var result = await _resumeTestService.GetScoresDistributionAsync(userId);
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized(new { message = "User is not authenticated properly." });
+            }
+        }
+
+        [HttpGet("stats")]
+        public async Task<ActionResult<GPBackend.DTOs.ResumeTest.ResumeTestStatsDto>> GetStats()
+        {
+            try
+            {
+                int userId = GetAuthenticatedUserId();
+                var result = await _resumeTestService.GetStatsAsync(userId);
+                return Ok(result);
             }
             catch (UnauthorizedAccessException)
             {

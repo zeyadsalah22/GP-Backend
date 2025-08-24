@@ -13,8 +13,11 @@ namespace GPBackend.DTOs.UserCompany
         public string? PersonalNotes { get; set; }
 
         [Required]
-        public GPBackend.Models.Enums.InterestLevel InterestLevel { get; set; }
+        [EnumDataType(typeof(GPBackend.Models.Enums.InterestLevel))]
+        public GPBackend.Models.Enums.InterestLevel? InterestLevel { get; set; }
 
         public bool Favorite { get; set; }
+
+        public List<string>? Tags { get; set; }
     }
 } 

@@ -12,10 +12,12 @@ namespace GPBackend.Services.Implements
     {
         private readonly IUserCompanyRepository _userCompanyRepository;
         private readonly IMapper _mapper;
+        private readonly ICompanyRepository _companyRepository;
 
-        public UserCompanyService(IUserCompanyRepository userCompanyRepository, IMapper mapper)
+        public UserCompanyService(IUserCompanyRepository userCompanyRepository, ICompanyRepository companyRepository, IMapper mapper)
         {
             _userCompanyRepository = userCompanyRepository;
+            _companyRepository = companyRepository;
             _mapper = mapper;
         }
 
@@ -64,13 +66,47 @@ namespace GPBackend.Services.Implements
 
         public async Task<UserCompanyResponseDto> CreateUserCompanyAsync(UserCompanyCreateDto userCompanyDto)
         {
+            // Validate target company exists and is not deleted
+            var company = await _companyRepository.GetByIdAsync(userCompanyDto.CompanyId);
+            if (company == null || company.IsDeleted)
+            {
+                throw new InvalidOperationException("Invalid companyId. Company does not exist or is deleted.");
+            }
+
+            // Ensure not duplicate
+            var existingAny = await _userCompanyRepository.GetIncludingDeletedAsync(userCompanyDto.UserId, userCompanyDto.CompanyId);
+            if (existingAny != null)
+            {
+                if (!existingAny.IsDeleted)
+                {
+                    throw new InvalidOperationException("UserCompany already exists for this user and company.");
+                }
+                // Revive soft-deleted record
+                existingAny.PersonalNotes = userCompanyDto.PersonalNotes;
+                existingAny.InterestLevel = userCompanyDto.InterestLevel;
+                existingAny.Favorite = userCompanyDto.Favorite;
+                existingAny.IsDeleted = false;
+                existingAny.UpdatedAt = DateTime.UtcNow;
+                await _userCompanyRepository.UpdateAsync(existingAny);
+                if (userCompanyDto.Tags != null)
+                {
+                    await _userCompanyRepository.ReplaceTagsAsync(existingAny.UserId, existingAny.CompanyId, userCompanyDto.Tags);
+                }
+                var revived = await _userCompanyRepository.GetByIdAsync(existingAny.UserId, existingAny.CompanyId);
+                return _mapper.Map<UserCompanyResponseDto>(revived!);
+            }
+
             var userCompany = _mapper.Map<UserCompany>(userCompanyDto);
             var createdUserCompany = await _userCompanyRepository.CreateAsync(userCompany);
-            
-            // Load company details for the response
-            await _userCompanyRepository.GetByIdAsync(createdUserCompany.UserId, createdUserCompany.CompanyId);
-            
-            return _mapper.Map<UserCompanyResponseDto>(createdUserCompany);
+            // Replace tags if provided (ensure tag rows exist)
+            if (userCompanyDto.Tags != null)
+            {
+                await _userCompanyRepository.ReplaceTagsAsync(createdUserCompany.UserId, createdUserCompany.CompanyId, userCompanyDto.Tags);
+            }
+
+            // Reload with relations for accurate response
+            var reloaded = await _userCompanyRepository.GetByIdAsync(createdUserCompany.UserId, createdUserCompany.CompanyId);
+            return _mapper.Map<UserCompanyResponseDto>(reloaded!);
         }
 
         public async Task<bool> UpdateUserCompanyAsync(int userId, int companyId, UserCompanyUpdateDto userCompanyDto)
@@ -83,8 +119,14 @@ namespace GPBackend.Services.Implements
 
             _mapper.Map(userCompanyDto, existingUserCompany);
             existingUserCompany.UpdatedAt = DateTime.UtcNow;
+            var updated = await _userCompanyRepository.UpdateAsync(existingUserCompany);
+            if (!updated) return false;
 
-            return await _userCompanyRepository.UpdateAsync(existingUserCompany);
+            if (userCompanyDto.Tags != null)
+            {
+                await _userCompanyRepository.ReplaceTagsAsync(userId, companyId, userCompanyDto.Tags);
+            }
+            return true;
         }
 
         public async Task<bool> DeleteUserCompanyAsync(int userId, int companyId)

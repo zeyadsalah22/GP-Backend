@@ -1,6 +1,7 @@
 using GPBackend.DTOs.Application;
 using GPBackend.DTOs.Common;
 using GPBackend.Models;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.Repositories.Interfaces
 {
@@ -16,5 +17,7 @@ namespace GPBackend.Repositories.Interfaces
         Task<bool> DeleteAsync(int id);
         Task<bool> ExistsAsync(int id);
         Task<int> BulkSoftDeleteAsync(IEnumerable<int> ids, int userId);
+
+        Task<bool> UpsertStageHistoryAsync(int applicationId, ApplicationStage stage, DateOnly reachedDate, string? note = null);
     }
 } 

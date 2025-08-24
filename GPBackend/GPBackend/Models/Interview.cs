@@ -18,6 +18,8 @@ public partial class Interview
 
     public string? Feedback { get; set; }
 
+    public string? Notes { get; set; }
+
     public DateTime StartDate { get; set; }
 
     public int Duration { get; set; }

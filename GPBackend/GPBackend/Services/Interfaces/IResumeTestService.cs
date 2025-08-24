@@ -69,5 +69,15 @@ namespace GPBackend.Services.Interfaces
         /// Bulk delete resume tests for a specific user
         /// </summary>
         Task<int> BulkDeleteResumeTestsAsync(int userId, IEnumerable<int> ids);
+
+        /// <summary>
+        /// Get score distribution buckets for resume tests
+        /// </summary>
+        Task<GPBackend.DTOs.ResumeTest.ResumeTestScoresDistributionDto> GetScoresDistributionAsync(int userId);
+
+        /// <summary>
+        /// Get statistics: total tests, average score, best score, tests this month
+        /// </summary>
+        Task<GPBackend.DTOs.ResumeTest.ResumeTestStatsDto> GetStatsAsync(int userId);
     }
 } 

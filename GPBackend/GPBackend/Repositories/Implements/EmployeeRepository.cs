@@ -30,13 +30,29 @@ namespace GPBackend.Repositories.Implements
                 query = query.Where(e =>
                     e.Name.Contains(queryDto.Search) ||
                     (e.JobTitle != null && e.JobTitle.Contains(queryDto.Search)) ||
-                    (e.Contacted != null && e.Contacted.Contains(queryDto.Search)));
+                    (e.Contacted != null && e.Contacted.Contains(queryDto.Search)) ||
+                    (e.Department != null && e.Department.Contains(queryDto.Search)) ||
+                    (e.Email != null && e.Email.Contains(queryDto.Search)));
             }
 
             // Apply company filter
             if (queryDto.CompanyId.HasValue)
             {
                 query = query.Where(e => e.CompanyId == queryDto.CompanyId.Value);
+            }
+
+            // Apply department filter
+            if (!string.IsNullOrWhiteSpace(queryDto.Department))
+            {
+                var dept = queryDto.Department.Trim().ToLower();
+                query = query.Where(e => e.Department != null && e.Department.ToLower().Contains(dept));
+            }
+
+            // Apply contact status filter
+            if (!string.IsNullOrWhiteSpace(queryDto.ContactStatus))
+            {
+                var status = queryDto.ContactStatus.Trim().ToLower();
+                query = query.Where(e => e.Contacted != null && e.Contacted.ToLower().Contains(status));
             }
 
             // Apply sorting

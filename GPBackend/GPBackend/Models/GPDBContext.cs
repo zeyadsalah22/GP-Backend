@@ -19,6 +19,7 @@ public partial class GPDBContext : DbContext
     public virtual DbSet<Application> Applications { get; set; }
 
     public virtual DbSet<ApplicationEmployee> ApplicationEmployees { get; set; }
+    public virtual DbSet<ApplicationStageHistory> ApplicationStageHistories { get; set; }
 
     public virtual DbSet<Company> Companies { get; set; }
 
@@ -79,10 +80,10 @@ public partial class GPDBContext : DbContext
                 .IsConcurrencyToken()
                 .HasColumnName("rowversion");
             entity.Property(e => e.Stage)
-                .HasMaxLength(50)
+                .HasConversion<int>()
                 .HasColumnName("stage");
             entity.Property(e => e.Status)
-                .HasMaxLength(50)
+                .HasConversion<int>()
                 .HasColumnName("status");
             entity.Property(e => e.SubmissionDate)
                 .HasDefaultValueSql("(CONVERT([date],getdate()))")
@@ -102,6 +103,30 @@ public partial class GPDBContext : DbContext
             entity.HasOne(d => d.UserCompany).WithMany(p => p.Applications)
                 .HasForeignKey(d => new { d.UserId, d.CompanyId })
                 .HasConstraintName("FK_Applications_User_Companies");
+        });
+
+        modelBuilder.Entity<ApplicationStageHistory>(entity =>
+        {
+            entity.ToTable("Application_Stage_History");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ApplicationId).HasColumnName("application_id");
+            entity.Property(e => e.Stage)
+                .HasConversion<int>()
+                .HasColumnName("stage");
+            entity.Property(e => e.ReachedDate).HasColumnName("reached_date");
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.CreatedAt).HasPrecision(0).HasDefaultValueSql("(sysdatetime())").HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt).HasPrecision(0).HasDefaultValueSql("(sysdatetime())").HasColumnName("updated_at");
+            entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
+            entity.Property(e => e.Rowversion).IsRowVersion().IsConcurrencyToken().HasColumnName("rowversion");
+
+            entity.HasIndex(e => new { e.ApplicationId, e.Stage }).IsUnique();
+
+            entity.HasOne(d => d.Application)
+                .WithMany(p => p.StageHistory)
+                .HasForeignKey(d => d.ApplicationId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_AppStageHistory_Applications");
         });
 
         modelBuilder.Entity<ApplicationEmployee>(entity =>

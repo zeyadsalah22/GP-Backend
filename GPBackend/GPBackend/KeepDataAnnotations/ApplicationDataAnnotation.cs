@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.Models
 {
@@ -41,12 +42,10 @@ namespace GPBackend.Models
         public int? AtsScore { get; set; }
 
         [Required]
-        [StringLength(50)]
-        public string Stage { get; set; } = null!;
+        public ApplicationStage Stage { get; set; }
 
         [Required]
-        [StringLength(50)]
-        public string Status { get; set; } = null!;
+        public ApplicationDecisionStatus Status { get; set; }
 
         public DateOnly SubmissionDate { get; set; }
 

@@ -64,6 +64,21 @@ namespace GPBackend.Repositories.Implements
                 query = query.Where(uc => uc.Favorite == queryDto.Favorite.Value);
             }
 
+            if (queryDto.Tags != null && queryDto.Tags.Count > 0)
+            {
+                var tagSet = queryDto.Tags
+                    .Where(t => !string.IsNullOrWhiteSpace(t))
+                    .Select(t => t.Trim().ToLower())
+                    .Distinct()
+                    .ToList();
+
+                if (tagSet.Count > 0)
+                {
+                    // match ANY of the provided tags
+                    query = query.Where(uc => uc.Tags.Any(t => tagSet.Contains(t.Tag.ToLower())));
+                }
+            }
+
             // Get total count before pagination
             int totalCount = await query.CountAsync();
 
@@ -147,6 +162,15 @@ namespace GPBackend.Repositories.Implements
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<UserCompany?> GetIncludingDeletedAsync(int userId, int companyId)
+        {
+            return await _context.UserCompanies
+                .Where(uc => uc.UserId == userId && uc.CompanyId == companyId)
+                .Include(uc => uc.Company)
+                .Include(uc => uc.Tags)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<UserCompany> CreateAsync(UserCompany userCompany)
         {
             _context.UserCompanies.Add(userCompany);
@@ -170,6 +194,31 @@ namespace GPBackend.Repositories.Implements
                 }
                 throw;
             }
+        }
+
+        public async Task ReplaceTagsAsync(int userId, int companyId, IEnumerable<string> tags)
+        {
+            var existing = await _context.UserCompanyTags
+                .Where(t => t.UserId == userId && t.CompanyId == companyId)
+                .ToListAsync();
+
+            if (existing.Count > 0)
+            {
+                _context.UserCompanyTags.RemoveRange(existing);
+            }
+
+            var toAdd = new List<UserCompanyTag>();
+            foreach (var tag in tags.Where(t => !string.IsNullOrWhiteSpace(t)).Select(t => t.Trim()).Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                toAdd.Add(new UserCompanyTag { UserId = userId, CompanyId = companyId, Tag = tag });
+            }
+
+            if (toAdd.Count > 0)
+            {
+                _context.UserCompanyTags.AddRange(toAdd);
+            }
+
+            await _context.SaveChangesAsync();
         }
 
         public async Task<bool> DeleteAsync(int userId, int companyId)

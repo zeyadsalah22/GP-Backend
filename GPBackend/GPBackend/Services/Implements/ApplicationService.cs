@@ -5,6 +5,7 @@ using GPBackend.DTOs.Employee;
 using GPBackend.Models;
 using GPBackend.Repositories.Interfaces;
 using GPBackend.Services.Interfaces;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.Services.Implements
 {
@@ -47,6 +48,14 @@ namespace GPBackend.Services.Implements
                 applicationDto.ContactedEmployees = _mapper.Map<List<EmployeeDto>>(
                     application.ApplicationEmployees.Select(ae => ae.Employee).ToList()
                 );
+            }
+
+            // Sort timeline ascending by date
+            if (applicationDto.Timeline != null && applicationDto.Timeline.Count > 0)
+            {
+                applicationDto.Timeline = applicationDto.Timeline
+                    .OrderBy(t => t.Date)
+                    .ToList();
             }
             
             return applicationDto;
@@ -143,6 +152,8 @@ namespace GPBackend.Services.Implements
             
             // Save to database
             var applicationId = await _applicationRepository.CreateAsync(application);
+            // Record initial stage history
+            await _applicationRepository.UpsertStageHistoryAsync(applicationId, application.Stage, application.SubmissionDate, null);
             
             // Handle contacted employees
             if (createDto.ContactedEmployeeIds != null && createDto.ContactedEmployeeIds.Any())
@@ -199,6 +210,7 @@ namespace GPBackend.Services.Implements
             }
             
             // Update properties
+            var originalStage = application.Stage;
             _mapper.Map(updateDto, application);
             application.UpdatedAt = DateTime.UtcNow;
             
@@ -213,7 +225,16 @@ namespace GPBackend.Services.Implements
             }
             
             // Save changes
-            return await _applicationRepository.UpdateAsync(application);
+            var updated = await _applicationRepository.UpdateAsync(application);
+
+            // If stage changed, upsert stage history with provided SubmissionDate (or today if not provided in update)
+            if (updated && updateDto.Stage.HasValue && updateDto.Stage.Value != originalStage)
+            {
+                var date = updateDto.SubmissionDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
+                await _applicationRepository.UpsertStageHistoryAsync(id, application.Stage, date, null);
+            }
+
+            return updated;
         }
 
         public async Task<bool> DeleteApplicationAsync(int id, int userId)
@@ -237,6 +258,23 @@ namespace GPBackend.Services.Implements
         public async Task<int> BulkDeleteApplicationsAsync(IEnumerable<int> ids, int userId)
         {
             return await _applicationRepository.BulkSoftDeleteAsync(ids, userId);
+        }
+
+        public async Task<bool> RecordStageAsync(int applicationId, int userId, ApplicationStage stage, DateOnly date, string? note = null)
+        {
+            var application = await _applicationRepository.GetByIdAsync(applicationId);
+            if (application == null || application.UserId != userId)
+            {
+                return false;
+            }
+
+            // Update current stage and history
+            application.Stage = stage;
+            application.UpdatedAt = DateTime.UtcNow;
+            var updated = await _applicationRepository.UpdateAsync(application);
+            if (!updated) return false;
+
+            return await _applicationRepository.UpsertStageHistoryAsync(applicationId, stage, date, note);
         }
     }
 } 

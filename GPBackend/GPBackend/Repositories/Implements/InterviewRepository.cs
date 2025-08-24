@@ -53,6 +53,16 @@ namespace GPBackend.Repositories.Implements
             {
                 query = query.Where(a => a.JobDescription.Contains(interviewQueryDto.JobDescription));
             }
+            if (!string.IsNullOrEmpty(interviewQueryDto.SearchTerm))
+            {
+                var term = interviewQueryDto.SearchTerm;
+                query = query.Where(a =>
+                    (a.Position != null && a.Position.Contains(term)) ||
+                    (a.JobDescription != null && a.JobDescription.Contains(term)) ||
+                    (a.Feedback != null && a.Feedback.Contains(term)) ||
+                    (a.Notes != null && a.Notes.Contains(term))
+                );
+            }
             if (interviewQueryDto.StartDate.HasValue)
             {
                 query = query.Where(a => a.StartDate >= interviewQueryDto.StartDate.Value);
@@ -116,6 +126,7 @@ namespace GPBackend.Repositories.Implements
             _context.Entry(interview).Property(i => i.Position).IsModified = true;
             _context.Entry(interview).Property(i => i.JobDescription).IsModified = true;
             _context.Entry(interview).Property(i => i.Feedback).IsModified = true;
+            _context.Entry(interview).Property(i => i.Notes).IsModified = true;
             _context.Entry(interview).Property(i => i.UpdatedAt).IsModified = true;
             _context.Entry(interview).Property(i => i.ApplicationId).IsModified = true;
             _context.Entry(interview).Property(i => i.CompanyId).IsModified = true;
