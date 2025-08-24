@@ -7,5 +7,6 @@ namespace GPBackend.DTOs.UserCompany
         public string? PersonalNotes { get; set; }
         public GPBackend.Models.Enums.InterestLevel? InterestLevel { get; set; }
         public bool? Favorite { get; set; }
+        public List<string>? Tags { get; set; }
     }
 } 

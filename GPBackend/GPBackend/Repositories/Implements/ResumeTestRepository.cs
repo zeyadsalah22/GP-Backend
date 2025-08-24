@@ -5,6 +5,7 @@ using GPBackend.Models;
 using GPBackend.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using GPBackend.DTOs.ResumeTest;
 
 namespace GPBackend.Repositories.Implements
 {
@@ -183,6 +184,50 @@ namespace GPBackend.Repositories.Implements
                 _ => rt => rt.TestDate // Default sorting by test start date
             };
             return sortDescending ? query.OrderByDescending(keySelector) : query.OrderBy(keySelector);
+        }
+
+        public async Task<ResumeTestScoresDistributionDto> GetScoresDistributionAsync(int userId)
+        {
+            var scores = await _context.ResumeTests
+                .Include(rt => rt.Resume)
+                .Where(rt => rt.Resume.UserId == userId)
+                .Select(rt => rt.AtsScore)
+                .ToListAsync();
+
+            var dto = new ResumeTestScoresDistributionDto
+            {
+                range_90_100 = scores.Count(s => s >= 90 && s <= 100),
+                range_80_89 = scores.Count(s => s >= 80 && s <= 89),
+                range_70_79 = scores.Count(s => s >= 70 && s <= 79),
+                range_60_69 = scores.Count(s => s >= 60 && s <= 69),
+                range_50_59 = scores.Count(s => s >= 50 && s <= 59),
+                range_0_59 = scores.Count(s => s < 50)
+            };
+
+            return dto;
+        }
+
+        public async Task<ResumeTestStatsDto> GetStatsAsync(int userId)
+        {
+            var query = _context.ResumeTests
+                .Include(rt => rt.Resume)
+                .Where(rt => rt.Resume.UserId == userId);
+
+            var total = await query.CountAsync();
+            var avg = total > 0 ? await query.AverageAsync(rt => (double)rt.AtsScore) : 0.0;
+            var best = total > 0 ? await query.MaxAsync(rt => rt.AtsScore) : 0;
+
+            var now = DateTime.UtcNow;
+            var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            var testsThisMonth = await query.CountAsync(rt => rt.TestDate >= monthStart && rt.TestDate <= now);
+
+            return new ResumeTestStatsDto
+            {
+                TotalTests = total,
+                AverageScore = Math.Round(avg, 0),
+                BestScore = best,
+                TestsThisMonth = testsThisMonth
+            };
         }
     }
 } 

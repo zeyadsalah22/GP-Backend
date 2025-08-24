@@ -64,67 +64,75 @@ namespace GPBackend.Services.Implements
         public async Task<List<InterviewQuestionResponseDto>> GetInterviewQuestionsFromModelAsync(int applicationId, string jobDescription, string jobTitle)
         {
             // fetch questions from the model API
-            var client = new HttpClient();
+            // var client = new HttpClient();
 
-            var application = await _applicationRepository.GetByIdAsync(applicationId);
+            // var application = await _applicationRepository.GetByIdAsync(applicationId);
 
-            HttpResponseMessage? response = null;
+            // HttpResponseMessage? response = null;
 
-            if (application == null)
-            {
-                if (jobDescription == null || jobTitle == null)
-                {
-                    throw new ArgumentException("Job description and title cannot be null when application is not found.");
-                }
-                response = await client.PostAsJsonAsync(ModelApiURL, new
-                {
-                    description = jobDescription,
-                    // job_title = jobTitle,
-                    num_questions = 8,
-                });
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new Exception("Failed to fetch interview questions from the model API using job description and title.");
-                }
-            }
-            else
-            {
-                if (application.Description == null || application.JobTitle == null)
-                {
-                    throw new ArgumentException("Job description and title cannot be null when application is found.");
-                }
-                response = await client.PostAsJsonAsync(ModelApiURL, new
-                {
-                    description = application.Description,
-                    // job_title = application.JobTitle,
-                    num_questions = 3,
-                });
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new Exception("Failed to fetch interview questions from the model API using application data.");
-                }
-            }
-            // if (!response.IsSuccessStatusCode)
+            // if (application == null)
             // {
-            //     throw new Exception("Failed to fetch interview questions from the model API.");
+            //     if (jobDescription == null || jobTitle == null)
+            //     {
+            //         throw new ArgumentException("Job description and title cannot be null when application is not found.");
+            //     }
+            //     response = await client.PostAsJsonAsync(ModelApiURL, new
+            //     {
+            //         description = jobDescription,
+            //         // job_title = jobTitle,
+            //         num_questions = 8,
+            //     });
+            //     if (!response.IsSuccessStatusCode)
+            //     {
+            //         throw new Exception("Failed to fetch interview questions from the model API using job description and title.");
+            //     }
+            // }
+            // else
+            // {
+            //     if (application.Description == null || application.JobTitle == null)
+            //     {
+            //         throw new ArgumentException("Job description and title cannot be null when application is found.");
+            //     }
+            //     response = await client.PostAsJsonAsync(ModelApiURL, new
+            //     {
+            //         description = application.Description,
+            //         // job_title = application.JobTitle,
+            //         num_questions = 3,
+            //     });
+            //     if (!response.IsSuccessStatusCode)
+            //     {
+            //         throw new Exception("Failed to fetch interview questions from the model API using application data.");
+            //     }
+            // }
+            // // if (!response.IsSuccessStatusCode)
+            // // {
+            // //     throw new Exception("Failed to fetch interview questions from the model API.");
+            // // }
+
+            // // var raw = await response.Content.ReadAsStringAsync();
+            // // Console.WriteLine(raw);
+
+            // var questions = await response.Content.ReadFromJsonAsync<InterviewQuestionAIDto>(
+            //     new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            // );
+
+            // if (questions == null || questions.Questions == null || questions.Questions.Count == 0)
+            // {
+            //     throw new Exception("No questions were returned from the model API.");
             // }
 
-            // var raw = await response.Content.ReadAsStringAsync();
-            // Console.WriteLine(raw);
+            // // Manually map each string to InterviewQuestionResponseDto
+            // var questionDtos = questions.Questions
+            //     .Select(q => new InterviewQuestionResponseDto { Question = q })
+            //     .ToList();
 
-            var questions = await response.Content.ReadFromJsonAsync<InterviewQuestionAIDto>(
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            );
-
-            if (questions == null || questions.Questions == null || questions.Questions.Count == 0)
+            var questionDtos = new List<InterviewQuestionResponseDto>
             {
-                throw new Exception("No questions were returned from the model API.");
-            }
+                new InterviewQuestionResponseDto { Question = "Tell me about a challenging project you led and the outcome." },
+                new InterviewQuestionResponseDto { Question = "How do you approach debugging complex issues in production?" },
+                new InterviewQuestionResponseDto { Question = "Describe a time you collaborated across teams to deliver a feature." }
+            };
 
-            // Manually map each string to InterviewQuestionResponseDto
-            var questionDtos = questions.Questions
-                .Select(q => new InterviewQuestionResponseDto { Question = q })
-                .ToList();
 
 
             return questionDtos;

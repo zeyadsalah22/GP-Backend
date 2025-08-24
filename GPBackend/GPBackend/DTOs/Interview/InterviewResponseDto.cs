@@ -14,6 +14,7 @@ namespace GPBackend.DTOs.Interview
 
         public string? Position { get; set; }
         public string? Feedback { get; set; }
+        public string? Notes { get; set; }
 
         public string? JobDescription { get; set; }
         public DateTime StartDate { get; set; }

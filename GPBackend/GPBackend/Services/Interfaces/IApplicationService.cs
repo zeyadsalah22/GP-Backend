@@ -1,5 +1,6 @@
 using GPBackend.DTOs.Application;
 using GPBackend.DTOs.Common;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.Services.Interfaces
 {
@@ -13,5 +14,6 @@ namespace GPBackend.Services.Interfaces
         Task<bool> DeleteApplicationAsync(int id, int userId);
         Task<bool> ApplicationExistsAsync(int id);
         Task<int> BulkDeleteApplicationsAsync(IEnumerable<int> ids, int userId);
+        Task<bool> RecordStageAsync(int applicationId, int userId, ApplicationStage stage, DateOnly date, string? note = null);
     }
 } 

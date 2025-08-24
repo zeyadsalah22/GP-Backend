@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.DTOs.Application
 {
@@ -27,12 +28,10 @@ namespace GPBackend.DTOs.Application
         public int? AtsScore { get; set; }
 
         [Required(ErrorMessage = "Stage is required")]
-        [StringLength(50, ErrorMessage = "Stage cannot exceed 50 characters")]
-        public string Stage { get; set; } = null!;
+        public ApplicationStage Stage { get; set; }
         
         [Required(ErrorMessage = "Status is required")]
-        [StringLength(50, ErrorMessage = "Status cannot exceed 50 characters")]
-        public string Status { get; set; } = null!;
+        public ApplicationDecisionStatus Status { get; set; }
 
         [PastOrTodayDateOnly(ErrorMessage = "Submission date cannot be in the future")]
         public DateOnly? SubmissionDate { get; set; }

@@ -20,5 +20,9 @@ namespace GPBackend.Repositories.Interfaces
 
         Task<bool> UpdateResumeTestAsync(ResumeTest resumeTest);
         Task<int> BulkDeleteAsync(int userId, IEnumerable<int> ids);
+
+        Task<ResumeTestScoresDistributionDto> GetScoresDistributionAsync(int userId);
+
+        Task<ResumeTestStatsDto> GetStatsAsync(int userId);
     }
 } 

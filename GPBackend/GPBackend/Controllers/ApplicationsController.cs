@@ -93,10 +93,18 @@ namespace GPBackend.Controllers
 
         // POST: api/applications
         [HttpPost]
-        public async Task<ActionResult<ApplicationResponseDto>> CreateApplication(ApplicationCreateDto createDto)
+        public async Task<ActionResult<ApplicationResponseDto>> CreateApplication([FromBody][Required] ApplicationCreateDto createDto)
         {
             try
             {
+                if (createDto == null)
+                {
+                    return BadRequest(new { message = "Request body is required" });
+                }
+                if (!ModelState.IsValid)
+                {
+                    return ValidationProblem(ModelState);
+                }
                 int userId = GetAuthenticatedUserId();
                 
                 try
@@ -121,10 +129,18 @@ namespace GPBackend.Controllers
 
         // PUT: api/applications/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateApplication(int id, ApplicationUpdateDto updateDto)
+        public async Task<IActionResult> UpdateApplication(int id, [FromBody][Required] ApplicationUpdateDto updateDto)
         {
             try
             {
+                if (updateDto == null)
+                {
+                    return BadRequest(new { message = "Request body is required" });
+                }
+                if (!ModelState.IsValid)
+                {
+                    return ValidationProblem(ModelState);
+                }
                 int userId = GetAuthenticatedUserId();
                 var result = await _applicationService.UpdateApplicationAsync(id, userId, updateDto);
                 

@@ -5,6 +5,7 @@ using GPBackend.Models;
 using GPBackend.Repositories.Interfaces;
 using GPBackend.Services.Interfaces;
 using System.Text.Json;
+using GPBackend.DTOs.ResumeTest;
 
 namespace GPBackend.Services.Implements
 {
@@ -149,6 +150,16 @@ namespace GPBackend.Services.Implements
         public async Task<int> BulkDeleteResumeTestsAsync(int userId, IEnumerable<int> ids)
         {
             return await _resumeTestRepository.BulkDeleteAsync(userId, ids);
+        }
+
+        public async Task<ResumeTestScoresDistributionDto> GetScoresDistributionAsync(int userId)
+        {
+            return await _resumeTestRepository.GetScoresDistributionAsync(userId);
+        }
+
+        public async Task<ResumeTestStatsDto> GetStatsAsync(int userId)
+        {
+            return await _resumeTestRepository.GetStatsAsync(userId);
         }
     }
 } 

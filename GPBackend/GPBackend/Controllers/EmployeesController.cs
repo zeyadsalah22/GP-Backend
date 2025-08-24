@@ -68,11 +68,19 @@ namespace GPBackend.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<EmployeeDto>> CreateEmployee(EmployeeCreationDto employeeDto)
+        public async Task<ActionResult<EmployeeDto>> CreateEmployee([FromBody][Required] EmployeeCreationDto employeeDto)
         {
             // Set the authenticated user's ID
             var UserId = GetAuthenticatedUserId();
 
+            if (employeeDto == null)
+            {
+                return BadRequest(new { message = "Request body is required" });
+            }
+            if (!ModelState.IsValid)
+            {
+                return ValidationProblem(ModelState);
+            }
             if (employeeDto.UserId != UserId)
             {
                 return Forbid();
@@ -86,10 +94,18 @@ namespace GPBackend.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<EmployeeDto>> UpdateEmployee(int id, EmployeeUpdateDto employeeDto)
+        public async Task<ActionResult<EmployeeDto>> UpdateEmployee(int id, [FromBody][Required] EmployeeUpdateDto employeeDto)
         {
             try
             {
+                if (employeeDto == null)
+                {
+                    return BadRequest(new { message = "Request body is required" });
+                }
+                if (!ModelState.IsValid)
+                {
+                    return ValidationProblem(ModelState);
+                }
                 var userId = GetAuthenticatedUserId();
 
                 var updatedEmployee = await _employeeService.UpdateEmployeeAsync(id, userId, employeeDto);

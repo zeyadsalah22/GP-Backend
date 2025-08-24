@@ -42,6 +42,7 @@ namespace GPBackend.DTOs.Interview
         public int? CompanyId { get; set; }
         public string? Position { get; set; }
         public string? JobDescription { get; set; }
+        public string? Notes { get; set; }
         
 
 

@@ -4,6 +4,7 @@ using GPBackend.DTOs.Common;
 using GPBackend.Models;
 using GPBackend.Repositories.Interfaces;
 using System.Linq.Expressions;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.Repositories.Implements
 {
@@ -21,6 +22,7 @@ namespace GPBackend.Repositories.Implements
             return await _context.Applications
                 .Include(a => a.UserCompany)
                 .ThenInclude(uc => uc.Company)
+                .Include(a => a.StageHistory)
                 .Include(a => a.ApplicationEmployees)
                 .ThenInclude(ae => ae.Employee)
                 .ThenInclude(e => e.UserCompany)
@@ -60,14 +62,14 @@ namespace GPBackend.Repositories.Implements
                 query = query.Where(a => a.JobType == queryDto.JobType);
             }
 
-            if (!string.IsNullOrWhiteSpace(queryDto.Stage))
+            if (queryDto.Stage.HasValue)
             {
-                query = query.Where(a => a.Stage == queryDto.Stage);
+                query = query.Where(a => a.Stage == queryDto.Stage.Value);
             }
 
-            if (!string.IsNullOrWhiteSpace(queryDto.Status))
+            if (queryDto.Status.HasValue)
             {
-                query = query.Where(a => a.Status == queryDto.Status);
+                query = query.Where(a => a.Status == queryDto.Status.Value);
             }
 
             if (queryDto.FromDate.HasValue)
@@ -146,6 +148,36 @@ namespace GPBackend.Repositories.Implements
         {
             application.UpdatedAt = DateTime.UtcNow;
             _context.Applications.Update(application);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> UpsertStageHistoryAsync(int applicationId, ApplicationStage stage, DateOnly reachedDate, string? note = null)
+        {
+            var existing = await _context.ApplicationStageHistories
+                .FirstOrDefaultAsync(h => h.ApplicationId == applicationId && h.Stage == stage);
+
+            if (existing == null)
+            {
+                var history = new ApplicationStageHistory
+                {
+                    ApplicationId = applicationId,
+                    Stage = stage,
+                    ReachedDate = reachedDate,
+                    Note = note,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    IsDeleted = false
+                };
+                _context.ApplicationStageHistories.Add(history);
+            }
+            else
+            {
+                existing.ReachedDate = reachedDate;
+                existing.Note = note;
+                existing.UpdatedAt = DateTime.UtcNow;
+                _context.ApplicationStageHistories.Update(existing);
+            }
+
             return await _context.SaveChangesAsync() > 0;
         }
 
