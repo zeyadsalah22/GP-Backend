@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.DTOs.Application
 {
@@ -22,15 +23,33 @@ namespace GPBackend.DTOs.Application
         public string? Link { get; set; }
         
         public int? SubmittedCvId { get; set; }
-        
+
+        [Range(0, 100, ErrorMessage = "ATS score must be between 0 and 100")]
+        public int? AtsScore { get; set; }
+
         [Required(ErrorMessage = "Stage is required")]
-        [StringLength(50, ErrorMessage = "Stage cannot exceed 50 characters")]
-        public string Stage { get; set; } = null!;
+        public ApplicationStage Stage { get; set; }
         
         [Required(ErrorMessage = "Status is required")]
-        [StringLength(50, ErrorMessage = "Status cannot exceed 50 characters")]
-        public string Status { get; set; } = null!;
-        
+        public ApplicationDecisionStatus Status { get; set; }
+
+        [PastOrTodayDateOnly(ErrorMessage = "Submission date cannot be in the future")]
         public DateOnly? SubmissionDate { get; set; }
+        
+        public List<int>? ContactedEmployeeIds { get; set; }
+    }
+
+    public class PastOrTodayDateOnlyAttribute : ValidationAttribute
+    {
+        public override bool IsValid(object? value)
+        {
+            if (value is null) return true; // Allow nulls for optional fields
+
+            if (value is DateOnly date)
+            {
+                return date <= DateOnly.FromDateTime(DateTime.Today);
+            }
+            return false;
+        }
     }
 } 

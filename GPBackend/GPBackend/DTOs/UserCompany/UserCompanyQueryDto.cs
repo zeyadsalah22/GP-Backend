@@ -11,6 +11,9 @@ namespace GPBackend.DTOs.UserCompany
         public int? UserId { get; set; }
         public int? CompanyId { get; set; }
         public string? CompanyName { get; set; }
+        public GPBackend.Models.Enums.InterestLevel? InterestLevel { get; set; }
+        public bool? Favorite { get; set; }
+        public List<string>? Tags { get; set; }
         
         // Pagination parameters
         [Range(1, int.MaxValue, ErrorMessage = "Page number must be greater than 0")]

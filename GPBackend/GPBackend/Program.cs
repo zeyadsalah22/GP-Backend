@@ -10,6 +10,12 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
 using System.IdentityModel.Tokens.Jwt;
+using GPBackend.Repositories;
+using GPBackend.Services;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Security.Claims;
+using System.Text.Json.Serialization;
 
 namespace GPBackend
 {
@@ -76,6 +82,16 @@ namespace GPBackend
                 };
             });
 
+            // Configure Authorization Policies
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AdminOnly", policy => 
+                    policy.RequireRole("Admin"));
+                
+                options.AddPolicy("UserOrAdmin", policy => 
+                    policy.RequireRole("User", "Admin"));
+            });
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
@@ -117,6 +133,15 @@ namespace GPBackend
             builder.Services.AddScoped<IUserCompanyRepository, UserCompanyRepository>();
             builder.Services.AddScoped<IResumeRepository, ResumeRepository>();
             builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
+            builder.Services.AddScoped<IInsightsRepository, InsightsRepository>();
+            builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+            builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
+            builder.Services.AddScoped<ITodoListRepository, TodoListRepository>();
+            builder.Services.AddScoped<IInterviewRepository, InterviewRepository>();
+            builder.Services.AddScoped<IInterviewQuestionRepository, InterviewQuestionRepository>();
+            builder.Services.AddScoped<IResumeTestRepository, ResumeTestRepository>();
+            builder.Services.AddScoped<ISkillRepository, SkillRepository>();
+            builder.Services.AddScoped<IIndustryRepository, IndustryRepository>();
 
             // Register services
             builder.Services.AddScoped<IJwtService, JwtService>();
@@ -125,9 +150,88 @@ namespace GPBackend
             builder.Services.AddScoped<IUserCompanyService, UserCompanyService>();
             builder.Services.AddScoped<IResumeService, ResumeService>();
             builder.Services.AddScoped<IApplicationService, ApplicationService>();
+            builder.Services.AddScoped<IInsightsService, InsightsService>();
+            builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+            builder.Services.AddScoped<IQuestionService, QuestionService>();
+            builder.Services.AddScoped<ITodoListService, TodoListService>();
+            builder.Services.AddScoped<IInterviewService, InterviewService>();
+            builder.Services.AddScoped<IInterviewQuestionService, InterviewQuestionService>();
+            builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+            builder.Services.AddScoped<IResumeTestService, ResumeTestService>();
+            builder.Services.AddScoped<IResumeTestMissingSkillsService, ResumeTestMissingSkillsService>();
+            builder.Services.AddScoped<ISkillService, SkillService>();
+            builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
+            builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
+            // Register repositories
+            builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            builder.Services.AddScoped<IIndustryService, IndustryService>();
+            // builder.Services.AddHttpClient<IInterviewService, InterviewService>();
+
+            builder.Services.AddControllers()
+                .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
             // Register TokenBlacklistService as Singleton (persistence across requests)
             builder.Services.AddSingleton<ITokenBlacklistService, TokenBlacklistService>();
+            
+            // Register HttpClient for ChatBotController
+            builder.Services.AddHttpClient();
+            
+            // Register background services
+            builder.Services.AddHostedService<TokenCleanupService>();
+
+            builder.Services.AddRateLimiter(options => {
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+                // Default: per-IP global limit
+                options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+                {
+                    var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                    return RateLimitPartition.GetFixedWindowLimiter(ip, _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 120, // 120 req/min per IP
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0
+                    });
+                });
+
+                // Add a custom limiter for the /api/chatbot endpoint
+                options.AddPolicy("ChatbotPerIp", context =>
+                {
+                    var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                    return RateLimitPartition.GetFixedWindowLimiter(ip, _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 10,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0
+                    });
+                });
+
+                // Add a custom limiter for forgot-password, reset-password, register and verify-email endpoints
+                options.AddPolicy("CustomUserLimiter", context =>
+                {
+                    var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                    return RateLimitPartition.GetFixedWindowLimiter(ip, _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 3, // 3 req/min per IP
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0
+                    });
+                });
+
+                // Per-user policy for authenticated endpoints
+                options.AddPolicy("PerUser", ctx =>
+                {
+                    var userId = ctx.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "anon";
+                    return RateLimitPartition.GetSlidingWindowLimiter(userId, _ => new SlidingWindowRateLimiterOptions
+                    {
+                        PermitLimit = 60, // 60 requests / 1 min per user
+                        Window = TimeSpan.FromMinutes(1),
+                        SegmentsPerWindow = 6,
+                        QueueLimit = 0
+                    });
+                });
+            });
 
             var app = builder.Build();
 
@@ -146,6 +250,8 @@ namespace GPBackend
             // Must be called before UseAuthorization
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseRateLimiter();
 
             app.MapControllers();
 

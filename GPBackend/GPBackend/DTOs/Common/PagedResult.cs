@@ -9,5 +9,7 @@ namespace GPBackend.DTOs.Common
         public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
         public bool HasPrevious => PageNumber > 1;
         public bool HasNext => PageNumber < TotalPages;
+
+        public object CurrentPage { get; internal set; }
     }
 } 

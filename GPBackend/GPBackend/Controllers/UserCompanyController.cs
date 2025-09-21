@@ -4,6 +4,7 @@ using GPBackend.DTOs.UserCompany;
 using GPBackend.DTOs.Common;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.ComponentModel.DataAnnotations;
 
 namespace GPBackend.Controllers
 {
@@ -87,21 +88,42 @@ namespace GPBackend.Controllers
 
         // POST: api/user-companies
         [HttpPost]
-        public async Task<ActionResult<UserCompanyResponseDto>> CreateUserCompany(UserCompanyCreateDto userCompanyDto)
+        public async Task<ActionResult<UserCompanyResponseDto>> CreateUserCompany([FromBody][Required] UserCompanyCreateDto userCompanyDto)
         {
             try
             {
+                if (userCompanyDto == null)
+                {
+                    return BadRequest(new { message = "Request body is required" });
+                }
+                if (!ModelState.IsValid)
+                {
+                    return ValidationProblem(ModelState);
+                }
                 int userId = GetAuthenticatedUserId();
                 
                 // Ensure the user is creating a relationship for themselves
                 userCompanyDto.UserId = userId;
+
+                // Validate required business fields
+                if (!userCompanyDto.InterestLevel.HasValue)
+                {
+                    return BadRequest(new { message = "InterestLevel is required" });
+                }
                 
-                var createdUserCompany = await _userCompanyService.CreateUserCompanyAsync(userCompanyDto);
-                return CreatedAtAction(
-                    nameof(GetUserCompanyById), 
-                    new { companyId = createdUserCompany.CompanyId }, 
-                    createdUserCompany
-                );
+                try
+                {
+                    var createdUserCompany = await _userCompanyService.CreateUserCompanyAsync(userCompanyDto);
+                    return CreatedAtAction(
+                        nameof(GetUserCompanyById), 
+                        new { companyId = createdUserCompany.CompanyId }, 
+                        createdUserCompany
+                    );
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return BadRequest(new { message = ex.Message });
+                }
             }
             catch (UnauthorizedAccessException)
             {
@@ -111,10 +133,18 @@ namespace GPBackend.Controllers
 
         // PUT: api/user-companies/{companyId}
         [HttpPut("{companyId}")]
-        public async Task<IActionResult> UpdateUserCompany(int companyId, UserCompanyUpdateDto userCompanyDto)
+        public async Task<IActionResult> UpdateUserCompany(int companyId, [FromBody][Required] UserCompanyUpdateDto userCompanyDto)
         {
             try
             {
+                if (userCompanyDto == null)
+                {
+                    return BadRequest(new { message = "Request body is required" });
+                }
+                if (!ModelState.IsValid)
+                {
+                    return ValidationProblem(ModelState);
+                }
                 int userId = GetAuthenticatedUserId();
                 
                 var result = await _userCompanyService.UpdateUserCompanyAsync(userId, companyId, userCompanyDto);

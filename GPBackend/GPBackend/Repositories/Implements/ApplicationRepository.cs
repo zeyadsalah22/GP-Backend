@@ -4,6 +4,7 @@ using GPBackend.DTOs.Common;
 using GPBackend.Models;
 using GPBackend.Repositories.Interfaces;
 using System.Linq.Expressions;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.Repositories.Implements
 {
@@ -21,6 +22,11 @@ namespace GPBackend.Repositories.Implements
             return await _context.Applications
                 .Include(a => a.UserCompany)
                 .ThenInclude(uc => uc.Company)
+                .Include(a => a.StageHistory)
+                .Include(a => a.ApplicationEmployees)
+                .ThenInclude(ae => ae.Employee)
+                .ThenInclude(e => e.UserCompany)
+                .ThenInclude(uc => uc.Company)
                 .FirstOrDefaultAsync(a => a.ApplicationId == id && !a.IsDeleted);
         }
 
@@ -28,6 +34,10 @@ namespace GPBackend.Repositories.Implements
         {
             IQueryable<Application> query = _context.Applications
                 .Include(a => a.UserCompany)
+                .ThenInclude(uc => uc.Company)
+                .Include(a => a.ApplicationEmployees)
+                .ThenInclude(ae => ae.Employee)
+                .ThenInclude(e => e.UserCompany)
                 .ThenInclude(uc => uc.Company)
                 .Where(a => a.UserId == userId && !a.IsDeleted);
 
@@ -52,14 +62,14 @@ namespace GPBackend.Repositories.Implements
                 query = query.Where(a => a.JobType == queryDto.JobType);
             }
 
-            if (!string.IsNullOrWhiteSpace(queryDto.Stage))
+            if (queryDto.Stage.HasValue)
             {
-                query = query.Where(a => a.Stage == queryDto.Stage);
+                query = query.Where(a => a.Stage == queryDto.Stage.Value);
             }
 
-            if (!string.IsNullOrWhiteSpace(queryDto.Status))
+            if (queryDto.Status.HasValue)
             {
-                query = query.Where(a => a.Status == queryDto.Status);
+                query = query.Where(a => a.Status == queryDto.Status.Value);
             }
 
             if (queryDto.FromDate.HasValue)
@@ -118,6 +128,10 @@ namespace GPBackend.Repositories.Implements
             return await _context.Applications
                 .Include(a => a.UserCompany)
                 .ThenInclude(uc => uc.Company)
+                .Include(a => a.ApplicationEmployees)
+                .ThenInclude(ae => ae.Employee)
+                .ThenInclude(e => e.UserCompany)
+                .ThenInclude(uc => uc.Company)
                 .Where(a => a.UserId == userId && !a.IsDeleted)
                 .OrderByDescending(a => a.SubmissionDate)
                 .ToListAsync();
@@ -137,6 +151,36 @@ namespace GPBackend.Repositories.Implements
             return await _context.SaveChangesAsync() > 0;
         }
 
+        public async Task<bool> UpsertStageHistoryAsync(int applicationId, ApplicationStage stage, DateOnly reachedDate, string? note = null)
+        {
+            var existing = await _context.ApplicationStageHistories
+                .FirstOrDefaultAsync(h => h.ApplicationId == applicationId && h.Stage == stage);
+
+            if (existing == null)
+            {
+                var history = new ApplicationStageHistory
+                {
+                    ApplicationId = applicationId,
+                    Stage = stage,
+                    ReachedDate = reachedDate,
+                    Note = note,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    IsDeleted = false
+                };
+                _context.ApplicationStageHistories.Add(history);
+            }
+            else
+            {
+                existing.ReachedDate = reachedDate;
+                existing.Note = note;
+                existing.UpdatedAt = DateTime.UtcNow;
+                _context.ApplicationStageHistories.Update(existing);
+            }
+
+            return await _context.SaveChangesAsync() > 0;
+        }
+
         public async Task<bool> DeleteAsync(int id)
         {
             var application = await _context.Applications.FindAsync(id);
@@ -148,6 +192,26 @@ namespace GPBackend.Repositories.Implements
             application.IsDeleted = true;
             application.UpdatedAt = DateTime.UtcNow;
             return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<int> BulkSoftDeleteAsync(IEnumerable<int> ids, int userId)
+        {
+            if (ids == null) return 0;
+            var idList = ids.Distinct().ToList();
+            if (idList.Count == 0) return 0;
+
+            var applications = await _context.Applications
+                .Where(a => idList.Contains(a.ApplicationId) && !a.IsDeleted && a.UserId == userId)
+                .ToListAsync();
+
+            foreach (var a in applications)
+            {
+                a.IsDeleted = true;
+                a.UpdatedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+            return applications.Count;
         }
 
         public async Task<bool> ExistsAsync(int id)

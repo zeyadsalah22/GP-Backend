@@ -22,7 +22,8 @@ namespace GPBackend.Repositories.Implements
             IQueryable<UserCompany> query = _context.UserCompanies
                 .Where(uc => !uc.IsDeleted)
                 .Include(uc => uc.Company)
-                .Include(uc => uc.User);
+                .Include(uc => uc.User)
+                .Include(uc => uc.Tags);
 
             // Apply search
             if (!string.IsNullOrWhiteSpace(queryDto.SearchTerm))
@@ -30,9 +31,10 @@ namespace GPBackend.Repositories.Implements
                 string searchTerm = queryDto.SearchTerm.ToLower();
                 query = query.Where(uc => 
                     uc.Company.Name.ToLower().Contains(searchTerm) ||
-                    (uc.Description != null && uc.Description.ToLower().Contains(searchTerm)) ||
+                    (uc.PersonalNotes != null && uc.PersonalNotes.ToLower().Contains(searchTerm)) ||
                     uc.User.Fname.ToLower().Contains(searchTerm) ||
-                    uc.User.Lname.ToLower().Contains(searchTerm)
+                    uc.User.Lname.ToLower().Contains(searchTerm) ||
+                    uc.Tags.Any(t => t.Tag.ToLower().Contains(searchTerm))
                 );
             }
             
@@ -51,6 +53,30 @@ namespace GPBackend.Repositories.Implements
             {
                 string companyName = queryDto.CompanyName.ToLower();
                 query = query.Where(uc => uc.Company.Name.ToLower().Contains(companyName));
+            }
+
+            if (queryDto.InterestLevel.HasValue)
+            {
+                query = query.Where(uc => uc.InterestLevel == queryDto.InterestLevel.Value);
+            }
+            if (queryDto.Favorite.HasValue)
+            {
+                query = query.Where(uc => uc.Favorite == queryDto.Favorite.Value);
+            }
+
+            if (queryDto.Tags != null && queryDto.Tags.Count > 0)
+            {
+                var tagSet = queryDto.Tags
+                    .Where(t => !string.IsNullOrWhiteSpace(t))
+                    .Select(t => t.Trim().ToLower())
+                    .Distinct()
+                    .ToList();
+
+                if (tagSet.Count > 0)
+                {
+                    // match ANY of the provided tags
+                    query = query.Where(uc => uc.Tags.Any(t => tagSet.Contains(t.Tag.ToLower())));
+                }
             }
 
             // Get total count before pagination
@@ -82,12 +108,12 @@ namespace GPBackend.Repositories.Implements
         {
             return sortBy switch
             {
-                "CompanyName" => descending ? 
+                "name" => descending ? 
                     query.OrderByDescending(uc => uc.Company.Name) : 
                     query.OrderBy(uc => uc.Company.Name),
-                "UserName" => descending ? 
-                    query.OrderByDescending(uc => uc.User.Fname) : 
-                    query.OrderBy(uc => uc.User.Fname),
+                "location" => descending ? 
+                    query.OrderByDescending(uc => uc.Company.Location) : 
+                    query.OrderBy(uc => uc.Company.Location),
                 "CreatedAt" => descending ? 
                     query.OrderByDescending(uc => uc.CreatedAt) : 
                     query.OrderBy(uc => uc.CreatedAt),
@@ -105,6 +131,7 @@ namespace GPBackend.Repositories.Implements
             return await _context.UserCompanies
                 .Where(uc => !uc.IsDeleted)
                 .Include(uc => uc.Company)
+                .Include(uc => uc.Tags)
                 .ToListAsync();
         }
 
@@ -113,6 +140,7 @@ namespace GPBackend.Repositories.Implements
             return await _context.UserCompanies
                 .Where(uc => !uc.IsDeleted && uc.UserId == userId)
                 .Include(uc => uc.Company)
+                .Include(uc => uc.Tags)
                 .ToListAsync();
         }
 
@@ -121,6 +149,7 @@ namespace GPBackend.Repositories.Implements
             return await _context.UserCompanies
                 .Where(uc => !uc.IsDeleted && uc.CompanyId == companyId)
                 .Include(uc => uc.User)
+                .Include(uc => uc.Tags)
                 .ToListAsync();
         }
 
@@ -129,6 +158,16 @@ namespace GPBackend.Repositories.Implements
             return await _context.UserCompanies
                 .Where(uc => !uc.IsDeleted && uc.UserId == userId && uc.CompanyId == companyId)
                 .Include(uc => uc.Company)
+                .Include(uc => uc.Tags)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<UserCompany?> GetIncludingDeletedAsync(int userId, int companyId)
+        {
+            return await _context.UserCompanies
+                .Where(uc => uc.UserId == userId && uc.CompanyId == companyId)
+                .Include(uc => uc.Company)
+                .Include(uc => uc.Tags)
                 .FirstOrDefaultAsync();
         }
 
@@ -155,6 +194,31 @@ namespace GPBackend.Repositories.Implements
                 }
                 throw;
             }
+        }
+
+        public async Task ReplaceTagsAsync(int userId, int companyId, IEnumerable<string> tags)
+        {
+            var existing = await _context.UserCompanyTags
+                .Where(t => t.UserId == userId && t.CompanyId == companyId)
+                .ToListAsync();
+
+            if (existing.Count > 0)
+            {
+                _context.UserCompanyTags.RemoveRange(existing);
+            }
+
+            var toAdd = new List<UserCompanyTag>();
+            foreach (var tag in tags.Where(t => !string.IsNullOrWhiteSpace(t)).Select(t => t.Trim()).Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                toAdd.Add(new UserCompanyTag { UserId = userId, CompanyId = companyId, Tag = tag });
+            }
+
+            if (toAdd.Count > 0)
+            {
+                _context.UserCompanyTags.AddRange(toAdd);
+            }
+
+            await _context.SaveChangesAsync();
         }
 
         public async Task<bool> DeleteAsync(int userId, int companyId)

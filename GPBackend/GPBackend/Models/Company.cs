@@ -15,6 +15,14 @@ public partial class Company
 
     public string? LinkedinLink { get; set; }
 
+    public int IndustryId { get; set; }
+
+    public Models.Enums.CompanySize CompanySize { get; set; }
+
+    public byte[]? Logo { get; set; }
+
+    public string? Description { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }
@@ -22,6 +30,8 @@ public partial class Company
     public bool IsDeleted { get; set; }
 
     public byte[]? Rowversion { get; set; } = null!;
+
+    public virtual Industry? Industry { get; set; }
 
     public virtual ICollection<Interview> Interviews { get; set; } = new List<Interview>();
 

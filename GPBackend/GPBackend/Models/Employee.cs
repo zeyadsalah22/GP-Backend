@@ -21,6 +21,10 @@ public partial class Employee
 
     public string? Contacted { get; set; }
 
+    public string? Phone { get; set; }
+
+    public string? Department { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }

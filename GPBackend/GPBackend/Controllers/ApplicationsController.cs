@@ -4,6 +4,8 @@ using GPBackend.DTOs.Application;
 using GPBackend.DTOs.Common;
 using GPBackend.Services.Interfaces;
 using System.Security.Claims;
+using System.ComponentModel.DataAnnotations;
+using GPBackend.DTOs.Common;
 
 namespace GPBackend.Controllers
 {
@@ -91,10 +93,18 @@ namespace GPBackend.Controllers
 
         // POST: api/applications
         [HttpPost]
-        public async Task<ActionResult<ApplicationResponseDto>> CreateApplication(ApplicationCreateDto createDto)
+        public async Task<ActionResult<ApplicationResponseDto>> CreateApplication([FromBody][Required] ApplicationCreateDto createDto)
         {
             try
             {
+                if (createDto == null)
+                {
+                    return BadRequest(new { message = "Request body is required" });
+                }
+                if (!ModelState.IsValid)
+                {
+                    return ValidationProblem(ModelState);
+                }
                 int userId = GetAuthenticatedUserId();
                 
                 try
@@ -119,10 +129,18 @@ namespace GPBackend.Controllers
 
         // PUT: api/applications/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateApplication(int id, ApplicationUpdateDto updateDto)
+        public async Task<IActionResult> UpdateApplication(int id, [FromBody][Required] ApplicationUpdateDto updateDto)
         {
             try
             {
+                if (updateDto == null)
+                {
+                    return BadRequest(new { message = "Request body is required" });
+                }
+                if (!ModelState.IsValid)
+                {
+                    return ValidationProblem(ModelState);
+                }
                 int userId = GetAuthenticatedUserId();
                 var result = await _applicationService.UpdateApplicationAsync(id, userId, updateDto);
                 
@@ -154,6 +172,26 @@ namespace GPBackend.Controllers
                 }
                 
                 return NoContent();
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+        }
+
+        // POST: api/applications/bulk-delete
+        [HttpPost("bulk-delete")]
+        public async Task<IActionResult> BulkDeleteApplications([FromBody][Required] BulkDeleteRequestDto request)
+        {
+            try
+            {
+                int userId = GetAuthenticatedUserId();
+                if (request == null || request.Ids == null || request.Ids.Count == 0)
+                {
+                    return BadRequest(new { message = "Ids list is required" });
+                }
+                var deleted = await _applicationService.BulkDeleteApplicationsAsync(request.Ids, userId);
+                return Ok(new { deletedCount = deleted });
             }
             catch (UnauthorizedAccessException)
             {

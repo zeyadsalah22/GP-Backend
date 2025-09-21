@@ -32,6 +32,17 @@ namespace GPBackend.Models
         [Url]
         public string? LinkedinLink { get; set; }
 
+        [Required]
+        public int IndustryId { get; set; }
+
+        [Required]
+        public Models.Enums.CompanySize CompanySize { get; set; }
+
+        public byte[]? Logo { get; set; }
+
+        [StringLength(2000)]
+        public string? Description { get; set; }
+
         public DateTime CreatedAt { get; set; }
 
         public DateTime UpdatedAt { get; set; }
@@ -39,6 +50,8 @@ namespace GPBackend.Models
         public bool IsDeleted { get; set; }
 
         public byte[]? Rowversion { get; set; }
+
+        public virtual Industry? Industry { get; set; }
 
         public virtual ICollection<Interview> Interviews { get; set; } = new List<Interview>();
 

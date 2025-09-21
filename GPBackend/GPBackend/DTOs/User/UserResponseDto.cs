@@ -1,4 +1,5 @@
 using System;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.DTOs.User
 {
@@ -10,6 +11,7 @@ namespace GPBackend.DTOs.User
         public string Email { get; set; } = null!;
         public string? Address { get; set; }
         public DateOnly? BirthDate { get; set; }
+        public UserRole Role { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
