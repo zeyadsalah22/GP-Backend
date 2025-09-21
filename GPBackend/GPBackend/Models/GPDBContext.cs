@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.Models;
 
@@ -18,8 +19,11 @@ public partial class GPDBContext : DbContext
     public virtual DbSet<Application> Applications { get; set; }
 
     public virtual DbSet<ApplicationEmployee> ApplicationEmployees { get; set; }
+    public virtual DbSet<ApplicationStageHistory> ApplicationStageHistories { get; set; }
 
     public virtual DbSet<Company> Companies { get; set; }
+
+    public virtual DbSet<Industry> Industries { get; set; }
 
     public virtual DbSet<Employee> Employees { get; set; }
 
@@ -28,6 +32,7 @@ public partial class GPDBContext : DbContext
     public virtual DbSet<InterviewQuestion> InterviewQuestions { get; set; }
 
     public virtual DbSet<Question> Questions { get; set; }
+    public virtual DbSet<QuestionTag> QuestionTags { get; set; }
 
     public virtual DbSet<Resume> Resumes { get; set; }
 
@@ -40,6 +45,11 @@ public partial class GPDBContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<UserCompany> UserCompanies { get; set; }
+    public virtual DbSet<UserCompanyTag> UserCompanyTags { get; set; }
+
+    public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
+
+    public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -70,10 +80,10 @@ public partial class GPDBContext : DbContext
                 .IsConcurrencyToken()
                 .HasColumnName("rowversion");
             entity.Property(e => e.Stage)
-                .HasMaxLength(50)
+                .HasConversion<int>()
                 .HasColumnName("stage");
             entity.Property(e => e.Status)
-                .HasMaxLength(50)
+                .HasConversion<int>()
                 .HasColumnName("status");
             entity.Property(e => e.SubmissionDate)
                 .HasDefaultValueSql("(CONVERT([date],getdate()))")
@@ -87,11 +97,36 @@ public partial class GPDBContext : DbContext
 
             entity.HasOne(d => d.SubmittedCv).WithMany(p => p.Applications)
                 .HasForeignKey(d => d.SubmittedCvId)
+                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_Applications_Resumes");
 
             entity.HasOne(d => d.UserCompany).WithMany(p => p.Applications)
                 .HasForeignKey(d => new { d.UserId, d.CompanyId })
                 .HasConstraintName("FK_Applications_User_Companies");
+        });
+
+        modelBuilder.Entity<ApplicationStageHistory>(entity =>
+        {
+            entity.ToTable("Application_Stage_History");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ApplicationId).HasColumnName("application_id");
+            entity.Property(e => e.Stage)
+                .HasConversion<int>()
+                .HasColumnName("stage");
+            entity.Property(e => e.ReachedDate).HasColumnName("reached_date");
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.CreatedAt).HasPrecision(0).HasDefaultValueSql("(sysdatetime())").HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt).HasPrecision(0).HasDefaultValueSql("(sysdatetime())").HasColumnName("updated_at");
+            entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
+            entity.Property(e => e.Rowversion).IsRowVersion().IsConcurrencyToken().HasColumnName("rowversion");
+
+            entity.HasIndex(e => new { e.ApplicationId, e.Stage }).IsUnique();
+
+            entity.HasOne(d => d.Application)
+                .WithMany(p => p.StageHistory)
+                .HasForeignKey(d => d.ApplicationId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_AppStageHistory_Applications");
         });
 
         modelBuilder.Entity<ApplicationEmployee>(entity =>
@@ -134,6 +169,12 @@ public partial class GPDBContext : DbContext
             entity.Property(e => e.LinkedinLink)
                 .HasMaxLength(255)
                 .HasColumnName("linkedin_link");
+            entity.Property(e => e.IndustryId).HasColumnName("industry_id");
+            entity.Property(e => e.CompanySize)
+                .HasConversion<int>()
+                .HasColumnName("company_size");
+            entity.Property(e => e.Logo).HasColumnName("logo");
+            entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.Location)
                 .HasMaxLength(255)
                 .HasColumnName("location");
@@ -148,6 +189,35 @@ public partial class GPDBContext : DbContext
                 .HasPrecision(0)
                 .HasDefaultValueSql("(sysutcdatetime())")
                 .HasColumnName("updated_at");
+
+            entity.HasOne(d => d.Industry)
+                .WithMany(p => p.Companies)
+                .HasForeignKey(d => d.IndustryId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK_Companies_Industries");
+        });
+
+        modelBuilder.Entity<Industry>(entity =>
+        {
+            entity.HasIndex(e => e.Name, "UQ_Industries_Name").IsUnique();
+
+            entity.Property(e => e.IndustryId).HasColumnName("industry_id");
+            entity.Property(e => e.Name)
+                .HasMaxLength(255)
+                .HasColumnName("name");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
+            entity.Property(e => e.Rowversion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("rowversion");
         });
 
         modelBuilder.Entity<Employee>(entity =>
@@ -157,6 +227,12 @@ public partial class GPDBContext : DbContext
             entity.Property(e => e.Contacted)
                 .HasMaxLength(255)
                 .HasColumnName("contacted");
+            entity.Property(e => e.Phone)
+                .HasMaxLength(50)
+                .HasColumnName("phone");
+            entity.Property(e => e.Department)
+                .HasMaxLength(100)
+                .HasColumnName("department");
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
                 .HasDefaultValueSql("(sysutcdatetime())")
@@ -255,6 +331,17 @@ public partial class GPDBContext : DbContext
             entity.Property(e => e.QuestionId).HasColumnName("question_id");
             entity.Property(e => e.Answer).HasColumnName("answer");
             entity.Property(e => e.ApplicationId).HasColumnName("application_id");
+            entity.Property(e => e.Type)
+                .HasConversion<int>()
+                .HasColumnName("type");
+            entity.Property(e => e.AnswerStatus)
+                .HasConversion<int>()
+                .HasColumnName("answer_status");
+            entity.Property(e => e.Difficulty).HasColumnName("difficulty");
+            entity.Property(e => e.PreparationNote)
+                .HasMaxLength(1000)
+                .HasColumnName("preparation_note");
+            entity.Property(e => e.Favorite).HasColumnName("favorite");
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
                 .HasDefaultValueSql("(sysutcdatetime())")
@@ -270,6 +357,24 @@ public partial class GPDBContext : DbContext
                 .HasForeignKey(d => d.ApplicationId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Questions_Applications");
+        });
+
+        modelBuilder.Entity<QuestionTag>(entity =>
+        {
+            entity.ToTable("Question_Tags");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.QuestionId).HasColumnName("question_id");
+            entity.Property(e => e.Tag).HasMaxLength(50).HasColumnName("tag");
+            entity.Property(e => e.CreatedAt).HasPrecision(0).HasDefaultValueSql("(sysdatetime())").HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt).HasPrecision(0).HasDefaultValueSql("(sysdatetime())").HasColumnName("updated_at");
+
+            entity.HasIndex(e => new { e.QuestionId, e.Tag }).IsUnique();
+
+            entity.HasOne(d => d.Question)
+                .WithMany(p => p.Tags)
+                .HasForeignKey(d => d.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_QuestionTags_Questions");
         });
 
         modelBuilder.Entity<Resume>(entity =>
@@ -308,7 +413,7 @@ public partial class GPDBContext : DbContext
 
             entity.HasOne(d => d.Resume).WithMany(p => p.ResumeTests)
                 .HasForeignKey(d => d.ResumeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_ResumeTests_Resumes");
         });
 
@@ -384,6 +489,10 @@ public partial class GPDBContext : DbContext
             entity.Property(e => e.Password)
                 .HasMaxLength(255)
                 .HasColumnName("password");
+            entity.Property(e => e.Role)
+                .HasConversion<int>()
+                .HasDefaultValue(UserRole.User)
+                .HasColumnName("role");
             entity.Property(e => e.Rowversion)
                 .IsRowVersion()
                 .IsConcurrencyToken()
@@ -406,7 +515,11 @@ public partial class GPDBContext : DbContext
                 .HasPrecision(0)
                 .HasDefaultValueSql("(sysdatetime())")
                 .HasColumnName("created_at");
-            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.PersonalNotes).HasColumnName("personal_notes");
+            entity.Property(e => e.InterestLevel)
+                .HasConversion<int>()
+                .HasColumnName("interest_level");
+            entity.Property(e => e.Favorite).HasColumnName("favorite");
             entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
             entity.Property(e => e.UpdatedAt)
                 .HasPrecision(0)
@@ -420,6 +533,79 @@ public partial class GPDBContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.UserCompanies)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("FK_User_Companies_Users");
+        });
+
+        modelBuilder.Entity<UserCompanyTag>(entity =>
+        {
+            entity.ToTable("UserCompany_Tags");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.CompanyId).HasColumnName("company_id");
+            entity.Property(e => e.Tag).HasMaxLength(50).HasColumnName("tag");
+            entity.Property(e => e.CreatedAt).HasPrecision(0).HasDefaultValueSql("(sysdatetime())").HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt).HasPrecision(0).HasDefaultValueSql("(sysdatetime())").HasColumnName("updated_at");
+
+            entity.HasIndex(e => new { e.UserId, e.CompanyId, e.Tag }).IsUnique();
+
+            entity.HasOne(e => e.UserCompany)
+                .WithMany(uc => uc.Tags)
+                .HasForeignKey(e => new { e.UserId, e.CompanyId })
+                .HasConstraintName("FK_UserCompanyTags_UserCompanies");
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.Property(e => e.RefreshTokenId).HasColumnName("refresh_token_id");
+            entity.Property(e => e.Token)
+                .HasMaxLength(500)
+                .HasColumnName("token");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.ExpiryDate)
+                .HasPrecision(0)
+                .HasColumnName("expiry_date");
+            entity.Property(e => e.IsRevoked).HasColumnName("is_revoked");
+            entity.Property(e => e.IsUsed).HasColumnName("is_used");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.ReplacedByToken)
+                .HasMaxLength(500)
+                .HasColumnName("replaced_by_token");
+
+            entity.HasOne(d => d.User).WithMany(p => p.RefreshTokens)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_RefreshTokens_Users");
+        });
+
+        modelBuilder.Entity<PasswordResetToken>(entity =>
+        {
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.TokenHash)
+                .HasMaxLength(32)
+                .IsRequired()
+                .HasColumnName("token_hash");
+            entity.HasIndex(e => e.TokenHash).IsUnique();
+            entity.Property(e => e.ExpiresAt)
+                .HasPrecision(0)
+                .HasColumnName("expires_at");
+            entity.Property(e => e.UsedAt)
+                .HasPrecision(0)
+                .HasColumnName("used_at");
+            entity.Property(e => e.CreatedIp)
+                .HasColumnName("created_ip");
+            entity.Property(e => e.CreatedUserAgent)
+                .HasColumnName("created_user_agent");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.PasswordResetTokens)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_PasswordResetTokens_Users");
         });
 
         OnModelCreatingPartial(modelBuilder);

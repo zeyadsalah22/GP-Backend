@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.DTOs.Application
 {
@@ -19,14 +20,15 @@ namespace GPBackend.DTOs.Application
         
         public int? SubmittedCvId { get; set; }
         
+        [Range(0, 100, ErrorMessage = "ATS score must be between 0 and 100")]
         public int? AtsScore { get; set; }
         
-        [StringLength(50, ErrorMessage = "Stage cannot exceed 50 characters")]
-        public string? Stage { get; set; }
+        public ApplicationStage? Stage { get; set; }
         
-        [StringLength(50, ErrorMessage = "Status cannot exceed 50 characters")]
-        public string? Status { get; set; }
+        public ApplicationDecisionStatus? Status { get; set; }
         
         public DateOnly? SubmissionDate { get; set; }
+        
+        public List<int>? ContactedEmployeeIds { get; set; }
     }
 } 

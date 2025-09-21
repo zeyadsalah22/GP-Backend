@@ -9,7 +9,11 @@ public partial class UserCompany
 
     public int CompanyId { get; set; }
 
-    public string? Description { get; set; }
+    public string? PersonalNotes { get; set; }
+
+    public GPBackend.Models.Enums.InterestLevel? InterestLevel { get; set; }
+
+    public bool Favorite { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
@@ -24,4 +28,6 @@ public partial class UserCompany
     public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
 
     public virtual User User { get; set; } = null!;
+
+    public virtual ICollection<UserCompanyTag> Tags { get; set; } = new List<UserCompanyTag>();
 }

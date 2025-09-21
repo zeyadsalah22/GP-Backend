@@ -13,7 +13,8 @@ namespace GPBackend.Profiles
                 .ForMember(dest => dest.CompanyName, opt => opt.MapFrom(src => src.Company.Name))
                 .ForMember(dest => dest.CompanyLocation, opt => opt.MapFrom(src => src.Company.Location))
                 .ForMember(dest => dest.CompanyCareersLink, opt => opt.MapFrom(src => src.Company.CareersLink))
-                .ForMember(dest => dest.CompanyLinkedinLink, opt => opt.MapFrom(src => src.Company.LinkedinLink));
+                .ForMember(dest => dest.CompanyLinkedinLink, opt => opt.MapFrom(src => src.Company.LinkedinLink))
+                .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.Tags.Select(t => t.Tag).ToList()));
 
             // DTO to Domain
             CreateMap<UserCompanyCreateDto, UserCompany>()
@@ -23,7 +24,8 @@ namespace GPBackend.Profiles
                 .ForMember(dest => dest.Company, opt => opt.Ignore())
                 .ForMember(dest => dest.User, opt => opt.Ignore())
                 .ForMember(dest => dest.Applications, opt => opt.Ignore())
-                .ForMember(dest => dest.Employees, opt => opt.Ignore());
+                .ForMember(dest => dest.Employees, opt => opt.Ignore())
+                .ForMember(dest => dest.Tags, opt => opt.Ignore());
 
             CreateMap<UserCompanyUpdateDto, UserCompany>()
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
@@ -34,7 +36,8 @@ namespace GPBackend.Profiles
                 .ForMember(dest => dest.Company, opt => opt.Ignore())
                 .ForMember(dest => dest.User, opt => opt.Ignore())
                 .ForMember(dest => dest.Applications, opt => opt.Ignore())
-                .ForMember(dest => dest.Employees, opt => opt.Ignore());
+                .ForMember(dest => dest.Employees, opt => opt.Ignore())
+                .ForMember(dest => dest.Tags, opt => opt.Ignore());
         }
     }
 } 

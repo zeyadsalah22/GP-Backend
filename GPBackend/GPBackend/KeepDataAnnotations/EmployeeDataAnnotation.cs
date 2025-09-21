@@ -39,6 +39,12 @@ namespace GPBackend.Models
         [StringLength(255)]
         public string? Contacted { get; set; }
 
+        [StringLength(50)]
+        public string? Phone { get; set; }
+
+        [StringLength(100)]
+        public string? Department { get; set; }
+
         public DateTime CreatedAt { get; set; }
 
         public DateTime UpdatedAt { get; set; }

@@ -15,5 +15,7 @@ namespace GPBackend.Repositories.Interfaces
         Task<bool> UpdateAsync(UserCompany userCompany);
         Task<bool> DeleteAsync(int userId, int companyId);
         Task<bool> UserCompanyExistsAsync(int userId, int companyId);
+        Task<UserCompany?> GetIncludingDeletedAsync(int userId, int companyId);
+        Task ReplaceTagsAsync(int userId, int companyId, IEnumerable<string> tags);
     }
 } 

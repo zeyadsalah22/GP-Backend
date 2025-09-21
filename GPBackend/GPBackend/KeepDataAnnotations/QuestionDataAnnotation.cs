@@ -23,6 +23,18 @@ namespace GPBackend.Models
         [ForeignKey("Application")]
         public int ApplicationId { get; set; }
 
+        public GPBackend.Models.Enums.QuestionType? Type { get; set; }
+
+        public GPBackend.Models.Enums.AnswerStatus? AnswerStatus { get; set; }
+
+        [Range(1,5, ErrorMessage = "Difficulty must be between 1 and 5")] 
+        public int? Difficulty { get; set; }
+
+        [StringLength(1000)]
+        public string? PreparationNote { get; set; }
+
+        public bool Favorite { get; set; }
+
         public DateTime CreatedAt { get; set; }
 
         public DateTime UpdatedAt { get; set; }
@@ -30,5 +42,7 @@ namespace GPBackend.Models
         public bool IsDeleted { get; set; }
 
         public virtual Application Application { get; set; } = null!;
+
+        public virtual ICollection<QuestionTag> Tags { get; set; } = null!;
     }
 } 

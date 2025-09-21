@@ -1,7 +1,9 @@
 using AutoMapper;
 using GPBackend.DTOs.Auth;
 using GPBackend.DTOs.User;
+using GPBackend.DTOs.Email;
 using GPBackend.Models;
+using GPBackend.Models.Enums;
 using GPBackend.Repositories.Interfaces;
 using GPBackend.Services.Interfaces;
 using System.Security.Cryptography;
@@ -13,11 +15,15 @@ namespace GPBackend.Services.Implements
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
+        private readonly IEmailService _emailService;
+        private readonly ILogger<UserService> _logger;
 
-        public UserService(IUserRepository userRepository, IMapper mapper)
+        public UserService(IUserRepository userRepository, IMapper mapper, IEmailService emailService, ILogger<UserService> logger)
         {
             _userRepository = userRepository;
             _mapper = mapper;
+            _emailService = emailService;
+            _logger = logger;
         }
 
         public async Task<User?> AuthenticateAsync(string email, string password)
@@ -46,7 +52,28 @@ namespace GPBackend.Services.Implements
             // Set password and other fields not in DTO
             user.Password = HashPassword(registerDto.Password);
 
-            return await _userRepository.CreateAsync(user);
+            var userId = await _userRepository.CreateAsync(user);
+
+            // Send welcome email asynchronously (don't wait for it to complete)
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var welcomeEmailDto = new WelcomeEmailDto{
+                        Email = registerDto.Email,
+                        FirstName = registerDto.Fname,
+                        LastName = registerDto.Lname,
+                        RegistrationDate = DateTime.UtcNow
+                    };
+                    await _emailService.SendWelcomeEmailAsync(welcomeEmailDto);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send welcome email to {Email}", registerDto.Email);
+                }
+            });
+
+            return userId;
         }
 
         public async Task<UserResponseDto?> GetUserByIdAsync(int id)
@@ -93,6 +120,18 @@ namespace GPBackend.Services.Implements
             
             // Update password using repository
             return await _userRepository.ChangePasswordAsync(id, hashedPassword);
+        }
+
+        public async Task<bool> ChangeUserRoleAsync(int userId, UserRole role)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                return false;
+
+            user.Role = role;
+            user.UpdatedAt = DateTime.UtcNow;
+            
+            return await _userRepository.UpdateAsync(user);
         }
 
         public async Task<bool> DeleteUserAsync(int id)

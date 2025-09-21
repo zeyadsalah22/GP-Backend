@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using GPBackend.Models;
 using AutoMapper;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace GPBackend.Controllers
 {
@@ -17,18 +18,24 @@ namespace GPBackend.Controllers
         private readonly IUserService _userService;
         private readonly IJwtService _jwtService;
         private readonly ITokenBlacklistService _tokenBlacklistService;
+        private readonly IRefreshTokenService _refreshTokenService;
         private readonly IMapper _mapper;
-
+        private readonly IPasswordResetService _passwordResetService;
+        
         public AuthController(
             IUserService userService,
             IJwtService jwtService,
             ITokenBlacklistService tokenBlacklistService,
-            IMapper mapper)
+            IRefreshTokenService refreshTokenService,
+            IMapper mapper,
+            IPasswordResetService passwordResetService)
         {
             _userService = userService;
             _jwtService = jwtService;
             _tokenBlacklistService = tokenBlacklistService;
+            _refreshTokenService = refreshTokenService;
             _mapper = mapper;
+            _passwordResetService = passwordResetService;
         }
 
         // POST api/auth/login
@@ -41,17 +48,22 @@ namespace GPBackend.Controllers
                 return Unauthorized(new { message = "Invalid email or password" });
 
             var token = _jwtService.GenerateToken(user);
+            var refreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(user);
             
             return Ok(new AuthResponseDto 
             { 
                 Token = token,
+                RefreshToken = refreshToken,
                 UserId = user.UserId,
                 Email = user.Email,
-                FullName = $"{user.Fname} {user.Lname}"
+                FullName = $"{user.Fname} {user.Lname}",
+                Role = user.Role,
+                ExpiresAt = _jwtService.GetTokenExpiry(token)
             });
         }
 
         // POST api/auth/register
+        [EnableRateLimiting("CustomUserLimiter")]
         [HttpPost("register")]
         public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto registerDto)
         {
@@ -72,20 +84,49 @@ namespace GPBackend.Controllers
             
             // Generate token
             var token = _jwtService.GenerateToken(userEntity);
+            var refreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(userEntity);
             
             return Ok(new AuthResponseDto 
             { 
                 Token = token,
+                RefreshToken = refreshToken,
                 UserId = userDto.UserId,
                 Email = userDto.Email,
-                FullName = $"{userDto.Fname} {userDto.Lname}"
+                FullName = $"{userDto.Fname} {userDto.Lname}",
+                Role = userEntity.Role,
+                ExpiresAt = _jwtService.GetTokenExpiry(token)
             });
+        }
+
+        // POST api/auth/refresh
+        [HttpPost("refresh")]
+        public async Task<ActionResult<AuthResponseDto>> RefreshToken(RefreshTokenDto refreshTokenDto)
+        {
+            var result = await _refreshTokenService.RefreshTokenAsync(refreshTokenDto.RefreshToken);
+            
+            if (result == null)
+                return Unauthorized(new { message = "Invalid or expired refresh token" });
+            
+            return Ok(result);
+        }
+
+        // POST api/auth/revoke
+        [Authorize]
+        [HttpPost("revoke")]
+        public async Task<IActionResult> RevokeToken(RefreshTokenDto refreshTokenDto)
+        {
+            var result = await _refreshTokenService.RevokeRefreshTokenAsync(refreshTokenDto.RefreshToken);
+            
+            if (!result)
+                return BadRequest(new { message = "Token not found" });
+            
+            return Ok(new { message = "Token revoked successfully" });
         }
 
         // POST api/auth/logout
         [Authorize]
         [HttpPost("logout")]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout(RefreshTokenDto? refreshTokenDto = null)
         {
             var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
             
@@ -94,10 +135,37 @@ namespace GPBackend.Controllers
             var jwtToken = handler.ReadJwtToken(token);
             var expiry = jwtToken.ValidTo;
             
-            // Add token to blacklist until its expiry
+            // Add access token to blacklist until its expiry
             _tokenBlacklistService.BlacklistToken(token, expiry);
             
+            // Revoke refresh token if provided
+            if (refreshTokenDto != null && !string.IsNullOrEmpty(refreshTokenDto.RefreshToken))
+            {
+                await _refreshTokenService.RevokeRefreshTokenAsync(refreshTokenDto.RefreshToken);
+            }
+            
             return Ok(new { message = "Successfully logged out" });
+        }
+
+        [AllowAnonymous]
+        [EnableRateLimiting("CustomUserLimiter")]
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = Request.Headers["User-Agent"].ToString();
+            await _passwordResetService.RequestPasswordResetAsync(dto.Email, ip, userAgent);
+            return Ok(new { message = "If the email exists, a reset link has been sent." });
+        }
+
+        [AllowAnonymous]
+        [EnableRateLimiting("CustomUserLimiter")]
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            var ok = await _passwordResetService.ResetPasswordAsync(dto.Token, dto.NewPassword);
+            if (!ok) return BadRequest(new { message = "Invalid or expired token" });
+            return Ok(new { message = "Password reset successful" });
         }
     }
 } 

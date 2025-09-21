@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.Models;
 
@@ -24,9 +25,9 @@ public partial class Application
 
     public int? AtsScore { get; set; }
 
-    public string Stage { get; set; } = null!;
+    public ApplicationStage Stage { get; set; }
 
-    public string Status { get; set; } = null!;
+    public ApplicationDecisionStatus Status { get; set; }
 
     public DateOnly SubmissionDate { get; set; }
 
@@ -43,6 +44,8 @@ public partial class Application
     public virtual ICollection<Interview> Interviews { get; set; } = new List<Interview>();
 
     public virtual ICollection<Question> Questions { get; set; } = new List<Question>();
+
+    public virtual ICollection<ApplicationStageHistory> StageHistory { get; set; } = new List<ApplicationStageHistory>();
 
     public virtual Resume? SubmittedCv { get; set; }
 

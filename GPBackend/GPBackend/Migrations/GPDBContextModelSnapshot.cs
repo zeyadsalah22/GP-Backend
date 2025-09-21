@@ -78,16 +78,12 @@ namespace GPBackend.Migrations
                         .HasColumnType("rowversion")
                         .HasColumnName("rowversion");
 
-                    b.Property<string>("Stage")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
+                    b.Property<int>("Stage")
+                        .HasColumnType("int")
                         .HasColumnName("stage");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
                         .HasColumnName("status");
 
                     b.Property<DateOnly>("SubmissionDate")
@@ -149,6 +145,64 @@ namespace GPBackend.Migrations
                     b.ToTable("ApplicationEmployee", (string)null);
                 });
 
+            modelBuilder.Entity("GPBackend.Models.ApplicationStageHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApplicationId")
+                        .HasColumnType("int")
+                        .HasColumnName("application_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(sysdatetime())");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("note");
+
+                    b.Property<DateOnly>("ReachedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("reached_date");
+
+                    b.Property<byte[]>("Rowversion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion")
+                        .HasColumnName("rowversion");
+
+                    b.Property<int>("Stage")
+                        .HasColumnType("int")
+                        .HasColumnName("stage");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(sysdatetime())");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId", "Stage")
+                        .IsUnique();
+
+                    b.ToTable("Application_Stage_History", (string)null);
+                });
+
             modelBuilder.Entity("GPBackend.Models.Company", b =>
                 {
                     b.Property<int>("CompanyId")
@@ -163,12 +217,24 @@ namespace GPBackend.Migrations
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("careers_link");
 
+                    b.Property<int>("CompanySize")
+                        .HasColumnType("int")
+                        .HasColumnName("company_size");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(0)
                         .HasColumnType("datetime2(0)")
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(sysutcdatetime())");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("description");
+
+                    b.Property<int>("IndustryId")
+                        .HasColumnType("int")
+                        .HasColumnName("industry_id");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
@@ -183,6 +249,10 @@ namespace GPBackend.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("location");
+
+                    b.Property<byte[]>("Logo")
+                        .HasColumnType("varbinary(max)")
+                        .HasColumnName("logo");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -204,6 +274,8 @@ namespace GPBackend.Migrations
                         .HasDefaultValueSql("(sysutcdatetime())");
 
                     b.HasKey("CompanyId");
+
+                    b.HasIndex("IndustryId");
 
                     b.HasIndex(new[] { "Name" }, "UQ_Companies_Name")
                         .IsUnique();
@@ -236,6 +308,11 @@ namespace GPBackend.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(sysutcdatetime())");
 
+                    b.Property<string>("Department")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("department");
+
                     b.Property<string>("Email")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)")
@@ -261,6 +338,11 @@ namespace GPBackend.Migrations
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("name");
 
+                    b.Property<string>("Phone")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("phone");
+
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(0)
@@ -279,6 +361,53 @@ namespace GPBackend.Migrations
                     b.ToTable("Employees");
                 });
 
+            modelBuilder.Entity("GPBackend.Models.Industry", b =>
+                {
+                    b.Property<int>("IndustryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("industry_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IndustryId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(sysutcdatetime())");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)")
+                        .HasColumnName("name");
+
+                    b.Property<byte[]>("Rowversion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion")
+                        .HasColumnName("rowversion");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(sysutcdatetime())");
+
+                    b.HasKey("IndustryId");
+
+                    b.HasIndex(new[] { "Name" }, "UQ_Industries_Name")
+                        .IsUnique();
+
+                    b.ToTable("Industries");
+                });
+
             modelBuilder.Entity("GPBackend.Models.Interview", b =>
                 {
                     b.Property<int>("InterviewId")
@@ -288,11 +417,11 @@ namespace GPBackend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InterviewId"));
 
-                    b.Property<int>("ApplicationId")
+                    b.Property<int?>("ApplicationId")
                         .HasColumnType("int")
                         .HasColumnName("application_id");
 
-                    b.Property<int>("CompanyId")
+                    b.Property<int?>("CompanyId")
                         .HasColumnType("int")
                         .HasColumnName("company_id");
 
@@ -314,6 +443,12 @@ namespace GPBackend.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnName("is_deleted");
+
+                    b.Property<string>("JobDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Position")
                         .HasMaxLength(100)
@@ -394,6 +529,60 @@ namespace GPBackend.Migrations
                     b.ToTable("Interview_Questions", (string)null);
                 });
 
+            modelBuilder.Entity("GPBackend.Models.PasswordResetToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(sysutcdatetime())");
+
+                    b.Property<string>("CreatedIp")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("created_ip");
+
+                    b.Property<string>("CreatedUserAgent")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("created_user_agent");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("expires_at");
+
+                    b.Property<byte[]>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varbinary(32)")
+                        .HasColumnName("token_hash");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("used_at");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PasswordResetTokens");
+                });
+
             modelBuilder.Entity("GPBackend.Models.Question", b =>
                 {
                     b.Property<int>("QuestionId")
@@ -407,6 +596,10 @@ namespace GPBackend.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("answer");
 
+                    b.Property<int?>("AnswerStatus")
+                        .HasColumnType("int")
+                        .HasColumnName("answer_status");
+
                     b.Property<int>("ApplicationId")
                         .HasColumnType("int")
                         .HasColumnName("application_id");
@@ -418,14 +611,31 @@ namespace GPBackend.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(sysutcdatetime())");
 
+                    b.Property<int?>("Difficulty")
+                        .HasColumnType("int")
+                        .HasColumnName("difficulty");
+
+                    b.Property<bool>("Favorite")
+                        .HasColumnType("bit")
+                        .HasColumnName("favorite");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnName("is_deleted");
+
+                    b.Property<string>("PreparationNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)")
+                        .HasColumnName("preparation_note");
 
                     b.Property<string>("Question1")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("question");
+
+                    b.Property<int?>("Type")
+                        .HasColumnType("int")
+                        .HasColumnName("type");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -439,6 +649,98 @@ namespace GPBackend.Migrations
                     b.HasIndex("ApplicationId");
 
                     b.ToTable("Questions");
+                });
+
+            modelBuilder.Entity("GPBackend.Models.QuestionTag", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(sysdatetime())");
+
+                    b.Property<int>("QuestionId")
+                        .HasColumnType("int")
+                        .HasColumnName("question_id");
+
+                    b.Property<string>("Tag")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("tag");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(sysdatetime())");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId", "Tag")
+                        .IsUnique();
+
+                    b.ToTable("Question_Tags", (string)null);
+                });
+
+            modelBuilder.Entity("GPBackend.Models.RefreshToken", b =>
+                {
+                    b.Property<int>("RefreshTokenId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("refresh_token_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RefreshTokenId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(sysutcdatetime())");
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("expiry_date");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("bit")
+                        .HasColumnName("is_revoked");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit")
+                        .HasColumnName("is_used");
+
+                    b.Property<string>("ReplacedByToken")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("replaced_by_token");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("token");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("RefreshTokenId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("GPBackend.Models.Resume", b =>
@@ -653,6 +955,12 @@ namespace GPBackend.Migrations
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("password");
 
+                    b.Property<int>("Role")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("role");
+
                     b.Property<byte[]>("Rowversion")
                         .IsConcurrencyToken()
                         .IsRequired()
@@ -692,13 +1000,21 @@ namespace GPBackend.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(sysdatetime())");
 
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("description");
+                    b.Property<bool>("Favorite")
+                        .HasColumnType("bit")
+                        .HasColumnName("favorite");
+
+                    b.Property<int?>("InterestLevel")
+                        .HasColumnType("int")
+                        .HasColumnName("interest_level");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnName("is_deleted");
+
+                    b.Property<string>("PersonalNotes")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("personal_notes");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -714,11 +1030,57 @@ namespace GPBackend.Migrations
                     b.ToTable("User_Companies", (string)null);
                 });
 
+            modelBuilder.Entity("GPBackend.Models.UserCompanyTag", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int")
+                        .HasColumnName("company_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(sysdatetime())");
+
+                    b.Property<string>("Tag")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("tag");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(sysdatetime())");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CompanyId", "Tag")
+                        .IsUnique();
+
+                    b.ToTable("UserCompany_Tags", (string)null);
+                });
+
             modelBuilder.Entity("GPBackend.Models.Application", b =>
                 {
                     b.HasOne("GPBackend.Models.Resume", "SubmittedCv")
                         .WithMany("Applications")
                         .HasForeignKey("SubmittedCvId")
+                        .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("FK_Applications_Resumes");
 
                     b.HasOne("GPBackend.Models.UserCompany", "UserCompany")
@@ -753,6 +1115,30 @@ namespace GPBackend.Migrations
                     b.Navigation("Employee");
                 });
 
+            modelBuilder.Entity("GPBackend.Models.ApplicationStageHistory", b =>
+                {
+                    b.HasOne("GPBackend.Models.Application", "Application")
+                        .WithMany("StageHistory")
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_AppStageHistory_Applications");
+
+                    b.Navigation("Application");
+                });
+
+            modelBuilder.Entity("GPBackend.Models.Company", b =>
+                {
+                    b.HasOne("GPBackend.Models.Industry", "Industry")
+                        .WithMany("Companies")
+                        .HasForeignKey("IndustryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_Companies_Industries");
+
+                    b.Navigation("Industry");
+                });
+
             modelBuilder.Entity("GPBackend.Models.Employee", b =>
                 {
                     b.HasOne("GPBackend.Models.UserCompany", "UserCompany")
@@ -770,13 +1156,11 @@ namespace GPBackend.Migrations
                     b.HasOne("GPBackend.Models.Application", "Application")
                         .WithMany("Interviews")
                         .HasForeignKey("ApplicationId")
-                        .IsRequired()
                         .HasConstraintName("FK_Interviews_Applications");
 
                     b.HasOne("GPBackend.Models.Company", "Company")
                         .WithMany("Interviews")
                         .HasForeignKey("CompanyId")
-                        .IsRequired()
                         .HasConstraintName("FK_Interviews_Companies");
 
                     b.HasOne("GPBackend.Models.User", "User")
@@ -804,6 +1188,18 @@ namespace GPBackend.Migrations
                     b.Navigation("Interview");
                 });
 
+            modelBuilder.Entity("GPBackend.Models.PasswordResetToken", b =>
+                {
+                    b.HasOne("GPBackend.Models.User", "User")
+                        .WithMany("PasswordResetTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_PasswordResetTokens_Users");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("GPBackend.Models.Question", b =>
                 {
                     b.HasOne("GPBackend.Models.Application", "Application")
@@ -813,6 +1209,30 @@ namespace GPBackend.Migrations
                         .HasConstraintName("FK_Questions_Applications");
 
                     b.Navigation("Application");
+                });
+
+            modelBuilder.Entity("GPBackend.Models.QuestionTag", b =>
+                {
+                    b.HasOne("GPBackend.Models.Question", "Question")
+                        .WithMany("Tags")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_QuestionTags_Questions");
+
+                    b.Navigation("Question");
+                });
+
+            modelBuilder.Entity("GPBackend.Models.RefreshToken", b =>
+                {
+                    b.HasOne("GPBackend.Models.User", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_RefreshTokens_Users");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("GPBackend.Models.Resume", b =>
@@ -832,6 +1252,7 @@ namespace GPBackend.Migrations
                     b.HasOne("GPBackend.Models.Resume", "Resume")
                         .WithMany("ResumeTests")
                         .HasForeignKey("ResumeId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_ResumeTests_Resumes");
 
@@ -883,6 +1304,18 @@ namespace GPBackend.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("GPBackend.Models.UserCompanyTag", b =>
+                {
+                    b.HasOne("GPBackend.Models.UserCompany", "UserCompany")
+                        .WithMany("Tags")
+                        .HasForeignKey("UserId", "CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_UserCompanyTags_UserCompanies");
+
+                    b.Navigation("UserCompany");
+                });
+
             modelBuilder.Entity("GPBackend.Models.Application", b =>
                 {
                     b.Navigation("ApplicationEmployees");
@@ -890,6 +1323,8 @@ namespace GPBackend.Migrations
                     b.Navigation("Interviews");
 
                     b.Navigation("Questions");
+
+                    b.Navigation("StageHistory");
                 });
 
             modelBuilder.Entity("GPBackend.Models.Company", b =>
@@ -904,9 +1339,19 @@ namespace GPBackend.Migrations
                     b.Navigation("ApplicationEmployees");
                 });
 
+            modelBuilder.Entity("GPBackend.Models.Industry", b =>
+                {
+                    b.Navigation("Companies");
+                });
+
             modelBuilder.Entity("GPBackend.Models.Interview", b =>
                 {
                     b.Navigation("InterviewQuestions");
+                });
+
+            modelBuilder.Entity("GPBackend.Models.Question", b =>
+                {
+                    b.Navigation("Tags");
                 });
 
             modelBuilder.Entity("GPBackend.Models.Resume", b =>
@@ -925,6 +1370,10 @@ namespace GPBackend.Migrations
                 {
                     b.Navigation("Interviews");
 
+                    b.Navigation("PasswordResetTokens");
+
+                    b.Navigation("RefreshTokens");
+
                     b.Navigation("Resumes");
 
                     b.Navigation("TodoLists");
@@ -937,6 +1386,8 @@ namespace GPBackend.Migrations
                     b.Navigation("Applications");
 
                     b.Navigation("Employees");
+
+                    b.Navigation("Tags");
                 });
 #pragma warning restore 612, 618
         }
