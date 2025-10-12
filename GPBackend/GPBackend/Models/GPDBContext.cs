@@ -51,6 +51,8 @@ public partial class GPDBContext : DbContext
 
     public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
+    public virtual DbSet<WeeklyGoal> WeeklyGoals { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Application>(entity =>
@@ -606,6 +608,42 @@ public partial class GPDBContext : DbContext
                 .WithMany(p => p.PasswordResetTokens)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("FK_PasswordResetTokens_Users");
+        });
+
+        modelBuilder.Entity<WeeklyGoal>(entity =>
+        {
+            entity.HasKey(e => e.WeeklyGoalId);
+            
+            entity.Property(e => e.WeeklyGoalId).HasColumnName("weekly_goal_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.WeekStartDate).HasColumnName("week_start_date");
+            entity.Property(e => e.WeekEndDate).HasColumnName("week_end_date");
+            entity.Property(e => e.TargetApplicationCount).HasColumnName("target_application_count");
+            entity.Property(e => e.Notes).HasColumnName("notes");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
+            entity.Property(e => e.Rowversion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("rowversion");
+
+            // Unique constraint: one goal per user per week start date
+            entity.HasIndex(e => new { e.UserId, e.WeekStartDate })
+                .IsUnique()
+                .HasFilter("[is_deleted] = 0");
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.WeeklyGoals)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_WeeklyGoals_Users");
         });
 
         OnModelCreatingPartial(modelBuilder);

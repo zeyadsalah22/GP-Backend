@@ -183,6 +183,49 @@ namespace GPBackend.Controllers
             }
         }
 
+        [HttpPost("batch")]
+        public async Task<ActionResult<QuestionBatchResponseDto>> CreateQuestionsBatch([FromBody][Required] QuestionBatchCreateDto batchCreateDto)
+        {
+            try
+            {
+                if (batchCreateDto == null)
+                {
+                    return BadRequest(new { Message = "Request body is required" });
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    return ValidationProblem(ModelState);
+                }
+
+                if (batchCreateDto.Questions == null || batchCreateDto.Questions.Count == 0)
+                {
+                    return BadRequest(new { Message = "At least one question is required" });
+                }
+
+                int userId = GetAuthenticatedUserId();
+                var result = await _QuestionService.CreateQuestionsBatchAsync(userId, batchCreateDto);
+
+                // Return 207 Multi-Status if there were partial failures, 201 if all succeeded
+                if (result.Failed > 0 && result.SuccessfullyCreated > 0)
+                {
+                    return StatusCode(207, result); // Multi-Status
+                }
+                else if (result.Failed > 0 && result.SuccessfullyCreated == 0)
+                {
+                    return BadRequest(result);
+                }
+                else
+                {
+                    return CreatedAtAction(nameof(GetQuestion), result);
+                }
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
+        }
+
         
     }
 }
