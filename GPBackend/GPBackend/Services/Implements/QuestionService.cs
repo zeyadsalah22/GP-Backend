@@ -133,5 +133,85 @@ namespace GPBackend.Services.Implements
         {
             return await _questionRepository.BulkSoftDeleteAsync(ids, userId);
         }
+
+        public async Task<QuestionBatchResponseDto> CreateQuestionsBatchAsync(int userId, QuestionBatchCreateDto batchCreateDto)
+        {
+            var response = new QuestionBatchResponseDto
+            {
+                TotalRequested = batchCreateDto.Questions.Count,
+                CreatedQuestions = new List<QuestionResponseDto>(),
+                Errors = new List<string>()
+            };
+
+            // Group questions by application ID for batch validation
+            var questionsByAppId = batchCreateDto.Questions
+                .GroupBy(q => q.ApplicationId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // Validate all applications belong to the user
+            var applicationIds = questionsByAppId.Keys;
+            var applications = new Dictionary<int, Application>();
+
+            foreach (var appId in applicationIds)
+            {
+                var application = await _applicationRepository.GetByIdAsync(appId);
+                if (application == null)
+                {
+                    response.Errors.Add($"Application with ID {appId} not found");
+                    continue;
+                }
+                if (application.UserId != userId)
+                {
+                    response.Errors.Add($"Application with ID {appId} does not belong to the user");
+                    continue;
+                }
+                applications[appId] = application;
+            }
+
+            // Process questions for valid applications
+            foreach (var kvp in questionsByAppId)
+            {
+                var appId = kvp.Key;
+                var questionsForApp = kvp.Value;
+
+                if (!applications.ContainsKey(appId))
+                {
+                    // Skip questions for invalid applications
+                    response.Failed += questionsForApp.Count;
+                    continue;
+                }
+
+                foreach (var questionCreateDto in questionsForApp)
+                {
+                    try
+                    {
+                        var question = _mapper.Map<Question>(questionCreateDto);
+                        question.ApplicationId = appId;
+                        question.CreatedAt = DateTime.UtcNow;
+                        question.UpdatedAt = DateTime.UtcNow;
+
+                        var createdQuestion = await _questionRepository.CreateNewQuestionAsync(question);
+                        if (createdQuestion != null)
+                        {
+                            var questionDto = _mapper.Map<QuestionResponseDto>(createdQuestion);
+                            response.CreatedQuestions.Add(questionDto);
+                            response.SuccessfullyCreated++;
+                        }
+                        else
+                        {
+                            response.Failed++;
+                            response.Errors.Add($"Failed to create question: {questionCreateDto.Question1}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        response.Failed++;
+                        response.Errors.Add($"Error creating question '{questionCreateDto.Question1}': {ex.Message}");
+                    }
+                }
+            }
+
+            return response;
+        }
     }
 }
