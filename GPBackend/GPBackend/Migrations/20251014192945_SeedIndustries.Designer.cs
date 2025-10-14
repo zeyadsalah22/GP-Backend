@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GPBackend.Migrations
 {
     [DbContext(typeof(GPDBContext))]
-    [Migration("20250820161707_ApplicationStageStatusEnumsAndHistory")]
-    partial class ApplicationStageStatusEnumsAndHistory
+    [Migration("20251014192945_SeedIndustries")]
+    partial class SeedIndustries
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -409,6 +409,104 @@ namespace GPBackend.Migrations
                         .IsUnique();
 
                     b.ToTable("Industries");
+
+                    b.HasData(
+                        new
+                        {
+                            IndustryId = 1,
+                            CreatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            Name = "Technology",
+                            UpdatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            IndustryId = 2,
+                            CreatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            Name = "Banking & Finance",
+                            UpdatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            IndustryId = 3,
+                            CreatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            Name = "Healthcare",
+                            UpdatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            IndustryId = 4,
+                            CreatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            Name = "Real Estate",
+                            UpdatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            IndustryId = 5,
+                            CreatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            Name = "Construction",
+                            UpdatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            IndustryId = 6,
+                            CreatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            Name = "Manufacturing",
+                            UpdatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            IndustryId = 7,
+                            CreatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            Name = "Retail & E-commerce",
+                            UpdatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            IndustryId = 8,
+                            CreatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            Name = "Logistics & Transportation",
+                            UpdatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            IndustryId = 9,
+                            CreatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            Name = "Consulting",
+                            UpdatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            IndustryId = 10,
+                            CreatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            Name = "Education",
+                            UpdatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            IndustryId = 11,
+                            CreatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            Name = "Government",
+                            UpdatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            IndustryId = 12,
+                            CreatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            IsDeleted = false,
+                            Name = "Other",
+                            UpdatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        });
                 });
 
             modelBuilder.Entity("GPBackend.Models.Interview", b =>
@@ -448,6 +546,9 @@ namespace GPBackend.Migrations
                         .HasColumnName("is_deleted");
 
                     b.Property<string>("JobDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Position")
@@ -1075,6 +1176,69 @@ namespace GPBackend.Migrations
                     b.ToTable("UserCompany_Tags", (string)null);
                 });
 
+            modelBuilder.Entity("GPBackend.Models.WeeklyGoal", b =>
+                {
+                    b.Property<int>("WeeklyGoalId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("weekly_goal_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WeeklyGoalId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(sysutcdatetime())");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("notes");
+
+                    b.Property<byte[]>("Rowversion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion")
+                        .HasColumnName("rowversion");
+
+                    b.Property<int>("TargetApplicationCount")
+                        .HasColumnType("int")
+                        .HasColumnName("target_application_count");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(sysutcdatetime())");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.Property<DateOnly>("WeekEndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("week_end_date");
+
+                    b.Property<DateOnly>("WeekStartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("week_start_date");
+
+                    b.HasKey("WeeklyGoalId");
+
+                    b.HasIndex("UserId", "WeekStartDate")
+                        .IsUnique()
+                        .HasFilter("[is_deleted] = 0");
+
+                    b.ToTable("WeeklyGoals");
+                });
+
             modelBuilder.Entity("GPBackend.Models.Application", b =>
                 {
                     b.HasOne("GPBackend.Models.Resume", "SubmittedCv")
@@ -1086,7 +1250,7 @@ namespace GPBackend.Migrations
                     b.HasOne("GPBackend.Models.UserCompany", "UserCompany")
                         .WithMany("Applications")
                         .HasForeignKey("UserId", "CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_Applications_User_Companies");
 
@@ -1316,6 +1480,18 @@ namespace GPBackend.Migrations
                     b.Navigation("UserCompany");
                 });
 
+            modelBuilder.Entity("GPBackend.Models.WeeklyGoal", b =>
+                {
+                    b.HasOne("GPBackend.Models.User", "User")
+                        .WithMany("WeeklyGoals")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_WeeklyGoals_Users");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("GPBackend.Models.Application", b =>
                 {
                     b.Navigation("ApplicationEmployees");
@@ -1379,6 +1555,8 @@ namespace GPBackend.Migrations
                     b.Navigation("TodoLists");
 
                     b.Navigation("UserCompanies");
+
+                    b.Navigation("WeeklyGoals");
                 });
 
             modelBuilder.Entity("GPBackend.Models.UserCompany", b =>

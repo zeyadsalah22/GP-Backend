@@ -22,11 +22,17 @@ namespace GPBackend.DTOs.Company
         [Required]
         public int IndustryId { get; set; }
 
+        //[Required]
+        //public Models.Enums.CompanySize CompanySize { get; set; }
         [Required]
-        public Models.Enums.CompanySize CompanySize { get; set; }
+        [StringLength(100)]
+        public string CompanySize { get; set; } = null!;
 
         public string? Description { get; set; }
 
-        public byte[]? Logo { get; set; }
+        //public byte[]? Logo { get; set; }
+        [StringLength(255)]
+        [Url]
+        public string? LogoUrl { get; set; }
     }
 } 
