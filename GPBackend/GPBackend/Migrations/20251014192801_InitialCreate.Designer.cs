@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GPBackend.Migrations
 {
     [DbContext(typeof(GPDBContext))]
-    [Migration("20250819182753_EmployeePhoneDepartment")]
-    partial class EmployeePhoneDepartment
+    [Migration("20251014192801_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -81,16 +81,12 @@ namespace GPBackend.Migrations
                         .HasColumnType("rowversion")
                         .HasColumnName("rowversion");
 
-                    b.Property<string>("Stage")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
+                    b.Property<int>("Stage")
+                        .HasColumnType("int")
                         .HasColumnName("stage");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
                         .HasColumnName("status");
 
                     b.Property<DateOnly>("SubmissionDate")
@@ -150,6 +146,64 @@ namespace GPBackend.Migrations
                         .IsUnique();
 
                     b.ToTable("ApplicationEmployee", (string)null);
+                });
+
+            modelBuilder.Entity("GPBackend.Models.ApplicationStageHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApplicationId")
+                        .HasColumnType("int")
+                        .HasColumnName("application_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(sysdatetime())");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("note");
+
+                    b.Property<DateOnly>("ReachedDate")
+                        .HasColumnType("date")
+                        .HasColumnName("reached_date");
+
+                    b.Property<byte[]>("Rowversion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion")
+                        .HasColumnName("rowversion");
+
+                    b.Property<int>("Stage")
+                        .HasColumnType("int")
+                        .HasColumnName("stage");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(sysdatetime())");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId", "Stage")
+                        .IsUnique();
+
+                    b.ToTable("Application_Stage_History", (string)null);
                 });
 
             modelBuilder.Entity("GPBackend.Models.Company", b =>
@@ -396,6 +450,9 @@ namespace GPBackend.Migrations
                     b.Property<string>("JobDescription")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Position")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)")
@@ -542,6 +599,10 @@ namespace GPBackend.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("answer");
 
+                    b.Property<int?>("AnswerStatus")
+                        .HasColumnType("int")
+                        .HasColumnName("answer_status");
+
                     b.Property<int>("ApplicationId")
                         .HasColumnType("int")
                         .HasColumnName("application_id");
@@ -553,14 +614,31 @@ namespace GPBackend.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(sysutcdatetime())");
 
+                    b.Property<int?>("Difficulty")
+                        .HasColumnType("int")
+                        .HasColumnName("difficulty");
+
+                    b.Property<bool>("Favorite")
+                        .HasColumnType("bit")
+                        .HasColumnName("favorite");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnName("is_deleted");
+
+                    b.Property<string>("PreparationNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)")
+                        .HasColumnName("preparation_note");
 
                     b.Property<string>("Question1")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("question");
+
+                    b.Property<int?>("Type")
+                        .HasColumnType("int")
+                        .HasColumnName("type");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -574,6 +652,47 @@ namespace GPBackend.Migrations
                     b.HasIndex("ApplicationId");
 
                     b.ToTable("Questions");
+                });
+
+            modelBuilder.Entity("GPBackend.Models.QuestionTag", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(sysdatetime())");
+
+                    b.Property<int>("QuestionId")
+                        .HasColumnType("int")
+                        .HasColumnName("question_id");
+
+                    b.Property<string>("Tag")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("tag");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(sysdatetime())");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId", "Tag")
+                        .IsUnique();
+
+                    b.ToTable("Question_Tags", (string)null);
                 });
 
             modelBuilder.Entity("GPBackend.Models.RefreshToken", b =>
@@ -959,6 +1078,69 @@ namespace GPBackend.Migrations
                     b.ToTable("UserCompany_Tags", (string)null);
                 });
 
+            modelBuilder.Entity("GPBackend.Models.WeeklyGoal", b =>
+                {
+                    b.Property<int>("WeeklyGoalId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("weekly_goal_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WeeklyGoalId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(sysutcdatetime())");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("notes");
+
+                    b.Property<byte[]>("Rowversion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion")
+                        .HasColumnName("rowversion");
+
+                    b.Property<int>("TargetApplicationCount")
+                        .HasColumnType("int")
+                        .HasColumnName("target_application_count");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(sysutcdatetime())");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.Property<DateOnly>("WeekEndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("week_end_date");
+
+                    b.Property<DateOnly>("WeekStartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("week_start_date");
+
+                    b.HasKey("WeeklyGoalId");
+
+                    b.HasIndex("UserId", "WeekStartDate")
+                        .IsUnique()
+                        .HasFilter("[is_deleted] = 0");
+
+                    b.ToTable("WeeklyGoals");
+                });
+
             modelBuilder.Entity("GPBackend.Models.Application", b =>
                 {
                     b.HasOne("GPBackend.Models.Resume", "SubmittedCv")
@@ -970,7 +1152,7 @@ namespace GPBackend.Migrations
                     b.HasOne("GPBackend.Models.UserCompany", "UserCompany")
                         .WithMany("Applications")
                         .HasForeignKey("UserId", "CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("FK_Applications_User_Companies");
 
@@ -997,6 +1179,18 @@ namespace GPBackend.Migrations
                     b.Navigation("Application");
 
                     b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("GPBackend.Models.ApplicationStageHistory", b =>
+                {
+                    b.HasOne("GPBackend.Models.Application", "Application")
+                        .WithMany("StageHistory")
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_AppStageHistory_Applications");
+
+                    b.Navigation("Application");
                 });
 
             modelBuilder.Entity("GPBackend.Models.Company", b =>
@@ -1081,6 +1275,18 @@ namespace GPBackend.Migrations
                         .HasConstraintName("FK_Questions_Applications");
 
                     b.Navigation("Application");
+                });
+
+            modelBuilder.Entity("GPBackend.Models.QuestionTag", b =>
+                {
+                    b.HasOne("GPBackend.Models.Question", "Question")
+                        .WithMany("Tags")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_QuestionTags_Questions");
+
+                    b.Navigation("Question");
                 });
 
             modelBuilder.Entity("GPBackend.Models.RefreshToken", b =>
@@ -1176,6 +1382,18 @@ namespace GPBackend.Migrations
                     b.Navigation("UserCompany");
                 });
 
+            modelBuilder.Entity("GPBackend.Models.WeeklyGoal", b =>
+                {
+                    b.HasOne("GPBackend.Models.User", "User")
+                        .WithMany("WeeklyGoals")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_WeeklyGoals_Users");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("GPBackend.Models.Application", b =>
                 {
                     b.Navigation("ApplicationEmployees");
@@ -1183,6 +1401,8 @@ namespace GPBackend.Migrations
                     b.Navigation("Interviews");
 
                     b.Navigation("Questions");
+
+                    b.Navigation("StageHistory");
                 });
 
             modelBuilder.Entity("GPBackend.Models.Company", b =>
@@ -1205,6 +1425,11 @@ namespace GPBackend.Migrations
             modelBuilder.Entity("GPBackend.Models.Interview", b =>
                 {
                     b.Navigation("InterviewQuestions");
+                });
+
+            modelBuilder.Entity("GPBackend.Models.Question", b =>
+                {
+                    b.Navigation("Tags");
                 });
 
             modelBuilder.Entity("GPBackend.Models.Resume", b =>
@@ -1232,6 +1457,8 @@ namespace GPBackend.Migrations
                     b.Navigation("TodoLists");
 
                     b.Navigation("UserCompanies");
+
+                    b.Navigation("WeeklyGoals");
                 });
 
             modelBuilder.Entity("GPBackend.Models.UserCompany", b =>

@@ -1,7 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using GPBackend.Data;
 using GPBackend.Models.Enums;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 
 namespace GPBackend.Models;
 
@@ -104,6 +105,7 @@ public partial class GPDBContext : DbContext
 
             entity.HasOne(d => d.UserCompany).WithMany(p => p.Applications)
                 .HasForeignKey(d => new { d.UserId, d.CompanyId })
+                .OnDelete(DeleteBehavior.NoAction)
                 .HasConstraintName("FK_Applications_User_Companies");
         });
 
@@ -173,9 +175,9 @@ public partial class GPDBContext : DbContext
                 .HasColumnName("linkedin_link");
             entity.Property(e => e.IndustryId).HasColumnName("industry_id");
             entity.Property(e => e.CompanySize)
-                .HasConversion<int>()
+                .HasMaxLength(255)
                 .HasColumnName("company_size");
-            entity.Property(e => e.Logo).HasColumnName("logo");
+            entity.Property(e => e.LogoUrl).HasColumnName("logo");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.Location)
                 .HasMaxLength(255)
@@ -197,6 +199,8 @@ public partial class GPDBContext : DbContext
                 .HasForeignKey(d => d.IndustryId)
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("FK_Companies_Industries");
+
+            entity.HasData(CompanySeedData.GetCompanies());
         });
 
         modelBuilder.Entity<Industry>(entity =>
@@ -220,6 +224,21 @@ public partial class GPDBContext : DbContext
                 .IsRowVersion()
                 .IsConcurrencyToken()
                 .HasColumnName("rowversion");
+            
+            entity.HasData(
+            new Industry { IndustryId = 1, Name = "Technology", CreatedAt = new DateTime(2025, 10, 14), UpdatedAt = new DateTime(2025, 10, 14), IsDeleted = false },
+            new Industry { IndustryId = 2, Name = "Banking & Finance", CreatedAt = new DateTime(2025, 10, 14), UpdatedAt = new DateTime(2025, 10, 14), IsDeleted = false },
+            new Industry { IndustryId = 3, Name = "Healthcare", CreatedAt = new DateTime(2025, 10, 14), UpdatedAt = new DateTime(2025, 10, 14), IsDeleted = false },
+            new Industry { IndustryId = 4, Name = "Real Estate", CreatedAt = new DateTime(2025, 10, 14), UpdatedAt = new DateTime(2025, 10, 14), IsDeleted = false },
+            new Industry { IndustryId = 5, Name = "Construction", CreatedAt = new DateTime(2025, 10, 14), UpdatedAt = new DateTime(2025, 10, 14), IsDeleted = false },
+            new Industry { IndustryId = 6, Name = "Manufacturing", CreatedAt = new DateTime(2025, 10, 14), UpdatedAt = new DateTime(2025, 10, 14), IsDeleted = false },
+            new Industry { IndustryId = 7, Name = "Retail & E-commerce", CreatedAt = new DateTime(2025, 10, 14), UpdatedAt = new DateTime(2025, 10, 14), IsDeleted = false },
+            new Industry { IndustryId = 8, Name = "Logistics & Transportation", CreatedAt = new DateTime(2025, 10, 14), UpdatedAt = new DateTime(2025, 10, 14), IsDeleted = false },
+            new Industry { IndustryId = 9, Name = "Consulting", CreatedAt = new DateTime(2025, 10, 14), UpdatedAt = new DateTime(2025, 10, 14), IsDeleted = false },
+            new Industry { IndustryId = 10, Name = "Education", CreatedAt = new DateTime(2025, 10, 14), UpdatedAt = new DateTime(2025, 10, 14), IsDeleted = false },
+            new Industry { IndustryId = 11, Name = "Government", CreatedAt = new DateTime(2025, 10, 14), UpdatedAt = new DateTime(2025, 10, 14), IsDeleted = false },
+            new Industry { IndustryId = 12, Name = "Other", CreatedAt = new DateTime(2025, 10, 14), UpdatedAt = new DateTime(2025, 10, 14), IsDeleted = false }
+        );
         });
 
         modelBuilder.Entity<Employee>(entity =>
@@ -650,4 +669,5 @@ public partial class GPDBContext : DbContext
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+
 }
