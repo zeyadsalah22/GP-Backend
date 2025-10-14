@@ -10,9 +10,11 @@ namespace GPBackend.DTOs.Company
         public string? CareersLink { get; set; }
         public string? LinkedinLink { get; set; }
         public int IndustryId { get; set; }
-        public Models.Enums.CompanySize CompanySize { get; set; }
+        //public Models.Enums.CompanySize CompanySize { get; set; }
+        public string CompanySize { get; set; } = null!;
         public string? Description { get; set; }
-        public byte[]? Logo { get; set; }
+        //public byte[]? Logo { get; set; }
+        public string? LogoUrl { get; set; }
         public IndustryResponseDto? Industry { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

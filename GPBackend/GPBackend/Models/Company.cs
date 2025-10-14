@@ -17,9 +17,11 @@ public partial class Company
 
     public int IndustryId { get; set; }
 
-    public Models.Enums.CompanySize CompanySize { get; set; }
+    //public Models.Enums.CompanySize CompanySize { get; set; }
+    public string CompanySize { get; set; } = null!;
 
-    public byte[]? Logo { get; set; }
+    //public byte[]? Logo { get; set; }
+    public string? LogoUrl { get; set; }
 
     public string? Description { get; set; }
 

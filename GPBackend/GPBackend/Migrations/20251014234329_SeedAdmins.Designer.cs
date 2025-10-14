@@ -4,6 +4,7 @@ using GPBackend.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GPBackend.Migrations
 {
     [DbContext(typeof(GPDBContext))]
-    partial class GPDBContextModelSnapshot : ModelSnapshot
+    [Migration("20251014234329_SeedAdmins")]
+    partial class SeedAdmins
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -4693,30 +4696,6 @@ namespace GPBackend.Migrations
                             Fname = "Admin",
                             IsDeleted = false,
                             Lname = "Admin2",
-                            Password = "O04maomAXJ0CD5rKZjitY+hwH8jHXAyhlS0UBU0fEM8=",
-                            Role = 1,
-                            UpdatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        },
-                        new
-                        {
-                            UserId = 3,
-                            CreatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "admin3@gmail.com",
-                            Fname = "Admin",
-                            IsDeleted = false,
-                            Lname = "Admin3",
-                            Password = "O04maomAXJ0CD5rKZjitY+hwH8jHXAyhlS0UBU0fEM8=",
-                            Role = 1,
-                            UpdatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        },
-                        new
-                        {
-                            UserId = 4,
-                            CreatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Email = "admin4@gmail.com",
-                            Fname = "Admin",
-                            IsDeleted = false,
-                            Lname = "Admin4",
                             Password = "O04maomAXJ0CD5rKZjitY+hwH8jHXAyhlS0UBU0fEM8=",
                             Role = 1,
                             UpdatedAt = new DateTime(2025, 10, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
