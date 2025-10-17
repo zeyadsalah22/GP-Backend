@@ -1,4 +1,4 @@
-﻿using GPBackend.DTOs.Comment;
+using GPBackend.DTOs.Comment;
 using GPBackend.Models.Enums;
 
 namespace GPBackend.DTOs.Post

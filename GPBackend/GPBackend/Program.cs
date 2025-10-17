@@ -184,6 +184,8 @@ namespace GPBackend
             builder.Services.AddScoped<ISkillRepository, SkillRepository>();
             builder.Services.AddScoped<IIndustryRepository, IndustryRepository>();
             builder.Services.AddScoped<IWeeklyGoalRepository, WeeklyGoalRepository>();
+            builder.Services.AddScoped<IPostRepository, PostRepository>();
+            builder.Services.AddScoped<ITagRepository, TagRepository>();
             builder.Services.AddScoped<IGmailConnectionRepository, GmailConnectionRepository>();
             builder.Services.AddScoped<IEmailApplicationUpdateRepository, EmailApplicationUpdateRepository>();
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
@@ -219,6 +221,9 @@ namespace GPBackend
             builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
             builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddScoped<IPostService, PostService>();
+            builder.Services.AddScoped<ITagService, TagService>();
+
             builder.Services.AddScoped<INotificationService, NotificationService>();
             builder.Services.AddScoped<INotificationPreferenceService, NotificationPreferenceService>();
             builder.Services.AddScoped<ICommentService, CommentService>();
