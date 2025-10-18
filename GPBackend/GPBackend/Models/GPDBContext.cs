@@ -52,6 +52,12 @@ public partial class GPDBContext : DbContext
 
     public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
+    public virtual DbSet<Post> Posts { get; set; }
+
+    public virtual DbSet<Tag> Tags { get; set; }
+
+    public virtual DbSet<PostTag> PostTags { get; set; }
+
     public virtual DbSet<WeeklyGoal> WeeklyGoals { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -616,6 +622,95 @@ public partial class GPDBContext : DbContext
                 .WithMany(p => p.PasswordResetTokens)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("FK_PasswordResetTokens_Users");
+        });
+
+        modelBuilder.Entity<Post>(entity =>
+        {
+            entity.HasKey(e => e.PostId);
+
+            entity.Property(e => e.PostId).HasColumnName("post_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.PostType)
+                .HasConversion<int>()
+                .HasColumnName("post_type");
+            entity.Property(e => e.Title)
+                .HasMaxLength(200)
+                .HasColumnName("title");
+            entity.Property(e => e.Content)
+                .HasMaxLength(10000)
+                .HasColumnName("content");
+            entity.Property(e => e.IsAnonymous).HasColumnName("is_anonymous");
+            entity.Property(e => e.Status)
+                .HasConversion<int>()
+                .HasColumnName("status");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
+            entity.Property(e => e.Rowversion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("rowversion");
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.Posts)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Posts_Users");
+        });
+
+        modelBuilder.Entity<Tag>(entity =>
+        {
+            entity.HasKey(e => e.TagId);
+
+            entity.HasIndex(e => e.Name).IsUnique();
+
+            entity.Property(e => e.TagId).HasColumnName("tag_id");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasColumnName("name");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("updated_at");
+        });
+
+        modelBuilder.Entity<PostTag>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable("Post_Tags");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.PostId).HasColumnName("post_id");
+            entity.Property(e => e.TagId).HasColumnName("tag_id");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+
+            entity.HasIndex(e => new { e.PostId, e.TagId }).IsUnique();
+
+            entity.HasOne(d => d.Post)
+                .WithMany(p => p.PostTags)
+                .HasForeignKey(d => d.PostId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_PostTags_Posts");
+
+            entity.HasOne(d => d.Tag)
+                .WithMany(p => p.PostTags)
+                .HasForeignKey(d => d.TagId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_PostTags_Tags");
         });
 
         modelBuilder.Entity<WeeklyGoal>(entity =>
