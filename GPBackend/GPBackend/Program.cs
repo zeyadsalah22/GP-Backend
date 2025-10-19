@@ -143,8 +143,6 @@ namespace GPBackend
             builder.Services.AddScoped<ISkillRepository, SkillRepository>();
             builder.Services.AddScoped<IIndustryRepository, IndustryRepository>();
             builder.Services.AddScoped<IWeeklyGoalRepository, WeeklyGoalRepository>();
-            builder.Services.AddScoped<IPostRepository, PostRepository>();
-            builder.Services.AddScoped<ITagRepository, TagRepository>();
 
             // Register services
             builder.Services.AddScoped<IJwtService, JwtService>();
@@ -166,9 +164,6 @@ namespace GPBackend
             builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
             builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
-            builder.Services.AddScoped<IPostService, PostService>();
-            builder.Services.AddScoped<ITagService, TagService>();
-
             // Register repositories
             builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             builder.Services.AddScoped<IIndustryService, IndustryService>();
