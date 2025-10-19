@@ -11,12 +11,14 @@ namespace GPBackend.Services.Implements
     {
         private readonly IPostRepository _postRepository;
         private readonly ITagRepository _tagRepository;
+        private readonly ICommentRepository _commentRepository;
         private readonly IMapper _mapper;
 
-        public PostService(IPostRepository postRepository, ITagRepository tagRepository, IMapper mapper)
+        public PostService(IPostRepository postRepository, ITagRepository tagRepository, ICommentRepository commentRepository, IMapper mapper)
         {
             _postRepository = postRepository;
             _tagRepository = tagRepository;
+            _commentRepository = commentRepository;
             _mapper = mapper;
         }
 
@@ -24,7 +26,13 @@ namespace GPBackend.Services.Implements
         {
             var pagedPosts = await _postRepository.GetFilteredAsync(queryDto);
 
-            var dtoItems = pagedPosts.Items.Select(p => MapToResponseDto(p)).ToList();
+            //var dtoItems = pagedPosts.Items.Select(p => MapToResponseDto(p)).ToList();
+
+            var dtoItems = new List<PostResponseDto>();
+            foreach (var post in pagedPosts.Items)
+            {
+                dtoItems.Add(await MapToResponseDtoAsync(post, includeCommentPreviews: true));
+            }
 
             return new PagedResult<PostResponseDto>
             {
@@ -38,13 +46,20 @@ namespace GPBackend.Services.Implements
         public async Task<IEnumerable<PostResponseDto>> GetAllPostsAsync()
         {
             var posts = await _postRepository.GetAllAsync();
-            return posts.Select(p => MapToResponseDto(p));
+            // return posts.Select(p => MapToResponseDto(p));
+            var dtos = new List<PostResponseDto>();
+            foreach (var post in posts)
+            {
+                dtos.Add(await MapToResponseDtoAsync(post, includeCommentPreviews: true));
+            }
+            return dtos;
         }
 
         public async Task<PostResponseDto?> GetPostByIdAsync(int id)
         {
             var post = await _postRepository.GetByIdAsync(id);
-            return post != null ? MapToResponseDto(post) : null;
+            //return post != null ? MapToResponseDto(post) : null;
+            return post != null ? await MapToResponseDtoAsync(post, includeCommentPreviews: false) : null;
         }
 
         public async Task<PostResponseDto> CreatePostAsync(int userId, PostCreateDto postDto)
@@ -75,7 +90,8 @@ namespace GPBackend.Services.Implements
 
             // Reload to get all navigation properties
             var reloadedPost = await _postRepository.GetByIdAsync(createdPost.PostId);
-            return MapToResponseDto(reloadedPost!);
+            // return MapToResponseDto(reloadedPost!);
+            return await MapToResponseDtoAsync(reloadedPost!, includeCommentPreviews: false);
         }
 
         public async Task<bool> UpdatePostAsync(int id, int userId, PostUpdateDto postDto)
@@ -150,22 +166,68 @@ namespace GPBackend.Services.Implements
         public async Task<IEnumerable<PostResponseDto>> GetPostsByUserIdAsync(int userId)
         {
             var posts = await _postRepository.GetByUserIdAsync(userId);
-            return posts.Select(p => MapToResponseDto(p));
+            // return posts.Select(p => MapToResponseDto(p));
+            var dtos = new List<PostResponseDto>();
+            foreach (var post in posts)
+            {
+                dtos.Add(await MapToResponseDtoAsync(post, includeCommentPreviews: true));
+            }
+            return dtos;
         }
 
         public async Task<IEnumerable<PostResponseDto>> GetPublishedPostsAsync()
         {
             var posts = await _postRepository.GetPublishedPostsAsync();
-            return posts.Select(p => MapToResponseDto(p));
+            // return posts.Select(p => MapToResponseDto(p));
+            var dtos = new List<PostResponseDto>();
+            foreach (var post in posts)
+            {
+                dtos.Add(await MapToResponseDtoAsync(post, includeCommentPreviews: true));
+            }
+            return dtos;
         }
 
         public async Task<IEnumerable<PostResponseDto>> GetDraftsByUserIdAsync(int userId)
         {
             var posts = await _postRepository.GetDraftsByUserIdAsync(userId);
-            return posts.Select(p => MapToResponseDto(p));
+            // return posts.Select(p => MapToResponseDto(p));
+            var dtos = new List<PostResponseDto>();
+            foreach (var post in posts)
+            {
+                dtos.Add(await MapToResponseDtoAsync(post, includeCommentPreviews: false));
+            }
+            return dtos;
         }
 
-        private PostResponseDto MapToResponseDto(Post post)
+        //private PostResponseDto MapToResponseDto(Post post)
+        //{
+        //    var dto = new PostResponseDto
+        //    {
+        //        PostId = post.PostId,
+        //        UserId = post.IsAnonymous ? null : post.UserId,
+        //        AuthorName = post.IsAnonymous ? null : $"{post.User?.Fname} {post.User?.Lname}",
+        //        PostType = post.PostType,
+        //        PostTypeName = post.PostType.ToString(),
+        //        Title = post.Title,
+        //        Content = post.Content,
+        //        IsAnonymous = post.IsAnonymous,
+        //        Status = post.Status,
+        //        StatusName = post.Status.ToString(),
+        //        Tags = post.PostTags.Select(pt => new TagDto
+        //        {
+        //            TagId = pt.Tag.TagId,
+        //            Name = pt.Tag.Name
+        //        }).ToList(),
+        //        CreatedAt = post.CreatedAt,
+        //        RelativeTime = GetRelativeTime(post.CreatedAt),
+        //        UpdatedAt = post.UpdatedAt,
+        //        Rowversion = post.Rowversion
+        //    };
+
+        //    return dto;
+        //}
+
+        private async Task<PostResponseDto> MapToResponseDtoAsync(Post post, bool includeCommentPreviews = false)
         {
             var dto = new PostResponseDto
             {
@@ -176,6 +238,7 @@ namespace GPBackend.Services.Implements
                 PostTypeName = post.PostType.ToString(),
                 Title = post.Title,
                 Content = post.Content,
+                ContentExcerpt = TruncateContent(post.Content, 200),
                 IsAnonymous = post.IsAnonymous,
                 Status = post.Status,
                 StatusName = post.Status.ToString(),
@@ -184,13 +247,36 @@ namespace GPBackend.Services.Implements
                     TagId = pt.Tag.TagId,
                     Name = pt.Tag.Name
                 }).ToList(),
+                CommentCount = post.CommentCount,
                 CreatedAt = post.CreatedAt,
                 RelativeTime = GetRelativeTime(post.CreatedAt),
                 UpdatedAt = post.UpdatedAt,
                 Rowversion = post.Rowversion
             };
 
+            // Load comment previews if requested (for feed)
+            if (includeCommentPreviews)
+            {
+                var commentPreviews = await _commentRepository.GetTopCommentsByPostIdAsync(post.PostId, 2);
+                dto.CommentPreviews = commentPreviews.Select(c => new DTOs.Comment.CommentPreviewDto
+                {
+                    CommentId = c.CommentId,
+                    AuthorName = c.IsDeleted ? "[Deleted]" : $"{c.User.Fname} {c.User.Lname}",
+                    ContentSnippet = c.IsDeleted ? "[Deleted comment]" : TruncateContent(c.Content, 100),
+                    TimeAgo = GetRelativeTime(c.CreatedAt),
+                    IsDeleted = c.IsDeleted
+                }).ToList();
+            }
+
             return dto;
+        }
+
+        private string TruncateContent(string content, int maxLength)
+        {
+            if (string.IsNullOrEmpty(content) || content.Length <= maxLength)
+                return content;
+
+            return content.Substring(0, maxLength) + "...";
         }
 
         private string GetRelativeTime(DateTime dateTime)

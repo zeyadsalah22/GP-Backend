@@ -5,6 +5,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>a2c20db7-48f2-4a14-8e4c-b109ecc4c5f3</UserSecretsId>
+	<PackageId>22$(AssemblyName)</PackageId>
+	<GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

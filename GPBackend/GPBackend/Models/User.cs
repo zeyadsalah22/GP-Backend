@@ -45,4 +45,8 @@ public partial class User
     public virtual ICollection<WeeklyGoal> WeeklyGoals { get; set; } = new List<WeeklyGoal>();
 
     public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
+
+    public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
+
+    public virtual ICollection<CommentMention> CommentMentions { get; set; } = new List<CommentMention>();
 }

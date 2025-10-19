@@ -26,10 +26,14 @@ public partial class Post
 
     public bool IsDeleted { get; set; }
 
+    public int CommentCount { get; set; }
+
     public byte[] Rowversion { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;
 
     public virtual ICollection<PostTag> PostTags { get; set; } = new List<PostTag>();
+
+    public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
 }
 
