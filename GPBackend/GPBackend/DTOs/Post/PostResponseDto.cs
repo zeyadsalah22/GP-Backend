@@ -1,4 +1,5 @@
-﻿using GPBackend.Models.Enums;
+﻿using GPBackend.DTOs.Comment;
+using GPBackend.Models.Enums;
 
 namespace GPBackend.DTOs.Post
 {
@@ -18,6 +19,8 @@ namespace GPBackend.DTOs.Post
 
         public string Content { get; set; } = null!;
 
+        public string? ContentExcerpt { get; set; } // First 200 characters for feed
+
         public bool IsAnonymous { get; set; }
 
         public PostStatus Status { get; set; }
@@ -25,6 +28,10 @@ namespace GPBackend.DTOs.Post
         public string StatusName { get; set; } = null!;
 
         public List<TagDto> Tags { get; set; } = new List<TagDto>();
+
+        public int CommentCount { get; set; }
+
+        public List<CommentPreviewDto> CommentPreviews { get; set; } = new List<CommentPreviewDto>();
 
         public DateTime CreatedAt { get; set; }
 

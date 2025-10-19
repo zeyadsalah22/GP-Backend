@@ -122,6 +122,13 @@ namespace GPBackend
                         Array.Empty<string>()
                     }
                 });
+
+                var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                if (File.Exists(xmlPath))
+                {
+                    c.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+                }
             });
 
             // Add AutoMapper
@@ -145,6 +152,7 @@ namespace GPBackend
             builder.Services.AddScoped<IWeeklyGoalRepository, WeeklyGoalRepository>();
             builder.Services.AddScoped<IPostRepository, PostRepository>();
             builder.Services.AddScoped<ITagRepository, TagRepository>();
+            builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 
             // Register services
             builder.Services.AddScoped<IJwtService, JwtService>();
@@ -168,6 +176,7 @@ namespace GPBackend
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<IPostService, PostService>();
             builder.Services.AddScoped<ITagService, TagService>();
+            builder.Services.AddScoped<ICommentService, CommentService>();
 
             // Register repositories
             builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
