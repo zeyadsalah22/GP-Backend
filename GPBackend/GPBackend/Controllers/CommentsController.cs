@@ -7,9 +7,6 @@ using System.Security.Claims;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
 namespace GPBackend.Controllers
 {
     [Authorize]
