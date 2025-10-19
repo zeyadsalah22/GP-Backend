@@ -4285,108 +4285,6 @@ namespace GPBackend.Migrations
                     b.ToTable("PasswordResetTokens");
                 });
 
-            modelBuilder.Entity("GPBackend.Models.Post", b =>
-                {
-                    b.Property<int>("PostId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("post_id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PostId"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(10000)
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("content");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(0)
-                        .HasColumnType("datetime2(0)")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("(sysutcdatetime())");
-
-                    b.Property<bool>("IsAnonymous")
-                        .HasColumnType("bit")
-                        .HasColumnName("is_anonymous");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("is_deleted");
-
-                    b.Property<int>("PostType")
-                        .HasColumnType("int")
-                        .HasColumnName("post_type");
-
-                    b.Property<byte[]>("Rowversion")
-                        .IsConcurrencyToken()
-                        .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion")
-                        .HasColumnName("rowversion");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int")
-                        .HasColumnName("status");
-
-                    b.Property<string>("Title")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)")
-                        .HasColumnName("title");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(0)
-                        .HasColumnType("datetime2(0)")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("(sysutcdatetime())");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("PostId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Posts");
-                });
-
-            modelBuilder.Entity("GPBackend.Models.PostTag", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(0)
-                        .HasColumnType("datetime2(0)")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("(sysutcdatetime())");
-
-                    b.Property<int>("PostId")
-                        .HasColumnType("int")
-                        .HasColumnName("post_id");
-
-                    b.Property<int>("TagId")
-                        .HasColumnType("int")
-                        .HasColumnName("tag_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TagId");
-
-                    b.HasIndex("PostId", "TagId")
-                        .IsUnique();
-
-                    b.ToTable("Post_Tags", (string)null);
-                });
-
             modelBuilder.Entity("GPBackend.Models.Question", b =>
                 {
                     b.Property<int>("QuestionId")
@@ -4647,43 +4545,6 @@ namespace GPBackend.Migrations
                         .IsUnique();
 
                     b.ToTable("Skills");
-                });
-
-            modelBuilder.Entity("GPBackend.Models.Tag", b =>
-                {
-                    b.Property<int>("TagId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("tag_id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TagId"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(0)
-                        .HasColumnType("datetime2(0)")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("(sysutcdatetime())");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("name");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(0)
-                        .HasColumnType("datetime2(0)")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("(sysutcdatetime())");
-
-                    b.HasKey("TagId");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("Tags");
                 });
 
             modelBuilder.Entity("GPBackend.Models.TodoList", b =>
@@ -5142,39 +5003,6 @@ namespace GPBackend.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("GPBackend.Models.Post", b =>
-                {
-                    b.HasOne("GPBackend.Models.User", "User")
-                        .WithMany("Posts")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_Posts_Users");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("GPBackend.Models.PostTag", b =>
-                {
-                    b.HasOne("GPBackend.Models.Post", "Post")
-                        .WithMany("PostTags")
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_PostTags_Posts");
-
-                    b.HasOne("GPBackend.Models.Tag", "Tag")
-                        .WithMany("PostTags")
-                        .HasForeignKey("TagId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_PostTags_Tags");
-
-                    b.Navigation("Post");
-
-                    b.Navigation("Tag");
-                });
-
             modelBuilder.Entity("GPBackend.Models.Question", b =>
                 {
                     b.HasOne("GPBackend.Models.Application", "Application")
@@ -5336,11 +5164,6 @@ namespace GPBackend.Migrations
                     b.Navigation("InterviewQuestions");
                 });
 
-            modelBuilder.Entity("GPBackend.Models.Post", b =>
-                {
-                    b.Navigation("PostTags");
-                });
-
             modelBuilder.Entity("GPBackend.Models.Question", b =>
                 {
                     b.Navigation("Tags");
@@ -5358,18 +5181,11 @@ namespace GPBackend.Migrations
                     b.Navigation("Skills");
                 });
 
-            modelBuilder.Entity("GPBackend.Models.Tag", b =>
-                {
-                    b.Navigation("PostTags");
-                });
-
             modelBuilder.Entity("GPBackend.Models.User", b =>
                 {
                     b.Navigation("Interviews");
 
                     b.Navigation("PasswordResetTokens");
-
-                    b.Navigation("Posts");
 
                     b.Navigation("RefreshTokens");
 
