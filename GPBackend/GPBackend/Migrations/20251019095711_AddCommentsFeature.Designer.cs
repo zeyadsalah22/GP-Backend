@@ -4,6 +4,7 @@ using GPBackend.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GPBackend.Migrations
 {
     [DbContext(typeof(GPDBContext))]
-    partial class GPDBContextModelSnapshot : ModelSnapshot
+    [Migration("20251019095711_AddCommentsFeature")]
+    partial class AddCommentsFeature
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -4046,78 +4049,6 @@ namespace GPBackend.Migrations
                         });
                 });
 
-            modelBuilder.Entity("GPBackend.Models.EmailApplicationUpdate", b =>
-                {
-                    b.Property<int>("EmailApplicationUpdateId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EmailApplicationUpdateId"));
-
-                    b.Property<int>("ApplicationId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CompanyNameHint")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<decimal>("Confidence")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("DetectedStage")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("DetectedStatus")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("EmailDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("EmailFrom")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("EmailId")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("EmailSnippet")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("EmailSubject")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("FailureReason")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("MatchReasons")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("WasApplied")
-                        .HasColumnType("bit");
-
-                    b.HasKey("EmailApplicationUpdateId");
-
-                    b.HasIndex("ApplicationId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("EmailApplicationUpdates");
-                });
-
             modelBuilder.Entity("GPBackend.Models.Employee", b =>
                 {
                     b.Property<int>("EmployeeId")
@@ -4194,68 +4125,6 @@ namespace GPBackend.Migrations
                     b.HasIndex("UserId", "CompanyId");
 
                     b.ToTable("Employees");
-                });
-
-            modelBuilder.Entity("GPBackend.Models.GmailConnection", b =>
-                {
-                    b.Property<int>("GmailConnectionId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GmailConnectionId"));
-
-                    b.Property<DateTime>("ConnectedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("EncryptedAccessToken")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EncryptedRefreshToken")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("GmailAddress")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("HistoryId")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("LastCheckedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<byte[]>("Rowversion")
-                        .IsConcurrencyToken()
-                        .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
-                    b.Property<DateTime>("TokenExpiresAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("WatchExpiresAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("GmailConnectionId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("GmailConnections");
                 });
 
             modelBuilder.Entity("GPBackend.Models.Industry", b =>
@@ -4524,134 +4393,6 @@ namespace GPBackend.Migrations
                     b.ToTable("Interview_Questions", (string)null);
                 });
 
-            modelBuilder.Entity("GPBackend.Models.Notification", b =>
-                {
-                    b.Property<int>("NotificationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("notification_id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NotificationId"));
-
-                    b.Property<int>("ActorId")
-                        .HasColumnType("int")
-                        .HasColumnName("actor_id");
-
-                    b.Property<int>("Category")
-                        .HasColumnType("int")
-                        .HasColumnName("category");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(0)
-                        .HasColumnType("datetime2(0)")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("(sysutcdatetime())");
-
-                    b.Property<int?>("EntityTargetedId")
-                        .HasColumnType("int")
-                        .HasColumnName("entity_targeted_id");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("is_deleted");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("bit")
-                        .HasColumnName("is_read");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("message");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int")
-                        .HasColumnName("type");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("NotificationId");
-
-                    b.HasIndex("ActorId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Notifications");
-                });
-
-            modelBuilder.Entity("GPBackend.Models.NotificationPreference", b =>
-                {
-                    b.Property<int>("NotificationPreferenceId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PostId"));
-
-                    b.Property<int>("CommentCount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0)
-                        .HasColumnName("comment_count");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(10000)
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("content");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(0)
-                        .HasColumnType("datetime2(0)")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("(sysutcdatetime())");
-
-                    b.Property<bool>("EnableReminders")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true)
-                        .HasColumnName("enable_reminder");
-
-                    b.Property<bool>("EnableSocial")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true)
-                        .HasColumnName("enable_social");
-
-                    b.Property<bool>("EnableSystem")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true)
-                        .HasColumnName("enable_system");
-
-                    b.Property<bool>("GloballyEnabled")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true)
-                        .HasColumnName("global_enable");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(0)
-                        .HasColumnType("datetime2(0)")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("(sysutcdatetime())");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("NotificationPreferenceId")
-                        .HasName("notification_prefernce_id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("NotificationPreferences");
-                });
-
             modelBuilder.Entity("GPBackend.Models.PasswordResetToken", b =>
                 {
                     b.Property<int>("Id")
@@ -4704,6 +4445,114 @@ namespace GPBackend.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("PasswordResetTokens");
+                });
+
+            modelBuilder.Entity("GPBackend.Models.Post", b =>
+                {
+                    b.Property<int>("PostId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("post_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PostId"));
+
+                    b.Property<int>("CommentCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0)
+                        .HasColumnName("comment_count");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(10000)
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("content");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(sysutcdatetime())");
+
+                    b.Property<bool>("IsAnonymous")
+                        .HasColumnType("bit")
+                        .HasColumnName("is_anonymous");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<int>("PostType")
+                        .HasColumnType("int")
+                        .HasColumnName("post_type");
+
+                    b.Property<byte[]>("Rowversion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion")
+                        .HasColumnName("rowversion");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("title");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(sysutcdatetime())");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("PostId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Posts");
+                });
+
+            modelBuilder.Entity("GPBackend.Models.PostTag", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(sysutcdatetime())");
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("int")
+                        .HasColumnName("post_id");
+
+                    b.Property<int>("TagId")
+                        .HasColumnType("int")
+                        .HasColumnName("tag_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TagId");
+
+                    b.HasIndex("PostId", "TagId")
+                        .IsUnique();
+
+                    b.ToTable("Post_Tags", (string)null);
                 });
 
             modelBuilder.Entity("GPBackend.Models.Question", b =>
@@ -4966,6 +4815,43 @@ namespace GPBackend.Migrations
                         .IsUnique();
 
                     b.ToTable("Skills");
+                });
+
+            modelBuilder.Entity("GPBackend.Models.Tag", b =>
+                {
+                    b.Property<int>("TagId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("tag_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TagId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("(sysutcdatetime())");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("name");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(0)
+                        .HasColumnType("datetime2(0)")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("(sysutcdatetime())");
+
+                    b.HasKey("TagId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Tags");
                 });
 
             modelBuilder.Entity("GPBackend.Models.TodoList", b =>
@@ -5236,32 +5122,6 @@ namespace GPBackend.Migrations
                     b.ToTable("UserCompany_Tags", (string)null);
                 });
 
-            modelBuilder.Entity("GPBackend.Models.UserConnection", b =>
-                {
-                    b.Property<int>("UserId")
-                        .HasColumnType("int")
-                        .HasColumnName("user_id");
-
-                    b.Property<string>("ConnectionId")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasColumnName("connection_id");
-
-                    b.Property<DateTime>("ConnectedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(0)
-                        .HasColumnType("datetime2(0)")
-                        .HasColumnName("connected_at")
-                        .HasDefaultValueSql("(sysutcdatetime())");
-
-                    b.HasKey("UserId", "ConnectionId");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("UserConnections");
-                });
-
             modelBuilder.Entity("GPBackend.Models.WeeklyGoal", b =>
                 {
                     b.Property<int>("WeeklyGoalId")
@@ -5451,25 +5311,6 @@ namespace GPBackend.Migrations
                     b.Navigation("Industry");
                 });
 
-            modelBuilder.Entity("GPBackend.Models.EmailApplicationUpdate", b =>
-                {
-                    b.HasOne("GPBackend.Models.Application", "Application")
-                        .WithMany()
-                        .HasForeignKey("ApplicationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("GPBackend.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Application");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("GPBackend.Models.Employee", b =>
                 {
                     b.HasOne("GPBackend.Models.UserCompany", "UserCompany")
@@ -5480,17 +5321,6 @@ namespace GPBackend.Migrations
                         .HasConstraintName("FK_Employees_User_Companies");
 
                     b.Navigation("UserCompany");
-                });
-
-            modelBuilder.Entity("GPBackend.Models.GmailConnection", b =>
-                {
-                    b.HasOne("GPBackend.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("GPBackend.Models.Interview", b =>
@@ -5530,39 +5360,6 @@ namespace GPBackend.Migrations
                     b.Navigation("Interview");
                 });
 
-            modelBuilder.Entity("GPBackend.Models.Notification", b =>
-                {
-                    b.HasOne("GPBackend.Models.User", "Actor")
-                        .WithMany()
-                        .HasForeignKey("ActorId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("FK_Notifications_Actor");
-
-                    b.HasOne("GPBackend.Models.User", "User")
-                        .WithMany("Notifications")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_Notifications_Users");
-
-                    b.Navigation("Actor");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("GPBackend.Models.NotificationPreference", b =>
-                {
-                    b.HasOne("GPBackend.Models.User", "User")
-                        .WithMany("NotificationPreferences")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_Notifications_Preferences_Users");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("GPBackend.Models.PasswordResetToken", b =>
                 {
                     b.HasOne("GPBackend.Models.User", "User")
@@ -5573,6 +5370,39 @@ namespace GPBackend.Migrations
                         .HasConstraintName("FK_PasswordResetTokens_Users");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("GPBackend.Models.Post", b =>
+                {
+                    b.HasOne("GPBackend.Models.User", "User")
+                        .WithMany("Posts")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Posts_Users");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("GPBackend.Models.PostTag", b =>
+                {
+                    b.HasOne("GPBackend.Models.Post", "Post")
+                        .WithMany("PostTags")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_PostTags_Posts");
+
+                    b.HasOne("GPBackend.Models.Tag", "Tag")
+                        .WithMany("PostTags")
+                        .HasForeignKey("TagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_PostTags_Tags");
+
+                    b.Navigation("Post");
+
+                    b.Navigation("Tag");
                 });
 
             modelBuilder.Entity("GPBackend.Models.Question", b =>
@@ -5691,18 +5521,6 @@ namespace GPBackend.Migrations
                     b.Navigation("UserCompany");
                 });
 
-            modelBuilder.Entity("GPBackend.Models.UserConnection", b =>
-                {
-                    b.HasOne("GPBackend.Models.User", "User")
-                        .WithOne("UserConnection")
-                        .HasForeignKey("GPBackend.Models.UserConnection", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_UserConnections_Users");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("GPBackend.Models.WeeklyGoal", b =>
                 {
                     b.HasOne("GPBackend.Models.User", "User")
@@ -5781,6 +5599,11 @@ namespace GPBackend.Migrations
                     b.Navigation("Skills");
                 });
 
+            modelBuilder.Entity("GPBackend.Models.Tag", b =>
+                {
+                    b.Navigation("PostTags");
+                });
+
             modelBuilder.Entity("GPBackend.Models.User", b =>
                 {
                     b.Navigation("CommentMentions");
@@ -5789,11 +5612,9 @@ namespace GPBackend.Migrations
 
                     b.Navigation("Interviews");
 
-                    b.Navigation("NotificationPreferences");
-
-                    b.Navigation("Notifications");
-
                     b.Navigation("PasswordResetTokens");
+
+                    b.Navigation("Posts");
 
                     b.Navigation("RefreshTokens");
 
@@ -5802,8 +5623,6 @@ namespace GPBackend.Migrations
                     b.Navigation("TodoLists");
 
                     b.Navigation("UserCompanies");
-
-                    b.Navigation("UserConnection");
 
                     b.Navigation("WeeklyGoals");
                 });

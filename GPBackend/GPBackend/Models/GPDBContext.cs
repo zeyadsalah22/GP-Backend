@@ -12,47 +12,36 @@ public partial class GPDBContext : DbContext
     {
     }
 
-    public GPDBContext(DbContextOptions<GPDBContext> options)
-        : base(options)
+    public GPDBContext(DbContextOptions<GPDBContext> options) : base(options)
     {
     }
 
     public virtual DbSet<Application> Applications { get; set; }
-
     public virtual DbSet<ApplicationEmployee> ApplicationEmployees { get; set; }
     public virtual DbSet<ApplicationStageHistory> ApplicationStageHistories { get; set; }
-
     public virtual DbSet<Company> Companies { get; set; }
-
     public virtual DbSet<Industry> Industries { get; set; }
-
     public virtual DbSet<Employee> Employees { get; set; }
-
     public virtual DbSet<Interview> Interviews { get; set; }
-
     public virtual DbSet<InterviewQuestion> InterviewQuestions { get; set; }
-
     public virtual DbSet<Question> Questions { get; set; }
     public virtual DbSet<QuestionTag> QuestionTags { get; set; }
-
     public virtual DbSet<Resume> Resumes { get; set; }
-
     public virtual DbSet<ResumeTest> ResumeTests { get; set; }
-
     public virtual DbSet<Skill> Skills { get; set; }
-
     public virtual DbSet<TodoList> TodoLists { get; set; }
-
     public virtual DbSet<User> Users { get; set; }
-
     public virtual DbSet<UserCompany> UserCompanies { get; set; }
     public virtual DbSet<UserCompanyTag> UserCompanyTags { get; set; }
-
     public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
-
     public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
-
+    public virtual DbSet<Post> Posts { get; set; }
+    public virtual DbSet<Tag> Tags { get; set; }
+    public virtual DbSet<PostTag> PostTags { get; set; }
     public virtual DbSet<WeeklyGoal> WeeklyGoals { get; set; }
+    public virtual DbSet<Comment> Comments { get; set; }
+    public virtual DbSet<CommentEditHistory> CommentEditHistories { get; set; }
+    public virtual DbSet<CommentMention> CommentMentions { get; set; }
 
     public virtual DbSet<GmailConnection> GmailConnections { get; set; }
 
@@ -626,6 +615,98 @@ public partial class GPDBContext : DbContext
                 .HasConstraintName("FK_PasswordResetTokens_Users");
         });
 
+        modelBuilder.Entity<Post>(entity =>
+        {
+            entity.HasKey(e => e.PostId);
+
+            entity.Property(e => e.PostId).HasColumnName("post_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.PostType)
+                .HasConversion<int>()
+                .HasColumnName("post_type");
+            entity.Property(e => e.Title)
+                .HasMaxLength(200)
+                .HasColumnName("title");
+            entity.Property(e => e.Content)
+                .HasMaxLength(10000)
+                .HasColumnName("content");
+            entity.Property(e => e.IsAnonymous).HasColumnName("is_anonymous");
+            entity.Property(e => e.Status)
+                .HasConversion<int>()
+                .HasColumnName("status");
+            entity.Property(e => e.CommentCount)
+                .HasDefaultValue(0)
+                .HasColumnName("comment_count");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
+            entity.Property(e => e.Rowversion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("rowversion");
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.Posts)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Posts_Users");
+        });
+
+        modelBuilder.Entity<Tag>(entity =>
+        {
+            entity.HasKey(e => e.TagId);
+
+            entity.HasIndex(e => e.Name).IsUnique();
+
+            entity.Property(e => e.TagId).HasColumnName("tag_id");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .HasColumnName("name");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("updated_at");
+        });
+
+        modelBuilder.Entity<PostTag>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable("Post_Tags");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.PostId).HasColumnName("post_id");
+            entity.Property(e => e.TagId).HasColumnName("tag_id");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+
+            entity.HasIndex(e => new { e.PostId, e.TagId }).IsUnique();
+
+            entity.HasOne(d => d.Post)
+                .WithMany(p => p.PostTags)
+                .HasForeignKey(d => d.PostId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_PostTags_Posts");
+
+            entity.HasOne(d => d.Tag)
+                .WithMany(p => p.PostTags)
+                .HasForeignKey(d => d.TagId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_PostTags_Tags");
+        });
+
         modelBuilder.Entity<WeeklyGoal>(entity =>
         {
             entity.HasKey(e => e.WeeklyGoalId);
@@ -754,6 +835,125 @@ public partial class GPDBContext : DbContext
                 .HasForeignKey<UserConnection>(uc => uc.UserId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_UserConnections_Users");
+        });
+
+        modelBuilder.Entity<Comment>(entity =>
+        {
+            entity.HasKey(e => e.CommentId);
+
+            entity.Property(e => e.CommentId).HasColumnName("comment_id");
+            entity.Property(e => e.PostId).HasColumnName("post_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.ParentCommentId).HasColumnName("parent_comment_id");
+            entity.Property(e => e.Content)
+                .HasMaxLength(2000)
+                .HasColumnName("content");
+            entity.Property(e => e.Level)
+                .HasDefaultValue(0)
+                .HasColumnName("level");
+            entity.Property(e => e.ReplyCount)
+                .HasDefaultValue(0)
+                .HasColumnName("reply_count");
+            entity.Property(e => e.IsEdited)
+                .HasDefaultValue(false)
+                .HasColumnName("is_edited");
+            entity.Property(e => e.LastEditedAt)
+                .HasPrecision(0)
+                .HasColumnName("last_edited_at");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.Rowversion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("rowversion");
+
+            entity.HasIndex(e => e.PostId);
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.ParentCommentId);
+            entity.HasIndex(e => new { e.PostId, e.Level, e.CreatedAt });
+
+            entity.HasOne(d => d.Post)
+                .WithMany(p => p.Comments)
+                .HasForeignKey(d => d.PostId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Comments_Posts");
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.Comments)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_Comments_Users");
+
+            entity.HasOne(d => d.ParentComment)
+                .WithMany(p => p.Replies)
+                .HasForeignKey(d => d.ParentCommentId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_Comments_ParentComment");
+        });
+
+        modelBuilder.Entity<CommentEditHistory>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable("Comment_Edit_History");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.CommentId).HasColumnName("comment_id");
+            entity.Property(e => e.PreviousContent)
+                .HasMaxLength(2000)
+                .HasColumnName("previous_content");
+            entity.Property(e => e.EditedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("edited_at");
+
+            entity.HasIndex(e => e.CommentId);
+
+            entity.HasOne(d => d.Comment)
+                .WithMany(p => p.EditHistory)
+                .HasForeignKey(d => d.CommentId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_CommentEditHistory_Comments");
+        });
+
+        modelBuilder.Entity<CommentMention>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable("Comment_Mentions");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.CommentId).HasColumnName("comment_id");
+            entity.Property(e => e.MentionedUserId).HasColumnName("mentioned_user_id");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+
+            entity.HasIndex(e => e.CommentId);
+            entity.HasIndex(e => e.MentionedUserId);
+            entity.HasIndex(e => new { e.CommentId, e.MentionedUserId }).IsUnique();
+
+            entity.HasOne(d => d.Comment)
+                .WithMany(p => p.Mentions)
+                .HasForeignKey(d => d.CommentId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_CommentMentions_Comments");
+
+            entity.HasOne(d => d.MentionedUser)
+                .WithMany(p => p.CommentMentions)
+                .HasForeignKey(d => d.MentionedUserId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_CommentMentions_Users");
         });
 
         OnModelCreatingPartial(modelBuilder);

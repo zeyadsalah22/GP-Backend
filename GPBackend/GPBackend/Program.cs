@@ -155,9 +155,16 @@ namespace GPBackend
                         Array.Empty<string>()
                     }
                 });
+                var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                if (File.Exists(xmlPath))
+                {
+                    c.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+                }
             });
+
             builder.Services.AddSignalR();
-        
+
             // Add AutoMapper
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
@@ -183,6 +190,7 @@ namespace GPBackend
             builder.Services.AddScoped<INotificationPreferenceRepository, NotificationPreferenceRepository>();
             builder.Services.AddScoped<INotificationSignalRService, NotificationSignalRService>();
             builder.Services.AddScoped<IUserConnectionRepository, UserConnectionRepository>();
+            builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 
             // Register services
             builder.Services.AddScoped<IJwtService, JwtService>();
@@ -206,6 +214,7 @@ namespace GPBackend
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
             builder.Services.AddScoped<INotificationPreferenceService, NotificationPreferenceService>();
+            builder.Services.AddScoped<ICommentService, CommentService>();
 
             // Register repositories
             builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();

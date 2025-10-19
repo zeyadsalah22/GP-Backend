@@ -49,4 +49,8 @@ public partial class User
     
     // One-to-one relationship with UserConnection
     public virtual UserConnection? UserConnection { get; set; }
+
+    public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
+
+    public virtual ICollection<CommentMention> CommentMentions { get; set; } = new List<CommentMention>();
 }
