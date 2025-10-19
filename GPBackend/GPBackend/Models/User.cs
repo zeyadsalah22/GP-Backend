@@ -43,6 +43,4 @@ public partial class User
     public virtual ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();
     
     public virtual ICollection<WeeklyGoal> WeeklyGoals { get; set; } = new List<WeeklyGoal>();
-
-    public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
 }
