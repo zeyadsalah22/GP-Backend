@@ -191,6 +191,8 @@ namespace GPBackend
             builder.Services.AddScoped<INotificationSignalRService, NotificationSignalRService>();
             builder.Services.AddScoped<IUserConnectionRepository, UserConnectionRepository>();
             builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+            builder.Services.AddScoped<IPostReactionRepository, PostReactionRepository>();
+            builder.Services.AddScoped<ICommentReactionRepository, CommentReactionRepository>();
 
             // Register services
             builder.Services.AddScoped<IJwtService, JwtService>();
@@ -215,6 +217,8 @@ namespace GPBackend
             builder.Services.AddScoped<INotificationService, NotificationService>();
             builder.Services.AddScoped<INotificationPreferenceService, NotificationPreferenceService>();
             builder.Services.AddScoped<ICommentService, CommentService>();
+            builder.Services.AddScoped<IPostReactionService, PostReactionService>();
+            builder.Services.AddScoped<ICommentReactionService, CommentReactionService>();
 
             // Register repositories
             builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();

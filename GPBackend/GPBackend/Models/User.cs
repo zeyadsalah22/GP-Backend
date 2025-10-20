@@ -30,6 +30,10 @@ public partial class User
 
     public UserRole Role { get; set; } = UserRole.User;
 
+    public string? ProfilePictureUrl { get; set; }
+
+    public int ReputationPoints { get; set; }
+
     public virtual ICollection<Interview> Interviews { get; set; } = new List<Interview>();
 
     public virtual ICollection<Resume> Resumes { get; set; } = new List<Resume>();
@@ -53,4 +57,8 @@ public partial class User
     public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
 
     public virtual ICollection<CommentMention> CommentMentions { get; set; } = new List<CommentMention>();
+
+    public virtual ICollection<PostReaction> PostReactions { get; set; } = new List<PostReaction>();
+
+    public virtual ICollection<CommentReaction> CommentReactions { get; set; } = new List<CommentReaction>();
 }

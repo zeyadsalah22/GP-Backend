@@ -42,5 +42,7 @@ public partial class Comment
     public virtual ICollection<CommentEditHistory> EditHistory { get; set; } = new List<CommentEditHistory>();
 
     public virtual ICollection<CommentMention> Mentions { get; set; } = new List<CommentMention>();
+
+    public virtual ICollection<CommentReaction> CommentReactions { get; set; } = new List<CommentReaction>();
 }
 

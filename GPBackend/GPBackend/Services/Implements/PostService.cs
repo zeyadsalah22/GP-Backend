@@ -12,13 +12,15 @@ namespace GPBackend.Services.Implements
         private readonly IPostRepository _postRepository;
         private readonly ITagRepository _tagRepository;
         private readonly ICommentRepository _commentRepository;
+        private readonly IPostReactionRepository _postReactionRepository;
         private readonly IMapper _mapper;
 
-        public PostService(IPostRepository postRepository, ITagRepository tagRepository, ICommentRepository commentRepository, IMapper mapper)
+        public PostService(IPostRepository postRepository, ITagRepository tagRepository, ICommentRepository commentRepository, IPostReactionRepository postReactionRepository, IMapper mapper)
         {
             _postRepository = postRepository;
             _tagRepository = tagRepository;
             _commentRepository = commentRepository;
+            _postReactionRepository = postReactionRepository;
             _mapper = mapper;
         }
 
@@ -251,8 +253,17 @@ namespace GPBackend.Services.Implements
                 CreatedAt = post.CreatedAt,
                 RelativeTime = GetRelativeTime(post.CreatedAt),
                 UpdatedAt = post.UpdatedAt,
-                Rowversion = post.Rowversion
+                Rowversion = post.Rowversion,
+                AuthorProfilePictureUrl = post.User?.ProfilePictureUrl
             };
+
+            var reactionCounts = await _postReactionRepository.GetReactionCountsByPostIdAsync(post.PostId);
+            dto.UpvoteCount = reactionCounts[Models.Enums.ReactionType.UPVOTE];
+            dto.DownvoteCount = reactionCounts[Models.Enums.ReactionType.DOWNVOTE];
+            dto.HelpfulCount = reactionCounts[Models.Enums.ReactionType.HELPFUL];
+            dto.InsightfulCount = reactionCounts[Models.Enums.ReactionType.INSIGHTFUL];
+            dto.ThanksCount = reactionCounts[Models.Enums.ReactionType.THANKS];
+            dto.TotalReactions = reactionCounts.Values.Sum();
 
             // Load comment previews if requested (for feed)
             if (includeCommentPreviews)

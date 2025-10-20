@@ -42,6 +42,8 @@ public partial class GPDBContext : DbContext
     public virtual DbSet<Comment> Comments { get; set; }
     public virtual DbSet<CommentEditHistory> CommentEditHistories { get; set; }
     public virtual DbSet<CommentMention> CommentMentions { get; set; }
+    public virtual DbSet<PostReaction> PostReactions { get; set; }
+    public virtual DbSet<CommentReaction> CommentReactions { get; set; }
 
     public virtual DbSet<GmailConnection> GmailConnections { get; set; }
 
@@ -498,6 +500,12 @@ public partial class GPDBContext : DbContext
                 .HasConversion<int>()
                 .HasDefaultValue(UserRole.User)
                 .HasColumnName("role");
+            entity.Property(e => e.ProfilePictureUrl)
+                .HasMaxLength(500)
+                .HasColumnName("profile_picture_url");
+            entity.Property(e => e.ReputationPoints)
+                .HasDefaultValue(0)
+                .HasColumnName("reputation_points");
             entity.Property(e => e.Rowversion)
                 .IsRowVersion()
                 .IsConcurrencyToken()
@@ -954,6 +962,90 @@ public partial class GPDBContext : DbContext
                 .HasForeignKey(d => d.MentionedUserId)
                 .OnDelete(DeleteBehavior.NoAction)
                 .HasConstraintName("FK_CommentMentions_Users");
+        });
+
+        modelBuilder.Entity<PostReaction>(entity =>
+        {
+            entity.HasKey(e => e.PostReactionId);
+
+            entity.ToTable("Post_Reactions");
+
+            entity.Property(e => e.PostReactionId).HasColumnName("post_reaction_id");
+            entity.Property(e => e.PostId).HasColumnName("post_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.ReactionType)
+                .HasConversion<int>()
+                .HasColumnName("reaction_type");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.Rowversion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("rowversion");
+
+            entity.HasIndex(e => e.PostId);
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => new { e.PostId, e.UserId }).IsUnique();
+
+            entity.HasOne(d => d.Post)
+                .WithMany(p => p.PostReactions)
+                .HasForeignKey(d => d.PostId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_PostReactions_Posts");
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.PostReactions)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_PostReactions_Users");
+        });
+
+        modelBuilder.Entity<CommentReaction>(entity =>
+        {
+            entity.HasKey(e => e.CommentReactionId);
+
+            entity.ToTable("Comment_Reactions");
+
+            entity.Property(e => e.CommentReactionId).HasColumnName("comment_reaction_id");
+            entity.Property(e => e.CommentId).HasColumnName("comment_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.ReactionType)
+                .HasConversion<int>()
+                .HasColumnName("reaction_type");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.Rowversion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("rowversion");
+
+            entity.HasIndex(e => e.CommentId);
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => new { e.CommentId, e.UserId }).IsUnique();
+
+            entity.HasOne(d => d.Comment)
+                .WithMany(p => p.CommentReactions)
+                .HasForeignKey(d => d.CommentId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_CommentReactions_Comments");
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.CommentReactions)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_CommentReactions_Users");
         });
 
         OnModelCreatingPartial(modelBuilder);
