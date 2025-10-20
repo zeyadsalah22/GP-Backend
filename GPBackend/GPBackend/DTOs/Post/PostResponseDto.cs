@@ -33,6 +33,18 @@ namespace GPBackend.DTOs.Post
 
         public List<CommentPreviewDto> CommentPreviews { get; set; } = new List<CommentPreviewDto>();
 
+        // Reaction counts
+        public int UpvoteCount { get; set; }
+        public int DownvoteCount { get; set; }
+        public int HelpfulCount { get; set; }
+        public int InsightfulCount { get; set; }
+        public int ThanksCount { get; set; }
+        public int TotalReactions { get; set; }
+        public string? UserReaction { get; set; } // Current user's reaction
+
+        // Author profile picture
+        public string? AuthorProfilePictureUrl { get; set; }
+
         public DateTime CreatedAt { get; set; }
 
         public string RelativeTime { get; set; } = null!;
