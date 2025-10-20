@@ -35,5 +35,7 @@ public partial class Post
     public virtual ICollection<PostTag> PostTags { get; set; } = new List<PostTag>();
 
     public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
+
+    public virtual ICollection<PostReaction> PostReactions { get; set; } = new List<PostReaction>();
 }
 
