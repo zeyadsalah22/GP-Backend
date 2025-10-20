@@ -60,6 +60,8 @@ public partial class GPDBContext : DbContext
 
     public virtual DbSet<WeeklyGoal> WeeklyGoals { get; set; }
 
+    public virtual DbSet<Notification> Notifications { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Application>(entity =>
@@ -716,7 +718,7 @@ public partial class GPDBContext : DbContext
         modelBuilder.Entity<WeeklyGoal>(entity =>
         {
             entity.HasKey(e => e.WeeklyGoalId);
-            
+
             entity.Property(e => e.WeeklyGoalId).HasColumnName("weekly_goal_id");
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.WeekStartDate).HasColumnName("week_start_date");
@@ -748,6 +750,37 @@ public partial class GPDBContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_WeeklyGoals_Users");
         });
+        
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.Property(e => e.NotificationId).HasColumnName("notification_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.ActorId).HasColumnName("actor_id");
+            entity.Property(e => e.Type)
+                .HasConversion<int>()
+                .HasColumnName("type");
+            entity.Property(e => e.EntityTargetedId).HasColumnName("entity_targeted_id");
+            entity.Property(e => e.Message)
+                .HasMaxLength(100)
+                .HasColumnName("message");
+            entity.Property(e => e.IsRead).HasColumnName("is_read");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Notifications)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Notifications_Users");
+
+            entity.HasOne(d => d.Actor).WithMany()
+                .HasForeignKey(d => d.ActorId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_Notifications_Actor");
+        });
+
 
         OnModelCreatingPartial(modelBuilder);
     }
