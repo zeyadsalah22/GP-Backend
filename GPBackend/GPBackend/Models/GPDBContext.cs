@@ -1,7 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using GPBackend.Data;
 using GPBackend.Models.Enums;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 
 namespace GPBackend.Models;
 
@@ -104,6 +105,7 @@ public partial class GPDBContext : DbContext
 
             entity.HasOne(d => d.UserCompany).WithMany(p => p.Applications)
                 .HasForeignKey(d => new { d.UserId, d.CompanyId })
+                .OnDelete(DeleteBehavior.NoAction)
                 .HasConstraintName("FK_Applications_User_Companies");
         });
 
@@ -173,9 +175,9 @@ public partial class GPDBContext : DbContext
                 .HasColumnName("linkedin_link");
             entity.Property(e => e.IndustryId).HasColumnName("industry_id");
             entity.Property(e => e.CompanySize)
-                .HasConversion<int>()
+                .HasMaxLength(255)
                 .HasColumnName("company_size");
-            entity.Property(e => e.Logo).HasColumnName("logo");
+            entity.Property(e => e.LogoUrl).HasColumnName("logo");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.Location)
                 .HasMaxLength(255)
@@ -197,6 +199,8 @@ public partial class GPDBContext : DbContext
                 .HasForeignKey(d => d.IndustryId)
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("FK_Companies_Industries");
+
+            entity.HasData(CompanySeedData.GetCompanies());
         });
 
         modelBuilder.Entity<Industry>(entity =>
@@ -220,6 +224,8 @@ public partial class GPDBContext : DbContext
                 .IsRowVersion()
                 .IsConcurrencyToken()
                 .HasColumnName("rowversion");
+            
+            entity.HasData(IndustrySeedData.GetIndustries());
         });
 
         modelBuilder.Entity<Employee>(entity =>
@@ -503,6 +509,8 @@ public partial class GPDBContext : DbContext
                 .HasPrecision(0)
                 .HasDefaultValueSql("(sysutcdatetime())")
                 .HasColumnName("updated_at");
+
+            entity.HasData(UserSeedData.GetAdminUsers());
         });
 
         modelBuilder.Entity<UserCompany>(entity =>
@@ -650,4 +658,5 @@ public partial class GPDBContext : DbContext
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+
 }
