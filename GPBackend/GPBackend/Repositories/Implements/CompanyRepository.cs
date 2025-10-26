@@ -46,9 +46,14 @@ namespace GPBackend.Repositories.Implements
                 query = query.Where(c => c.IndustryId == queryDto.IndustryId.Value);
             }
 
-            if (queryDto.CompanySize.HasValue)
+            //if (queryDto.CompanySize.HasValue)
+            //{
+            //    query = query.Where(c => c.CompanySize == queryDto.CompanySize.Value);
+            //}
+
+            if (!string.IsNullOrWhiteSpace(queryDto.CompanySize))
             {
-                query = query.Where(c => c.CompanySize == queryDto.CompanySize.Value);
+                query = query.Where(c => c.CompanySize == queryDto.CompanySize);
             }
 
             // Get total count before pagination
