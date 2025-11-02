@@ -7,6 +7,9 @@ namespace GPBackend.DTOs.Application
 {
     public class ApplicationQueryDto
     {
+        // User identification (required for n8n API key authentication)
+        public int? UserId { get; set; }
+        
         // Search and filters
         public int? CompanyId { get; set; }
         public string? CompanyName { get; set; }

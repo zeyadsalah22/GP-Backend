@@ -14,6 +14,7 @@ namespace GPBackend.Profiles
                 .ForMember(dest => dest.CompanyLocation, opt => opt.MapFrom(src => src.Company.Location))
                 .ForMember(dest => dest.CompanyCareersLink, opt => opt.MapFrom(src => src.Company.CareersLink))
                 .ForMember(dest => dest.CompanyLinkedinLink, opt => opt.MapFrom(src => src.Company.LinkedinLink))
+                .ForMember(dest => dest.CompanyLogoUrl, opt => opt.MapFrom(src => src.Company.LogoUrl))
                 .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.Tags.Select(t => t.Tag).ToList()));
 
             // DTO to Domain

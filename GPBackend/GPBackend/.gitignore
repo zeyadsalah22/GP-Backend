@@ -1,1 +1,18 @@
 obj/
+bin/
+
+# Sensitive configuration files
+appsettings.Development.json
+
+# Data Protection API keys
+keys/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Environment variables
+.env
+.env.local
