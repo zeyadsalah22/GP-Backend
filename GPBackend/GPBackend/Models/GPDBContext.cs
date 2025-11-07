@@ -59,6 +59,7 @@ public partial class GPDBContext : DbContext
     public virtual DbSet<EmailApplicationUpdate> EmailApplicationUpdates { get; set; }
 
     public virtual DbSet<Notification> Notifications { get; set; }
+    public virtual DbSet<UserConnection> UserConnections { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -659,7 +660,7 @@ public partial class GPDBContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_WeeklyGoals_Users");
         });
-        
+
         modelBuilder.Entity<Notification>(entity =>
         {
             entity.Property(e => e.NotificationId).HasColumnName("notification_id");
@@ -690,6 +691,28 @@ public partial class GPDBContext : DbContext
                 .HasConstraintName("FK_Notifications_Actor");
         });
 
+        modelBuilder.Entity<UserConnection>(entity =>
+        {
+            // Composite Key
+            entity.HasKey(uc => new {uc.UserId, uc.ConnectionId});
+            
+            entity.Property(uc => uc.UserId).HasColumnName("user_id");
+            entity.Property(uc => uc.ConnectionId)
+                .HasMaxLength(255)
+                .IsRequired()
+                .HasColumnName("connection_id");
+            entity.Property(uc => uc.ConnectedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("connected_at");
+            
+            // One-to-one relationship
+            entity.HasOne(uc => uc.User)
+                .WithOne(u => u.UserConnection)
+                .HasForeignKey<UserConnection>(uc => uc.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_UserConnections_Users");
+        });
 
         OnModelCreatingPartial(modelBuilder);
     }

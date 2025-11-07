@@ -13,7 +13,8 @@ namespace GPBackend.Profiles
         {
             CreateMap<Notification, NotificationResponseDto>();
 
-            CreateMap<NotificationCreateDto, Notification>();
+            CreateMap<NotificationCreateDto, Notification>()
+            .ForMember(dest => dest.CreatedAt, opt => opt.Equals(DateTime.Now));
 
             CreateMap<NotificationUpdateDto, Notification>();
         }

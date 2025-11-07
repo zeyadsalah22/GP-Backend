@@ -16,6 +16,7 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
+using GPBackend.Hubs;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Authorization;
 
@@ -38,9 +39,10 @@ namespace GPBackend
             {
                 options.AddPolicy("AllowAll", policy =>
                 {
-                    policy.AllowAnyOrigin()
-                          .AllowAnyMethod()
-                          .AllowAnyHeader();
+                    policy.AllowAnyMethod()
+                          .AllowAnyHeader()
+                          .AllowCredentials()
+                          .WithOrigins("http://localhost:5253", "http://localhost:5173", "https://localhost:3000", "https://localhost:5253");
                 });
             });
 
@@ -80,6 +82,21 @@ namespace GPBackend
                         }
                         
                         return Task.CompletedTask;
+                    },
+                    
+                    // CRITICAL: This enables JWT authentication for SignalR
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        
+                        // If the request is for our hub, get the token from query string
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/notificationhub"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        
+                        return Task.CompletedTask;
                     }
                 };
             });
@@ -112,7 +129,7 @@ namespace GPBackend
             builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "GP Backend API", Version = "v1" });
-                
+
                 // Configure Swagger to use JWT Authentication
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
@@ -138,7 +155,8 @@ namespace GPBackend
                     }
                 });
             });
-
+            builder.Services.AddSignalR();
+        
             // Add AutoMapper
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
@@ -160,6 +178,9 @@ namespace GPBackend
             builder.Services.AddScoped<IWeeklyGoalRepository, WeeklyGoalRepository>();
             builder.Services.AddScoped<IGmailConnectionRepository, GmailConnectionRepository>();
             builder.Services.AddScoped<IEmailApplicationUpdateRepository, EmailApplicationUpdateRepository>();
+            builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+            builder.Services.AddScoped<INotificationSignalRService, NotificationSignalRService>();
+            builder.Services.AddScoped<IUserConnectionRepository, UserConnectionRepository>();
 
             // Register services
             builder.Services.AddScoped<IJwtService, JwtService>();
@@ -181,6 +202,10 @@ namespace GPBackend
             builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
             builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddScoped<IPostService, PostService>();
+            builder.Services.AddScoped<ITagService, TagService>();
+            builder.Services.AddScoped<INotificationService, NotificationService>();
+
             // Register repositories
             builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             builder.Services.AddScoped<IIndustryService, IndustryService>();
@@ -302,6 +327,7 @@ namespace GPBackend
 
             app.MapControllers();
 
+            app.MapHub<NotificationHub>("/notificationhub");
             app.Run();
         }
     }
