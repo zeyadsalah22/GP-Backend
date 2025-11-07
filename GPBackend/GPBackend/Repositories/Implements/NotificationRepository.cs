@@ -17,7 +17,9 @@ namespace GPBackend.Repositories.Implements
         public async Task<Notification?> GetByIdAsync(int userId, int notificationId)
         {
             var notification = await _context.Notifications
-                                .Where(q => q.UserId == userId && q.NotificationId == notificationId)
+                                .Where(q => q.UserId == userId &&
+                                        q.NotificationId == notificationId &&
+                                        !q.IsDeleted)
                                 .FirstOrDefaultAsync();
             return notification;
         }
@@ -34,9 +36,11 @@ namespace GPBackend.Repositories.Implements
 
             return await _context.SaveChangesAsync() > 0;
         }
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int userId, int id)
         {
-            var notification = _context.Notifications.FirstOrDefault(q => q.NotificationId == id);
+            var notification = _context.Notifications.FirstOrDefault(q => q.UserId == userId &&
+                                                                     q.NotificationId == id &&
+                                                                     !q.IsDeleted);
             if(notification == null)
             {
                 return false;
@@ -71,13 +75,18 @@ namespace GPBackend.Repositories.Implements
         public async Task<List<Notification>> GetUnreadAsync(int userId)
         {
             return await _context.Notifications
-                    .Where(q => q.UserId == userId && !q.IsRead)
+                    .Where(q => q.UserId == userId &&
+                            !q.IsRead &&
+                            !q.IsDeleted)
+                    .OrderByDescending(q => q.CreatedAt)
                     .ToListAsync();
         }
         public async Task<int> GetUnreadCountAsync(int userId)
         {
             return await _context.Notifications
-                        .Where(q => q.UserId == userId && !q.IsRead)
+                        .Where(q => q.UserId == userId &&
+                                !q.IsRead &&
+                                !q.IsDeleted)
                         .CountAsync();
         }
 
@@ -101,7 +110,7 @@ namespace GPBackend.Repositories.Implements
             return null;
         }
 
-        public async Task<int> BulkDeleteAsync(List<int> ids)
+        public async Task<int> BulkDeleteAsync(int userId, List<int> ids)
         {
             if (ids.Count == 0)
             {
@@ -109,7 +118,9 @@ namespace GPBackend.Repositories.Implements
             }
             ids = ids.Distinct().ToList();
             var notificationsToDelete = _context.Notifications
-                                        .Where(q => ids.Contains(q.NotificationId));
+                                        .Where(q => q.UserId == userId &&
+                                                ids.Contains(q.NotificationId))
+                                        .AsEnumerable();
 
             foreach (var notification in notificationsToDelete)
                 notification.IsDeleted = true;

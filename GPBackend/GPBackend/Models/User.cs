@@ -47,4 +47,7 @@ public partial class User
     public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
     
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+    
+    // One-to-one relationship with UserConnection
+    public virtual UserConnection? UserConnection { get; set; }
 }
