@@ -1,0 +1,454 @@
+{
+  "name": "Job Lander - Gmail Push Notifications",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gmail-push-notification",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook - Pub/Sub Push",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 300],
+      "webhookId": "YOUR_WEBHOOK_ID"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Decode Pub/Sub notification and extract Gmail notification data\nconst pubsubMessage = $input.first().json;\n\n// Extract the base64 encoded message data\nconst messageData = pubsubMessage.message?.data;\n\nif (!messageData) {\n  throw new Error('No message data in Pub/Sub notification');\n}\n\n// Decode base64 to get Gmail notification\nconst decodedData = Buffer.from(messageData, 'base64').toString('utf-8');\nconst gmailNotification = JSON.parse(decodedData);\n\nconsole.log('Decoded Gmail notification:', gmailNotification);\n\nreturn [{\n  json: {\n    emailAddress: gmailNotification.emailAddress,\n    historyId: gmailNotification.historyId,\n    messageId: pubsubMessage.message.messageId,\n    publishTime: pubsubMessage.message.publishTime\n  }\n}];"
+      },
+      "id": "decode-notification",
+      "name": "Decode Pub/Sub Notification",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://evident-melva-nonpunctually.ngrok-free.dev/api/gmail/connection-by-email?email={{encodeURIComponent($json.emailAddress)}}",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-N8N-API-Key",
+              "value": "aB3dE5fG7hI9jK1lM2nO3pQ4rS5tU6vW7xY8zA9bC0dE="
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-user-connection",
+      "name": "Get User Connection",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://evident-melva-nonpunctually.ngrok-free.dev/api/applications?userId={{$json.userId}}&status=Pending&pageSize=100",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-N8N-API-Key",
+              "value": "aB3dE5fG7hI9jK1lM2nO3pQ4rS5tU6vW7xY8zA9bC0dE="
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-pending-applications",
+      "name": "Get User Pending Applications",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId={{$node[\"Decode Pub/Sub Notification\"].json.historyId}}&labelId=INBOX&historyTypes=messageAdded",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$node[\"Get User Connection\"].json.accessToken}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fetch-gmail-history",
+      "name": "Fetch Gmail History Changes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1130, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract message IDs from history response\nconst historyResponse = $input.first().json;\nconst userId = $node[\"Get User Connection\"].json.userId;\nconst userEmail = $node[\"Get User Connection\"].json.userEmail;\nconst gmailAddress = $node[\"Get User Connection\"].json.gmailAddress;\nconst accessToken = $node[\"Get User Connection\"].json.accessToken;\nconst newHistoryId = $node[\"Decode Pub/Sub Notification\"].json.historyId;\nconst pendingAppsResponse = $node[\"Get User Pending Applications\"].json;\nconst pendingApplications = pendingAppsResponse.items || [];\n\n// Extract message IDs from history (messageAdded events)\nconst messages = [];\n\nif (historyResponse.history && historyResponse.history.length > 0) {\n  for (const historyItem of historyResponse.history) {\n    if (historyItem.messagesAdded) {\n      for (const addedMsg of historyItem.messagesAdded) {\n        messages.push({\n          id: addedMsg.message.id,\n          threadId: addedMsg.message.threadId\n        });\n      }\n    }\n  }\n}\n\nif (messages.length === 0) {\n  return [];\n}\n\nreturn messages.map(msg => ({\n  json: {\n    messageId: msg.id,\n    threadId: msg.threadId,\n    userId: userId,\n    userEmail: userEmail,\n    gmailAddress: gmailAddress,\n    accessToken: accessToken,\n    newHistoryId: newHistoryId,\n    pendingApplications: pendingApplications\n  }\n}));"
+      },
+      "id": "extract-messages",
+      "name": "Extract New Messages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1350, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-messages",
+              "leftValue": "={{$json.messageId}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-has-messages",
+      "name": "Has New Messages?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1570, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://gmail.googleapis.com/gmail/v1/users/me/messages/{{$json.messageId}}?format=full",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$json.accessToken}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fetch-full-email",
+      "name": "Fetch Full Email Details",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1790, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Gmail API response and extract email details\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const data = item.json;\n  const userId = $node[\"Extract New Messages\"].json.userId;\n  const userEmail = $node[\"Extract New Messages\"].json.userEmail;\n  const pendingApplications = $node[\"Extract New Messages\"].json.pendingApplications;\n  \n  // Extract headers\n  const headers = data.payload?.headers || [];\n  const getHeader = (name) => {\n    const header = headers.find(h => h.name.toLowerCase() === name.toLowerCase());\n    return header ? header.value : '';\n  };\n  \n  const subject = getHeader('Subject');\n  const from = getHeader('From');\n  const date = getHeader('Date');\n  const snippet = data.snippet || '';\n  \n  // Extract body (try to get plain text first, then HTML)\n  let textPlain = '';\n  let textHtml = '';\n  \n  const extractBody = (part) => {\n    if (part.mimeType === 'text/plain' && part.body?.data) {\n      textPlain = Buffer.from(part.body.data, 'base64').toString('utf-8');\n    } else if (part.mimeType === 'text/html' && part.body?.data) {\n      textHtml = Buffer.from(part.body.data, 'base64').toString('utf-8');\n    }\n    \n    if (part.parts) {\n      part.parts.forEach(extractBody);\n    }\n  };\n  \n  if (data.payload) {\n    extractBody(data.payload);\n  }\n  \n  results.push({\n    json: {\n      id: data.id,\n      threadId: data.threadId,\n      subject: subject,\n      from: from,\n      date: date,\n      snippet: snippet,\n      textPlain: textPlain,\n      textHtml: textHtml,\n      internalDate: data.internalDate,\n      userId: userId,\n      userEmail: userEmail,\n      pendingApplications: pendingApplications\n    }\n  });\n}\n\nreturn results;"
+      },
+      "id": "extract-email-data",
+      "name": "Extract Email Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2010, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Enhanced email parsing with weighted scoring system\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const data = item.json;\n  const pendingApplications = data.pendingApplications || [];\n  \n  // Extract email details\n  const subject = (data.subject || '').toLowerCase();\n  const snippet = (data.snippet || '').toLowerCase();\n  const from = data.from || '';\n  const senderEmail = from.toLowerCase();\n  const body = (data.textPlain || data.textHtml || '').toLowerCase();\n  const fullText = `${subject} ${snippet} ${body}`;\n  \n  // Build expected companies database from pending applications\n  const expectedCompanies = pendingApplications.map(app => ({\n    id: app.applicationId,\n    name: (app.companyName || app.company?.name || '').toLowerCase(),\n    jobTitle: (app.jobTitle || '').toLowerCase(),\n    // Extract potential domains from company name\n    domains: extractPotentialDomains(app.companyName || app.company?.name || '')\n  }));\n  \n  // Helper: Extract potential domains from company name\n  function extractPotentialDomains(companyName) {\n    if (!companyName) return [];\n    const clean = companyName.toLowerCase()\n      .replace(/\\s+inc\\.?|\\s+llc\\.?|\\s+ltd\\.?|\\s+corp\\.?/gi, '')\n      .replace(/[^a-z0-9\\s]/g, '')\n      .trim();\n    const words = clean.split(/\\s+/);\n    return [\n      clean.replace(/\\s+/g, ''),  // \"Microsoft Corporation\" -> \"microsoft\"\n      ...words  // [\"microsoft\", \"corporation\"]\n    ];\n  }\n  \n  // Extract sender domain\n  const senderDomainMatch = senderEmail.match(/@([^>\\s]+)/);\n  const senderDomain = senderDomainMatch ? senderDomainMatch[1].toLowerCase() : '';\n  \n  // Known ATS platforms with high trust\n  const trustedATSPlatforms = [\n    'greenhouse.io',\n    'lever.co',\n    'workday.com',\n    'icims.com',\n    'taleo.net',\n    'jobvite.com',\n    'smartrecruiters.com',\n    'breezy.hr',\n    'recruitee.com',\n    'myworkdayjobs.com',\n    'ultipro.com'\n  ];\n  \n  // Job boards (medium trust - could be promotional)\n  const jobBoards = [\n    'linkedin.com',\n    'indeed.com',\n    'glassdoor.com',\n    'ziprecruiter.com',\n    'monster.com',\n    'careerbuilder.com'\n  ];\n  \n  // NEGATIVE PATTERNS - Auto-discard if matched\n  const negativePatterns = [\n    // Note: Removed generic /unsubscribe/i because many legitimate emails have tracking footers with unsubscribe links\n    // We rely on other patterns + positive signals to filter promotional content\n    /click here to unsubscribe/i,  // More specific: promotional language\n    /to unsubscribe from this list/i,  // More specific: list emails\n    /unsubscribe from our (mailing list|newsletter|emails)/i,  // More specific: marketing\n    /click here to view/i,\n    /view this email in your browser/i,\n    /you('re| are) receiving this (email|newsletter)/i,\n    /(weekly|daily|monthly) (digest|newsletter|roundup)/i,\n    /job (alerts?|recommendations?|matches?)/i,\n    /out of office/i,\n    /automatic reply/i,\n    /delivery status notification/i,\n    /mailer-daemon/i,\n    /tips (for|to)/i,\n    /how to (ace|prepare|succeed)/i,\n    /\\d+ (new )?jobs? (available|matching|in)/i,  // \"50 jobs available\"\n    /apply now/i,  // Usually promotional\n    /limited time/i,\n    /don't miss out/i\n  ];\n  \n  // Check negative patterns first\n  const hasNegativePattern = negativePatterns.some(pattern => \n    pattern.test(fullText)\n  );\n  \n  if (hasNegativePattern) {\n    continue; // Skip this email\n  }\n  \n  // SCORING SYSTEM\n  let totalScore = 0;\n  let maxScore = 0;\n  let matchedCompany = null;\n  let matchReasons = [];\n  \n  // FACTOR 1: Company Name Match with Job Title Disambiguation (HIGH WEIGHT: 50 points)\n  maxScore += 50;\n  let companyMatchScore = 0;\n  \n  // First pass: Find all companies that match by name or domain\n  const companyMatches = [];\n  \n  for (const company of expectedCompanies) {\n    if (!company.name) continue;\n    \n    // Check for exact company name in email\n    if (fullText.includes(company.name)) {\n      companyMatches.push({\n        company: company,\n        matchType: 'name',\n        score: 50\n      });\n    }\n    // Check for domain match\n    else {\n      for (const domain of company.domains) {\n        if (domain && senderDomain.includes(domain)) {\n          companyMatches.push({\n            company: company,\n            matchType: 'domain',\n            score: 45\n          });\n          break;\n        }\n      }\n    }\n  }\n  \n  // If we found matches, determine the best one\n  if (companyMatches.length > 0) {\n    // If multiple applications for same company, use job title as tiebreaker\n    if (companyMatches.length > 1) {\n      // Check if any job title appears in the email\n      for (const match of companyMatches) {\n        const jobTitle = match.company.jobTitle;\n        if (jobTitle && fullText.includes(jobTitle)) {\n          matchedCompany = match.company;\n          companyMatchScore = match.score;\n          matchReasons.push(`Company \"${match.company.name}\" + job title \"${jobTitle}\" found in email`);\n          break;\n        }\n      }\n      \n      // If no job title matched, take the first match (fallback to original behavior)\n      if (!matchedCompany) {\n        matchedCompany = companyMatches[0].company;\n        companyMatchScore = companyMatches[0].score;\n        matchReasons.push(`Company \"${matchedCompany.name}\" found in email (${companyMatches.length} applications, no job title match - using first)`);\n      }\n    } else {\n      // Only one match, use it\n      matchedCompany = companyMatches[0].company;\n      companyMatchScore = companyMatches[0].score;\n      const matchType = companyMatches[0].matchType === 'name' \n        ? `Company name \"${matchedCompany.name}\" found in email`\n        : `Sender domain \"${senderDomain}\" matches company \"${matchedCompany.name}\"`;\n      matchReasons.push(matchType);\n    }\n  }\n  \n  totalScore += companyMatchScore;\n  \n  // FACTOR 2: Trusted ATS Platform (MEDIUM WEIGHT: 20 points)\n  maxScore += 20;\n  let atsScore = 0;\n  const matchedATS = trustedATSPlatforms.find(ats => senderDomain.includes(ats));\n  if (matchedATS) {\n    atsScore = 20;\n    matchReasons.push(`Email from trusted ATS platform: ${matchedATS}`);\n  } else if (jobBoards.some(board => senderDomain.includes(board))) {\n    atsScore = 5;  // Lower score for job boards\n    matchReasons.push(`Email from job board`);\n  }\n  totalScore += atsScore;\n  \n  // FACTOR 3: Status Keywords with Context (VARIABLE WEIGHT: up to 30 points)\n  maxScore += 30;\n  let keywordScore = 0;\n  let detectedStatus = null;\n  let detectedStage = null;\n  let bestPatternScore = 0;\n  \n  // Enhanced patterns with context-aware matching\n  // Status: Accepted, Pending, Rejected (ApplicationDecisionStatus)\n  // Stage: Applied, PhoneScreen, Assessment, HrInterview, Offer, TechnicalInterview (ApplicationStage)\n  const statusPatterns = [\n    {\n      // Application Received\n      positiveKeywords: ['received your application', 'application submitted', 'thank you for applying', 'application complete'],\n      requiredContext: ['application', 'received'],\n      status: 'Pending',\n      stage: 'Applied',\n      score: 25\n    },\n    {\n      // Phone Screen / Initial Interview\n      positiveKeywords: ['phone screen', 'initial call', 'brief call', 'phone interview', 'introductory call'],\n      requiredContext: [],\n      negativeKeywords: ['tips for', 'how to'],\n      status: 'Pending',\n      stage: 'PhoneScreen',\n      score: 30\n    },\n    {\n      // Technical Interview\n      positiveKeywords: ['technical interview', 'coding interview', 'technical round', 'technical discussion', 'engineering interview'],\n      requiredContext: [],\n      negativeKeywords: ['tips for', 'how to'],\n      status: 'Pending',\n      stage: 'TechnicalInterview',\n      score: 30\n    },\n    {\n      // HR Interview\n      positiveKeywords: ['hr interview', 'behavioral interview', 'culture fit', 'meet with hr', 'hr round'],\n      requiredContext: [],\n      negativeKeywords: ['tips for', 'how to'],\n      status: 'Pending',\n      stage: 'HrInterview',\n      score: 30\n    },\n    {\n      // Generic Interview (when type unclear)\n      positiveKeywords: ['invite you to interview', 'schedule an interview', 'interview invitation', 'would like to meet', 'discuss your application', 'next interview'],\n      requiredContext: ['interview'],\n      negativeKeywords: ['tips for interview', 'how to interview'],\n      status: 'Pending',\n      stage: 'PhoneScreen',  // Default to PhoneScreen for generic interviews\n      score: 28\n    },\n    {\n      // Assessment\n      positiveKeywords: ['complete the assessment', 'technical challenge', 'coding test', 'take-home assignment', 'assessment link', 'technical exam', 'online assessment', 'skills assessment', 'assess your', 'passed the screening', 'next step', 'technical evaluation', 'evaluation of your skills'],\n      requiredContext: [],\n      negativeKeywords: ['tips for assessment', 'how to prepare for'],\n      status: 'Pending',\n      stage: 'Assessment',\n      score: 28\n    },\n    {\n      // Offer / Acceptance (HIGHEST CONFIDENCE) - FIXED TO HANDLE "ACCEPTED" LANGUAGE\n      positiveKeywords: [\n        // Traditional offer language\n        'pleased to offer',\n        'job offer',\n        'offer letter',\n        'offer of employment',\n        \n        // Acceptance language\n        'you have been accepted',\n        'happy to accept you',\n        'delighted to inform you that you have been accepted',\n        'accepted to the',\n        'accepted for the',\n        'we are pleased to accept',\n        'acceptance letter',\n        \n        // Congratulations (often paired with offers)\n        'congratulations',\n        'congrats'\n      ],\n      requiredContext: [],  // No required context - both "offer" and "accepted" emails are valid\n      negativeKeywords: [\n        'if we can offer',\n        'unable to offer',\n        'not accepted',\n        'cannot accept',\n        'unfortunately',\n        'regret to inform'\n      ],\n      status: 'Accepted',\n      stage: 'Offer',\n      score: 30\n    },\n    {\n      // Rejection (HIGH CONFIDENCE)\n      positiveKeywords: ['not moving forward', 'decided to pursue', 'other candidates', 'not selected', 'will not be moving forward', 'you have been rejected', 'regret to inform', 'unfortunately', 'we have decided'],\n      requiredContext: [],\n      negativeKeywords: ['if we do not', 'should you not', 'if you are not', 'tips', 'how to'],\n      status: 'Rejected',\n      stage: null,  // Don't change stage for rejection\n      score: 28\n    }\n  ];\n  \n  for (const pattern of statusPatterns) {\n    let patternMatches = 0;\n    \n    // Check positive keywords\n    for (const keyword of pattern.positiveKeywords) {\n      if (fullText.includes(keyword)) {\n        patternMatches++;\n      }\n    }\n    \n    // Check negative keywords (disqualifies pattern)\n    if (pattern.negativeKeywords) {\n      const hasNegative = pattern.negativeKeywords.some(neg => fullText.includes(neg));\n      if (hasNegative) {\n        continue; // Skip this pattern\n      }\n    }\n    \n    // Check required context\n    const hasRequiredContext = pattern.requiredContext.every(ctx => fullText.includes(ctx));\n    \n    if (patternMatches > 0 && hasRequiredContext) {\n      const patternScore = pattern.score * (patternMatches / pattern.positiveKeywords.length);\n      \n      if (patternScore > bestPatternScore) {\n        bestPatternScore = patternScore;\n        detectedStatus = pattern.status;\n        detectedStage = pattern.stage;\n        keywordScore = patternScore;\n        const stageInfo = pattern.stage ? `stage: ${pattern.stage}` : `status: ${pattern.status}`;\n        matchReasons.push(`Detected ${stageInfo} (${patternMatches} keyword matches)`);\n      }\n    }\n  }\n  totalScore += keywordScore;\n  \n  // Calculate confidence as percentage\n  const confidence = maxScore > 0 ? (totalScore / maxScore) : 0;\n  \n  // THRESHOLD: Only proceed if confidence >= 55% AND we have a status\n  if (confidence >= 0.55 && detectedStatus) {\n    // Extract company name for hint\n    let companyNameHint = matchedCompany ? matchedCompany.name : null;\n    \n    // If no matched company but ATS platform, try to extract from domain\n    if (!companyNameHint && matchedATS) {\n      const domainParts = senderDomain.split('.');\n      if (domainParts.length >= 2) {\n        companyNameHint = domainParts[0]\n          .replace(/noreply|mail|email|careers|recruiting/gi, '')\n          .trim();\n      }\n    }\n    \n    results.push({\n      json: {\n        userId: data.userId,\n        userEmail: data.userEmail,\n        emailId: data.id,\n        emailSubject: data.subject,\n        emailFrom: from,\n        emailDate: data.internalDate,\n        detectedStatus: detectedStatus,\n        detectedStage: detectedStage,\n        confidence: Math.round(confidence * 100) / 100,\n        companyNameHint: companyNameHint,\n        matchedApplicationId: matchedCompany?.id || null,\n        snippet: data.snippet,\n        matchReasons: matchReasons.join('; '),\n        scoreBreakdown: {\n          companyMatch: companyMatchScore,\n          atsMatch: atsScore,\n          keywordMatch: Math.round(keywordScore * 100) / 100,\n          total: Math.round(totalScore * 100) / 100,\n          maxPossible: maxScore\n        },\n        rawEmailData: {\n          subject: data.subject,\n          from: from,\n          snippet: data.snippet\n        }\n      }\n    });\n  }\n}\n\nreturn results;"
+      },
+      "id": "parse-email",
+      "name": "Enhanced Email Parser",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2230, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://evident-melva-nonpunctually.ngrok-free.dev/api/gmail/webhook/email-update",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-N8N-API-Key",
+              "value": "aB3dE5fG7hI9jK1lM2nO3pQ4rS5tU6vW7xY8zA9bC0dE="
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"userId\": {{$json.userId}},\n  \"emailData\": {\n    \"emailId\": \"{{$json.emailId}}\",\n    \"subject\": \"{{$json.emailSubject}}\",\n    \"from\": \"{{$json.emailFrom}}\",\n    \"date\": \"{{$json.emailDate}}\",\n    \"snippet\": \"{{$json.snippet}}\"\n  },\n  \"detectedStatus\": \"{{$json.detectedStatus}}\",\n  \"detectedStage\": \"{{$json.detectedStage}}\",\n  \"confidence\": {{$json.confidence}},\n  \"companyNameHint\": \"{{$json.companyNameHint}}\",\n  \"matchedApplicationId\": {{$json.matchedApplicationId}},\n  \"matchReasons\": \"{{$json.matchReasons}}\"\n}",
+        "options": {}
+      },
+      "id": "send-to-backend",
+      "name": "Send Update to Backend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [2450, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://evident-melva-nonpunctually.ngrok-free.dev/api/gmail/update-history-id",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-N8N-API-Key",
+              "value": "aB3dE5fG7hI9jK1lM2nO3pQ4rS5tU6vW7xY8zA9bC0dE="
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"userId\": {{$node[\"Extract New Messages\"].json.userId}},\n  \"historyId\": \"{{$node[\"Extract New Messages\"].json.newHistoryId}}\"\n}",
+        "options": {}
+      },
+      "id": "update-history-id",
+      "name": "Update History ID",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [2670, 200]
+    },
+    {
+      "parameters": {},
+      "id": "no-new-messages",
+      "name": "No New Messages",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1790, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://evident-melva-nonpunctually.ngrok-free.dev/api/gmail/update-history-id",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-N8N-API-Key",
+              "value": "aB3dE5fG7hI9jK1lM2nO3pQ4rS5tU6vW7xY8zA9bC0dE="
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"userId\": {{$node[\"Extract New Messages\"].json.userId}},\n  \"historyId\": \"{{$node[\"Extract New Messages\"].json.newHistoryId}}\"\n}",
+        "options": {}
+      },
+      "id": "update-history-no-messages",
+      "name": "Update History ID (No Messages)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [2010, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "id": "respond-to-pubsub",
+      "name": "Respond to Pub/Sub",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2890, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Pub/Sub Push": {
+      "main": [
+        [
+          {
+            "node": "Decode Pub/Sub Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decode Pub/Sub Notification": {
+      "main": [
+        [
+          {
+            "node": "Get User Connection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User Connection": {
+      "main": [
+        [
+          {
+            "node": "Get User Pending Applications",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User Pending Applications": {
+      "main": [
+        [
+          {
+            "node": "Fetch Gmail History Changes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Gmail History Changes": {
+      "main": [
+        [
+          {
+            "node": "Extract New Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract New Messages": {
+      "main": [
+        [
+          {
+            "node": "Has New Messages?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has New Messages?": {
+      "main": [
+        [
+          {
+            "node": "Fetch Full Email Details",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No New Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Full Email Details": {
+      "main": [
+        [
+          {
+            "node": "Extract Email Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Email Data": {
+      "main": [
+        [
+          {
+            "node": "Enhanced Email Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enhanced Email Parser": {
+      "main": [
+        [
+          {
+            "node": "Send Update to Backend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Update to Backend": {
+      "main": [
+        [
+          {
+            "node": "Update History ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update History ID": {
+      "main": [
+        [
+          {
+            "node": "Respond to Pub/Sub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No New Messages": {
+      "main": [
+        [
+          {
+            "node": "Update History ID (No Messages)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update History ID (No Messages)": {
+      "main": [
+        [
+          {
+            "node": "Respond to Pub/Sub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-11-02T00:00:00.000Z",
+  "versionId": "1"
+}
+

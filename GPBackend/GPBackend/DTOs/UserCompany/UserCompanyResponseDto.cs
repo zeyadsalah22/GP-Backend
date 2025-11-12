@@ -17,5 +17,6 @@ namespace GPBackend.DTOs.UserCompany
         public string? CompanyLocation { get; set; }
         public string? CompanyCareersLink { get; set; }
         public string? CompanyLinkedinLink { get; set; }
+        public string? CompanyLogoUrl { get; set; }
     }
 } 

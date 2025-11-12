@@ -54,6 +54,10 @@ public partial class GPDBContext : DbContext
 
     public virtual DbSet<WeeklyGoal> WeeklyGoals { get; set; }
 
+    public virtual DbSet<GmailConnection> GmailConnections { get; set; }
+
+    public virtual DbSet<EmailApplicationUpdate> EmailApplicationUpdates { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Application>(entity =>

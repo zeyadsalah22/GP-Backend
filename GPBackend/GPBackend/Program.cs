@@ -16,6 +16,8 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Authorization;
 
 namespace GPBackend
 {
@@ -83,6 +85,12 @@ namespace GPBackend
             });
 
             // Configure Authorization Policies
+            // Register HttpContextAccessor (required for ApiKeyAuthenticationHandler)
+            builder.Services.AddHttpContextAccessor();
+            
+            // Register API Key authentication handler
+            builder.Services.AddSingleton<IAuthorizationHandler, GPBackend.Authorization.ApiKeyAuthenticationHandler>();
+
             builder.Services.AddAuthorization(options =>
             {
                 options.AddPolicy("AdminOnly", policy => 
@@ -90,6 +98,13 @@ namespace GPBackend
                 
                 options.AddPolicy("UserOrAdmin", policy => 
                     policy.RequireRole("User", "Admin"));
+                
+                // Policy that allows either JWT authentication OR n8n API Key
+                options.AddPolicy("JwtOrApiKey", policy =>
+                {
+                    // Add the custom requirement - the handler will validate API key
+                    policy.Requirements.Add(new GPBackend.Authorization.ApiKeyRequirement());
+                });
             });
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -143,6 +158,8 @@ namespace GPBackend
             builder.Services.AddScoped<ISkillRepository, SkillRepository>();
             builder.Services.AddScoped<IIndustryRepository, IndustryRepository>();
             builder.Services.AddScoped<IWeeklyGoalRepository, WeeklyGoalRepository>();
+            builder.Services.AddScoped<IGmailConnectionRepository, GmailConnectionRepository>();
+            builder.Services.AddScoped<IEmailApplicationUpdateRepository, EmailApplicationUpdateRepository>();
 
             // Register services
             builder.Services.AddScoped<IJwtService, JwtService>();
@@ -168,7 +185,23 @@ namespace GPBackend
             builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             builder.Services.AddScoped<IIndustryService, IndustryService>();
             builder.Services.AddScoped<IWeeklyGoalService, WeeklyGoalService>();
+            
+            // Configure Data Protection API for secure encryption
+            builder.Services.AddDataProtection()
+                .SetApplicationName("GPBackend")  // Ensures keys work across app restarts
+                .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "keys")));  // Store keys in app directory
+            
+            builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
+            builder.Services.AddScoped<IGmailService, GmailService>();
+            builder.Services.AddScoped<IEmailProcessingService, EmailProcessingService>();
+            
+            // Register Gmail Watch Renewal Background Service
+            builder.Services.AddHostedService<GmailWatchRenewalService>();
+            
             // builder.Services.AddHttpClient<IInterviewService, InterviewService>();
+            
+            // Register HttpClient for GmailService
+            builder.Services.AddHttpClient<IGmailService, GmailService>();
 
             builder.Services.AddControllers()
                 .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -216,6 +249,18 @@ namespace GPBackend
                     return RateLimitPartition.GetFixedWindowLimiter(ip, _ => new FixedWindowRateLimiterOptions
                     {
                         PermitLimit = 3, // 3 req/min per IP
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0
+                    });
+                });
+
+                // Rate limiter for Gmail API endpoints (n8n polling)
+                options.AddPolicy("GmailApiLimiter", context =>
+                {
+                    var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                    return RateLimitPartition.GetFixedWindowLimiter(ip, _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 30, // 30 req/min per IP
                         Window = TimeSpan.FromMinutes(1),
                         QueueLimit = 0
                     });

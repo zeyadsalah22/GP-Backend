@@ -1,15 +1,15 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using GPBackend.DTOs.Application;
 using GPBackend.DTOs.Common;
 using GPBackend.Services.Interfaces;
 using System.Security.Claims;
 using System.ComponentModel.DataAnnotations;
-using GPBackend.DTOs.Common;
 
 namespace GPBackend.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "JwtOrApiKey")] // Allow both JWT and n8n API Key
     [Route("api/applications")]
     [ApiController]
     public class ApplicationsController : ControllerBase
@@ -22,8 +22,24 @@ namespace GPBackend.Controllers
         }
 
         // Helper method to get the authenticated user's ID
-        private int GetAuthenticatedUserId()
+        // Supports both JWT authentication and n8n API Key authentication
+        private int GetAuthenticatedUserId(int? userIdFromQuery = null)
         {
+            
+            // Check if this is an n8n API Key authenticated request
+            var isN8nAuth = User.HasClaim("N8N", "true");
+
+            if (isN8nAuth)
+            {
+                // For n8n requests, userId must be provided in query params
+                if (!userIdFromQuery.HasValue)
+                {
+                    throw new UnauthorizedAccessException("userId is required in query parameters for n8n API key authentication");
+                }
+                return userIdFromQuery.Value;
+            }
+
+            // For JWT authentication, extract from claims
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
             {
@@ -45,12 +61,14 @@ namespace GPBackend.Controllers
         // - ?searchTerm={term} - Search in job title, description, company name
         // - ?sortBy={field}&sortDescending={true|false} - Sort results
         // - ?pageNumber={num}&pageSize={size} - Paginate results
+        // - ?userId={id} - Required for n8n API key authentication
         [HttpGet]
         public async Task<ActionResult<PagedResult<ApplicationResponseDto>>> GetApplications([FromQuery] ApplicationQueryDto queryDto)
         {
             try
             {
-                int userId = GetAuthenticatedUserId();
+                // For n8n requests, userId comes from query param. For JWT, it comes from claims.
+                int userId = GetAuthenticatedUserId(queryDto.UserId);
                 var result = await _applicationService.GetFilteredApplicationsAsync(userId, queryDto);
                 
                 // Add pagination headers
@@ -93,6 +111,7 @@ namespace GPBackend.Controllers
 
         // POST: api/applications
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<ApplicationResponseDto>> CreateApplication([FromBody][Required] ApplicationCreateDto createDto)
         {
             try
@@ -129,6 +148,7 @@ namespace GPBackend.Controllers
 
         // PUT: api/applications/{id}
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> UpdateApplication(int id, [FromBody][Required] ApplicationUpdateDto updateDto)
         {
             try
@@ -159,6 +179,7 @@ namespace GPBackend.Controllers
 
         // DELETE: api/applications/{id}
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteApplication(int id)
         {
             try
@@ -181,6 +202,7 @@ namespace GPBackend.Controllers
 
         // POST: api/applications/bulk-delete
         [HttpPost("bulk-delete")]
+        [Authorize]
         public async Task<IActionResult> BulkDeleteApplications([FromBody][Required] BulkDeleteRequestDto request)
         {
             try
