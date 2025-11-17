@@ -193,6 +193,7 @@ namespace GPBackend
             builder.Services.AddScoped<ICommentRepository, CommentRepository>();
             builder.Services.AddScoped<IPostReactionRepository, PostReactionRepository>();
             builder.Services.AddScoped<ICommentReactionRepository, CommentReactionRepository>();
+            builder.Services.AddScoped<ISavedPostRepository, SavedPostRepository>();
 
             // Register services
             builder.Services.AddScoped<IJwtService, JwtService>();
@@ -219,6 +220,7 @@ namespace GPBackend
             builder.Services.AddScoped<ICommentService, CommentService>();
             builder.Services.AddScoped<IPostReactionService, PostReactionService>();
             builder.Services.AddScoped<ICommentReactionService, CommentReactionService>();
+            builder.Services.AddScoped<ISavedPostService, SavedPostService>();
 
             // Register repositories
             builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();

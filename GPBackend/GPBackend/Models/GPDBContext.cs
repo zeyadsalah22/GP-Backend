@@ -44,6 +44,7 @@ public partial class GPDBContext : DbContext
     public virtual DbSet<CommentMention> CommentMentions { get; set; }
     public virtual DbSet<PostReaction> PostReactions { get; set; }
     public virtual DbSet<CommentReaction> CommentReactions { get; set; }
+    public virtual DbSet<SavedPost> SavedPosts { get; set; }
 
     public virtual DbSet<GmailConnection> GmailConnections { get; set; }
 
@@ -1046,6 +1047,41 @@ public partial class GPDBContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.NoAction)
                 .HasConstraintName("FK_CommentReactions_Users");
+        });
+
+        modelBuilder.Entity<SavedPost>(entity =>
+        {
+            entity.HasKey(e => e.SavedPostId);
+
+            entity.ToTable("Saved_Posts");
+
+            entity.Property(e => e.SavedPostId).HasColumnName("saved_post_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.PostId).HasColumnName("post_id");
+            entity.Property(e => e.SavedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("saved_at");
+            entity.Property(e => e.Rowversion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("rowversion");
+
+            entity.HasIndex(e => e.PostId);
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => new { e.UserId, e.PostId }).IsUnique();
+
+            entity.HasOne(d => d.Post)
+                .WithMany(p => p.SavedPosts)
+                .HasForeignKey(d => d.PostId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_SavedPosts_Posts");
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.SavedPosts)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_SavedPosts_Users");
         });
 
         OnModelCreatingPartial(modelBuilder);

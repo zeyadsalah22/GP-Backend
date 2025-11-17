@@ -61,4 +61,6 @@ public partial class User
     public virtual ICollection<PostReaction> PostReactions { get; set; } = new List<PostReaction>();
 
     public virtual ICollection<CommentReaction> CommentReactions { get; set; } = new List<CommentReaction>();
+
+    public virtual ICollection<SavedPost> SavedPosts { get; set; } = new List<SavedPost>();
 }
