@@ -17,5 +17,8 @@ namespace GPBackend.Repositories.Interfaces
         public Task<bool> BulkUpdateAsync(List<Notification> notifications);
         public Task<List<Notification>?> BulkCreateAsync(List<Notification> notifications);
         public Task<int> BulkDeleteAsync(int userId, List<int> ids);
+        public Task<List<TodoList>> GetApplicationsInDueDaysAsync(int dueDays);
+        public Task<List<Interview>> GetInterviewsInDueDaysAsync(int dueDays);
+
     }
 }

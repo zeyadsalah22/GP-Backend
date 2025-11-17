@@ -77,25 +77,6 @@ namespace GPBackend.Services.Interfaces
         Task SendNotificationToAllAsync(NotificationResponseDto notification);
 
         /// <summary>
-        /// Broadcasts unread count update to user via SignalR
-        /// </summary>
-        
-        /// <summary>
-        /// Creates and sends application deadline reminder notification
-        /// </summary>
-        Task NotifyApplicationDeadlineAsync(int userId, int applicationId, string companyName, DateTime deadline);
-
-        /// <summary>
-        /// Creates and sends todo task reminder notification
-        /// </summary>
-        Task NotifyTodoDeadlineAsync(int userId, int todoId, string taskTitle, DateTime deadline);
-
-        /// <summary>
-        /// Creates and sends application status change notification
-        /// </summary>
-        Task NotifyInterviewScheduledAsync(int userId, int interviewId, string companyName, DateTime interviewDate);
-
-        /// <summary>
         /// Creates and sends system announcement notification to all users
         /// </summary>
         Task NotifySystemAnnouncementAsync(string title, string message);

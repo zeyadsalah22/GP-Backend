@@ -21,7 +21,6 @@ namespace GPBackend.Models
         public int? EntityTargetedId { get; set; }
         
         [Required]
-        [StringLength(100)]
         public required string Message { get; set; }
         
         public bool IsRead { get; set; }

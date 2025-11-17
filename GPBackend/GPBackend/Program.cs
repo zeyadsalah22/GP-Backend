@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
 using GPBackend.Hubs;
+using GPBackend.BackgoundServices;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Authorization;
 
@@ -239,6 +240,7 @@ namespace GPBackend
             
             // Register background services
             builder.Services.AddHostedService<TokenCleanupService>();
+            builder.Services.AddHostedService<NotificationTriggeringService>();
 
             builder.Services.AddRateLimiter(options => {
                 options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;

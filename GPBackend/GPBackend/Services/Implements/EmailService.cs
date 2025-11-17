@@ -103,6 +103,12 @@ namespace GPBackend.Services.Implements{
             };
             return await SendEmailAsync(emailDto);
         }
+        public async Task<bool> SendNotificationEmailAsync(EmailDto emailDto)
+        {
+            // reformat body into html body
+            // emailDto.Body = 
+            return await SendEmailAsync(emailDto);
+        }
 
         private string GenerateWelcomeEmailTemplate(WelcomeEmailDto welcomeEmailDto){
             return $@"

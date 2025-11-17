@@ -1,3 +1,4 @@
+using GPBackend.DTOs.Notification;
 using GPBackend.hubs;
 using GPBackend.Hubs;
 using GPBackend.Repositories.Interfaces;
@@ -35,6 +36,15 @@ namespace GPBackend.Services.Implements
 
             await _hub.Clients.Client(Connection.ConnectionId).SendAsync(HubMethods.SENDTOUSER, Message);
 
+        }
+
+        //TODO: Improve the method used to send each client individually, maybe fetch all connections first then map
+        public async Task SendNotificationToUsersAsync(List<NotificationCreateDto> notifications)
+        {
+            foreach(var notification in notifications)
+            {
+                await SendNotificationToUserAsync(notification.UserId, notification.Message);
+            }
         }
 
     }

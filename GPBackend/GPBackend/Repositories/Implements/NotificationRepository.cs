@@ -59,9 +59,9 @@ namespace GPBackend.Repositories.Implements
                         .Where(q => q.UserId == userId && !q.IsDeleted);
 
             var Notifications = await query
+                                .OrderByDescending(q => q.CreatedAt)
                                 .Skip((PageNumber - 1) * pageSize)
                                 .Take(pageSize)
-                                .OrderByDescending(q => q.CreatedAt)
                                 .ToListAsync();
 
             return new PagedResult<Notification>
@@ -126,6 +126,27 @@ namespace GPBackend.Repositories.Implements
                 notification.IsDeleted = true;
 
             return await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<Interview>> GetInterviewsInDueDaysAsync(int dueDays)
+        {
+            int currentDay = DateTime.Now.Day;
+            return await _context.Interviews
+                            .Where(a => !a.IsDeleted &&
+                                   a.StartDate.Day -currentDay < dueDays)
+                            .AsNoTracking()
+                            .ToListAsync();                   
+        }
+
+        public async Task<List<TodoList>> GetApplicationsInDueDaysAsync(int dueDays)
+        {
+            int currentDay = DateTime.Now.Day;
+            return await _context.TodoLists
+                                 .Where(a => !a.IsDeleted &&
+                                        a.Deadline.Value.Hour - currentDay < dueDays)
+                                .AsNoTracking()
+                                .ToListAsync();
+                                
         }
     }
 }
