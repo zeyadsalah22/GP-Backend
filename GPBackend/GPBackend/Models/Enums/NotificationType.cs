@@ -4,10 +4,11 @@ namespace GPBackend.Models.Enums
     {
         SystemAnnouncement = 0,
         Application = 1,
-        ToList = 2,
-        Post = 3,
-        Comment = 4,
-        React = 5
+        TodoItem = 2,
+        Interview = 3,
+        Post = 4,
+        Comment = 5,
+        React = 6
     }
 }
 

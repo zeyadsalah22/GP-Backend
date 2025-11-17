@@ -12,15 +12,18 @@ namespace GPBackend.Services.Implements
     public class NotificationService : INotificationService
     {
         private readonly INotificationSignalRService _signalR;
+        private readonly IEmailService _emailService;
         private readonly INotificationRepository _notificationRepo;
         private readonly IMapper _mapper;
 
         public NotificationService(
                 INotificationSignalRService signalR,
+                IEmailService emailService,
                 INotificationRepository notificationRepo,
                 IMapper mapper)
         {
             _signalR = signalR;
+            _emailService = emailService;
             _notificationRepo = notificationRepo;
             _mapper = mapper;
         }
@@ -33,6 +36,7 @@ namespace GPBackend.Services.Implements
                 return new List<NotificationResponseDto>();
 
             // TODO: Send notification to users using SignalR
+            await _signalR.SendNotificationToUsersAsync(notificationDtos);
 
             var notificationResponseDtos = _mapper.Map<List<Notification>, List<NotificationResponseDto>>(notifications);
             return notificationResponseDtos;
@@ -144,53 +148,11 @@ namespace GPBackend.Services.Implements
             return result;
         }
 
-        public async Task NotifyApplicationDeadlineAsync(int userId, int applicationId, string companyName, DateTime deadline)
-        {
-            var notificationDto = new NotificationCreateDto
-            {
-                UserId = userId,
-                ActorId = userId, // System notification, actor is the user
-                Type = Models.Enums.NotificationType.Application,
-                EntityTargetedId = applicationId,
-                Message = $"Application deadline for {companyName} is approaching on {deadline:MMM dd, yyyy}"
-            };
-
-            await CreateNotificationAsync(notificationDto);
-        }
-
-        public async Task NotifyInterviewScheduledAsync(int userId, int interviewId, string companyName, DateTime interviewDate)
-        {
-            var notificationDto = new NotificationCreateDto
-            {
-                UserId = userId,
-                ActorId = userId,
-                Type = Models.Enums.NotificationType.Application,
-                EntityTargetedId = interviewId,
-                Message = $"Interview with {companyName} scheduled for {interviewDate:MMM dd, yyyy 'at' hh:mm tt}"
-            };
-
-            await CreateNotificationAsync(notificationDto);
-        }
-
         public async Task NotifySystemAnnouncementAsync(string title, string message)
         {
             // This would need a list of all active users
             // For now, sending to all via SignalR
             await _signalR.SendNotificationToAllAsync($"{title}: {message}");
-        }
-
-        public async Task NotifyTodoDeadlineAsync(int userId, int todoId, string taskTitle, DateTime deadline)
-        {
-            var notificationDto = new NotificationCreateDto
-            {
-                UserId = userId,
-                ActorId = userId,
-                Type = Models.Enums.NotificationType.ToList,
-                EntityTargetedId = todoId,
-                Message = $"Task '{taskTitle}' is due on {deadline:MMM dd, yyyy}"
-            };
-
-            await CreateNotificationAsync(notificationDto);
         }
 
         public async Task NotifyWelcomeMessageAsync(int userId, string userName)

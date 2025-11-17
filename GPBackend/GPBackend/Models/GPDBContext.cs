@@ -762,7 +762,6 @@ public partial class GPDBContext : DbContext
                 .HasColumnName("type");
             entity.Property(e => e.EntityTargetedId).HasColumnName("entity_targeted_id");
             entity.Property(e => e.Message)
-                .HasMaxLength(100)
                 .HasColumnName("message");
             entity.Property(e => e.IsRead).HasColumnName("is_read");
             entity.Property(e => e.CreatedAt)
