@@ -12,6 +12,7 @@ namespace GPBackend.DTOs.Notification
         public NotificationType Type { get; set; }
         
         public int? EntityTargetedId { get; set; }
+        public NotificationCategory NotificationCategory { get; set; }
         
         public required string Message { get; set; }
     }

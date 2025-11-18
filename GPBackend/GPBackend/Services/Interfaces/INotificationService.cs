@@ -10,7 +10,7 @@ namespace GPBackend.Services.Interfaces
         /// <summary>
         /// Creates a new notification and sends it to the user in real-time via SignalR
         /// </summary>
-        Task<NotificationResponseDto> CreateNotificationAsync(NotificationCreateDto notificationDto);
+        Task<NotificationResponseDto?> CreateNotificationAsync(NotificationCreateDto notificationDto);
 
         /// <summary>
         /// Creates multiple notifications at once (bulk operation)

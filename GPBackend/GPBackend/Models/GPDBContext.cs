@@ -61,6 +61,7 @@ public partial class GPDBContext : DbContext
     public virtual DbSet<WeeklyGoal> WeeklyGoals { get; set; }
 
     public virtual DbSet<Notification> Notifications { get; set; }
+    public virtual DbSet<NotificationPreference> NotificationPreferences { get; set; }
     public virtual DbSet<UserConnection> UserConnections { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -760,6 +761,9 @@ public partial class GPDBContext : DbContext
             entity.Property(e => e.Type)
                 .HasConversion<int>()
                 .HasColumnName("type");
+            entity.Property(e => e.Category)
+                .HasConversion<int>()
+                .HasColumnName("category");
             entity.Property(e => e.EntityTargetedId).HasColumnName("entity_targeted_id");
             entity.Property(e => e.Message)
                 .HasColumnName("message");
@@ -779,6 +783,45 @@ public partial class GPDBContext : DbContext
                 .HasForeignKey(d => d.ActorId)
                 .OnDelete(DeleteBehavior.NoAction)
                 .HasConstraintName("FK_Notifications_Actor");
+        });
+        modelBuilder.Entity<NotificationPreference>(entity =>
+        {
+            entity.HasKey(e => e.NotificationPreferenceId)
+                  .HasName("notification_prefernce_id");
+            entity.Property(e => e.UserId)
+                  .HasColumnName("user_id");
+
+            entity.Property(e => e.EnableSystem)
+                  .HasColumnName("enable_system")
+                  .HasDefaultValue(true);
+
+            entity.Property(e => e.EnableReminders)
+                  .HasColumnName("enable_reminder")
+                  .HasDefaultValue(true);
+
+            entity.Property(e => e.EnableSocial)
+                  .HasColumnName("enable_social")
+                  .HasDefaultValue(true);
+
+            entity.Property(e => e.GloballyEnabled)
+                  .HasColumnName("global_enable")
+                  .HasDefaultValue(true);
+
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("updated_at");
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.NotificationPreferences)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Notifications_Preferences_Users");
         });
 
         modelBuilder.Entity<UserConnection>(entity =>
