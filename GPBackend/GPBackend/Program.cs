@@ -180,6 +180,7 @@ namespace GPBackend
             builder.Services.AddScoped<IGmailConnectionRepository, GmailConnectionRepository>();
             builder.Services.AddScoped<IEmailApplicationUpdateRepository, EmailApplicationUpdateRepository>();
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+            builder.Services.AddScoped<INotificationPreferenceRepository, NotificationPreferenceRepository>();
             builder.Services.AddScoped<INotificationSignalRService, NotificationSignalRService>();
             builder.Services.AddScoped<IUserConnectionRepository, UserConnectionRepository>();
 
@@ -206,6 +207,7 @@ namespace GPBackend
             builder.Services.AddScoped<IPostService, PostService>();
             builder.Services.AddScoped<ITagService, TagService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
+            builder.Services.AddScoped<INotificationPreferenceService, NotificationPreferenceService>();
 
             // Register repositories
             builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();

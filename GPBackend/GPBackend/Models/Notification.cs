@@ -17,6 +17,9 @@ namespace GPBackend.Models
         
         [Required]
         public NotificationType Type { get; set; }
+
+        [Required]
+        public NotificationCategory Category { get; set; }
         
         public int? EntityTargetedId { get; set; }
         

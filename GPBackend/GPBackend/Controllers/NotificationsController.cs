@@ -74,6 +74,9 @@ namespace GPBackend.Controllers
         public async Task<ActionResult<NotificationResponseDto>> CreateNotification([FromBody] NotificationCreateDto notificationDto)
         {
             var notification = await _notificationService.CreateNotificationAsync(notificationDto);
+            if(notification == null){
+                return NoContent();
+            }
             return CreatedAtAction(nameof(GetNotificationById), new { notificationId = notification.NotificationId }, notification);
         }
 

@@ -14,36 +14,48 @@ namespace GPBackend.Services.Implements
         private readonly INotificationSignalRService _signalR;
         private readonly IEmailService _emailService;
         private readonly INotificationRepository _notificationRepo;
+        private readonly INotificationPreferenceService _notificationPreferenceService;
         private readonly IMapper _mapper;
 
         public NotificationService(
                 INotificationSignalRService signalR,
                 IEmailService emailService,
                 INotificationRepository notificationRepo,
+                INotificationPreferenceService notificationPreferenceService,
                 IMapper mapper)
         {
             _signalR = signalR;
             _emailService = emailService;
             _notificationRepo = notificationRepo;
+            _notificationPreferenceService = notificationPreferenceService;
             _mapper = mapper;
         }
         public async Task<List<NotificationResponseDto>> CreateBulkNotificationsAsync(List<NotificationCreateDto> notificationDtos)
         {
-            var notifications = _mapper.Map<List<NotificationCreateDto>, List<Notification>>(notificationDtos);
+            List<NotificationCreateDto> notificationToSend = new List<NotificationCreateDto>();
+            foreach(var notification in notificationDtos){
+                if(await _notificationPreferenceService.ShouldSendNotificationAsync(notification.UserId, notification.NotificationCategory))
+                    notificationToSend.Add(notification);
+            }
+
+            var notifications = _mapper.Map<List<NotificationCreateDto>, List<Notification>>(notificationToSend);
             notifications = await _notificationRepo.BulkCreateAsync(notifications);
 
             if (notifications == null)
                 return new List<NotificationResponseDto>();
 
             // TODO: Send notification to users using SignalR
-            await _signalR.SendNotificationToUsersAsync(notificationDtos);
+            await _signalR.SendNotificationToUsersAsync(notificationToSend);
 
             var notificationResponseDtos = _mapper.Map<List<Notification>, List<NotificationResponseDto>>(notifications);
             return notificationResponseDtos;
         }
 
-        public async Task<NotificationResponseDto> CreateNotificationAsync(NotificationCreateDto notificationDto)
+        public async Task<NotificationResponseDto?> CreateNotificationAsync(NotificationCreateDto notificationDto)
         {
+            if(!await _notificationPreferenceService.ShouldSendNotificationAsync(notificationDto.UserId, notificationDto.NotificationCategory))
+                return null;
+
             var Notification = _mapper.Map<NotificationCreateDto, Notification>(notificationDto);
             Notification = await _notificationRepo.CreateAsync(Notification);
 
