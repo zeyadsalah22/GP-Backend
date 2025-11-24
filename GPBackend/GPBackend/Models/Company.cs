@@ -38,4 +38,6 @@ public partial class Company
     public virtual ICollection<Interview> Interviews { get; set; } = new List<Interview>();
 
     public virtual ICollection<UserCompany> UserCompanies { get; set; } = new List<UserCompany>();
+
+    public virtual ICollection<CommunityInterviewQuestion> CommunityInterviewQuestions { get; set; } = new List<CommunityInterviewQuestion>();
 }

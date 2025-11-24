@@ -45,6 +45,10 @@ public partial class GPDBContext : DbContext
     public virtual DbSet<PostReaction> PostReactions { get; set; }
     public virtual DbSet<CommentReaction> CommentReactions { get; set; }
     public virtual DbSet<SavedPost> SavedPosts { get; set; }
+    public virtual DbSet<CommunityInterviewQuestion> CommunityInterviewQuestions { get; set; }
+    public virtual DbSet<InterviewAnswer> InterviewAnswers { get; set; }
+    public virtual DbSet<InterviewAnswerHelpful> InterviewAnswerHelpfuls { get; set; }
+    public virtual DbSet<QuestionAskedBy> QuestionAskedBys { get; set; }
 
     public virtual DbSet<GmailConnection> GmailConnections { get; set; }
 
@@ -177,7 +181,8 @@ public partial class GPDBContext : DbContext
             entity.Property(e => e.CompanySize)
                 .HasMaxLength(255)
                 .HasColumnName("company_size");
-            entity.Property(e => e.LogoUrl).HasColumnName("logo");
+            entity.Property(e => e.LogoUrl)
+                .HasColumnName("logo_url");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.Location)
                 .HasMaxLength(255)
@@ -1082,6 +1087,199 @@ public partial class GPDBContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.NoAction)
                 .HasConstraintName("FK_SavedPosts_Users");
+        });
+
+        modelBuilder.Entity<CommunityInterviewQuestion>(entity =>
+        {
+            entity.HasKey(e => e.QuestionId);
+
+            entity.ToTable("Community_Interview_Questions");
+
+            entity.Property(e => e.QuestionId).HasColumnName("question_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.QuestionText)
+                .HasMaxLength(3000)
+                .HasColumnName("question_text");
+            entity.Property(e => e.CompanyId).HasColumnName("company_id");
+            entity.Property(e => e.CompanyName)
+                .HasMaxLength(200)
+                .HasColumnName("company_name");
+            entity.Property(e => e.CompanyLogo)
+                .HasMaxLength(500)
+                .HasColumnName("company_logo");
+            entity.Property(e => e.RoleType)
+                .HasConversion<int?>()
+                .HasColumnName("role_type");
+            entity.Property(e => e.AddedRoleType)
+                .HasMaxLength(100)
+                .HasColumnName("added_role_type");
+            entity.Property(e => e.QuestionType)
+                .HasConversion<int?>()
+                .HasColumnName("question_type");
+            entity.Property(e => e.AddedQuestionType)
+                .HasMaxLength(100)
+                .HasColumnName("added_question_type");
+            entity.Property(e => e.Difficulty)
+                .HasConversion<int>()
+                .HasColumnName("difficulty");
+            entity.Property(e => e.AskedCount)
+                .HasDefaultValue(0)
+                .HasColumnName("asked_count");
+            entity.Property(e => e.AnswerCount)
+                .HasDefaultValue(0)
+                .HasColumnName("answer_count");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
+            entity.Property(e => e.Rowversion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("rowversion");
+
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.CompanyId);
+            entity.HasIndex(e => e.RoleType);
+            entity.HasIndex(e => e.QuestionType);
+            entity.HasIndex(e => e.Difficulty);
+            entity.HasIndex(e => e.AskedCount);
+            entity.HasIndex(e => e.CreatedAt);
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.CommunityInterviewQuestions)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_CommunityInterviewQuestions_Users");
+
+            entity.HasOne(d => d.Company)
+                .WithMany(p => p.CommunityInterviewQuestions)
+                .HasForeignKey(d => d.CompanyId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_CommunityInterviewQuestions_Companies");
+        });
+
+        modelBuilder.Entity<InterviewAnswer>(entity =>
+        {
+            entity.HasKey(e => e.AnswerId);
+
+            entity.ToTable("Interview_Answers");
+
+            entity.Property(e => e.AnswerId).HasColumnName("answer_id");
+            entity.Property(e => e.QuestionId).HasColumnName("question_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.AnswerText)
+                .HasMaxLength(5000)
+                .HasColumnName("answer_text");
+            entity.Property(e => e.GotOffer)
+                .HasDefaultValue(false)
+                .HasColumnName("got_offer");
+            entity.Property(e => e.HelpfulCount)
+                .HasDefaultValue(0)
+                .HasColumnName("helpful_count");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
+            entity.Property(e => e.Rowversion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("rowversion");
+
+            entity.HasIndex(e => e.QuestionId);
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.HelpfulCount);
+
+            entity.HasOne(d => d.Question)
+                .WithMany(p => p.Answers)
+                .HasForeignKey(d => d.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_InterviewAnswers_CommunityInterviewQuestions");
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.InterviewAnswers)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_InterviewAnswers_Users");
+        });
+
+        modelBuilder.Entity<InterviewAnswerHelpful>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable("Interview_Answer_Helpful");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.AnswerId).HasColumnName("answer_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.Rowversion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("rowversion");
+
+            entity.HasIndex(e => e.AnswerId);
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => new { e.AnswerId, e.UserId }).IsUnique();
+
+            entity.HasOne(d => d.Answer)
+                .WithMany(p => p.HelpfulVotes)
+                .HasForeignKey(d => d.AnswerId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_InterviewAnswerHelpful_InterviewAnswers");
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.InterviewAnswerHelpfuls)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_InterviewAnswerHelpful_Users");
+        });
+
+        modelBuilder.Entity<QuestionAskedBy>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable("Question_Asked_By");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.QuestionId).HasColumnName("question_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+
+            entity.HasIndex(e => e.QuestionId);
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => new { e.QuestionId, e.UserId }).IsUnique();
+
+            entity.HasOne(d => d.Question)
+                .WithMany(p => p.AskedByUsers)
+                .HasForeignKey(d => d.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_QuestionAskedBy_CommunityInterviewQuestions");
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.QuestionAskedBys)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_QuestionAskedBy_Users");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -194,6 +194,10 @@ namespace GPBackend
             builder.Services.AddScoped<IPostReactionRepository, PostReactionRepository>();
             builder.Services.AddScoped<ICommentReactionRepository, CommentReactionRepository>();
             builder.Services.AddScoped<ISavedPostRepository, SavedPostRepository>();
+            builder.Services.AddScoped<ICommunityInterviewQuestionRepository, CommunityInterviewQuestionRepository>();
+            builder.Services.AddScoped<IInterviewAnswerRepository, InterviewAnswerRepository>();
+            builder.Services.AddScoped<IInterviewAnswerHelpfulRepository, InterviewAnswerHelpfulRepository>();
+            builder.Services.AddScoped<IQuestionAskedByRepository, QuestionAskedByRepository>();
 
             // Register services
             builder.Services.AddScoped<IJwtService, JwtService>();
@@ -221,6 +225,8 @@ namespace GPBackend
             builder.Services.AddScoped<IPostReactionService, PostReactionService>();
             builder.Services.AddScoped<ICommentReactionService, CommentReactionService>();
             builder.Services.AddScoped<ISavedPostService, SavedPostService>();
+            builder.Services.AddScoped<ICommunityInterviewQuestionService, CommunityInterviewQuestionService>();
+            builder.Services.AddScoped<IInterviewAnswerService, InterviewAnswerService>();
 
             // Register repositories
             builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
