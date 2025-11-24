@@ -59,4 +59,12 @@ public partial class User
     public virtual ICollection<CommentReaction> CommentReactions { get; set; } = new List<CommentReaction>();
 
     public virtual ICollection<SavedPost> SavedPosts { get; set; } = new List<SavedPost>();
+
+    public virtual ICollection<CommunityInterviewQuestion> CommunityInterviewQuestions { get; set; } = new List<CommunityInterviewQuestion>();
+
+    public virtual ICollection<InterviewAnswer> InterviewAnswers { get; set; } = new List<InterviewAnswer>();
+
+    public virtual ICollection<InterviewAnswerHelpful> InterviewAnswerHelpfuls { get; set; } = new List<InterviewAnswerHelpful>();
+
+    public virtual ICollection<QuestionAskedBy> QuestionAskedBys { get; set; } = new List<QuestionAskedBy>();
 }
