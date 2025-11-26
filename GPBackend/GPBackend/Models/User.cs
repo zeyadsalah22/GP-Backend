@@ -30,6 +30,10 @@ public partial class User
 
     public UserRole Role { get; set; } = UserRole.User;
 
+    public string? ProfilePictureUrl { get; set; }
+
+    public int ReputationPoints { get; set; }
+
     public virtual ICollection<Interview> Interviews { get; set; } = new List<Interview>();
 
     public virtual ICollection<Resume> Resumes { get; set; } = new List<Resume>();
@@ -43,4 +47,30 @@ public partial class User
     public virtual ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();
     
     public virtual ICollection<WeeklyGoal> WeeklyGoals { get; set; } = new List<WeeklyGoal>();
+
+    public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
+    
+    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+    public virtual ICollection<NotificationPreference> NotificationPreferences { get; set; } = new List<NotificationPreference>();
+    
+    // One-to-one relationship with UserConnection
+    public virtual UserConnection? UserConnection { get; set; }
+
+    public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
+
+    public virtual ICollection<CommentMention> CommentMentions { get; set; } = new List<CommentMention>();
+
+    public virtual ICollection<PostReaction> PostReactions { get; set; } = new List<PostReaction>();
+
+    public virtual ICollection<CommentReaction> CommentReactions { get; set; } = new List<CommentReaction>();
+
+    public virtual ICollection<SavedPost> SavedPosts { get; set; } = new List<SavedPost>();
+
+    public virtual ICollection<CommunityInterviewQuestion> CommunityInterviewQuestions { get; set; } = new List<CommunityInterviewQuestion>();
+
+    public virtual ICollection<InterviewAnswer> InterviewAnswers { get; set; } = new List<InterviewAnswer>();
+
+    public virtual ICollection<InterviewAnswerHelpful> InterviewAnswerHelpfuls { get; set; } = new List<InterviewAnswerHelpful>();
+
+    public virtual ICollection<QuestionAskedBy> QuestionAskedBys { get; set; } = new List<QuestionAskedBy>();
 }

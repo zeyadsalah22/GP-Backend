@@ -12,6 +12,8 @@ namespace GPBackend.DTOs.User
         public string? Address { get; set; }
         public DateOnly? BirthDate { get; set; }
         public UserRole Role { get; set; }
+        public string? ProfilePictureUrl { get; set; }
+        public int ReputationPoints { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }

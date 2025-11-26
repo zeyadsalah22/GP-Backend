@@ -1,6 +1,6 @@
 using GPBackend.Services.Interfaces;
 
-namespace GPBackend.Services.Implements
+namespace GPBackend.BackgoundServices
 {
     public class TokenCleanupService : BackgroundService
     {
