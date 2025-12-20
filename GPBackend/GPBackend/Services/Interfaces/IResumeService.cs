@@ -9,5 +9,7 @@ namespace GPBackend.Services.Interfaces
         Task<ResumeResponseDto> CreateResumeAsync(ResumeCreateDto resumeDto);
         Task<bool> UpdateResumeAsync(int id, ResumeUpdateDto resumeDto, int userId);
         Task<bool> DeleteResumeAsync(int id, int userId);
+
+        Task<ResumeMatchingResponse> MatchResumeAsync(int resumeId, string jobDescription, int userId);
     }
 }

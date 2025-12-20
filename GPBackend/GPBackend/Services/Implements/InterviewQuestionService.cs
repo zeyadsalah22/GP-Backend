@@ -5,6 +5,7 @@ using GPBackend.Repositories.Interfaces;
 using GPBackend.Services.Interfaces;
 using GPBackend.Models;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 namespace GPBackend.Services.Implements
 {
@@ -12,16 +13,21 @@ namespace GPBackend.Services.Implements
     {
         private readonly IInterviewQuestionRepository _interviewQuestionRepository;
         private readonly IApplicationRepository _applicationRepository;
+        private readonly IMLServiceClient _mlServiceClient;
         private readonly IMapper _mapper;
-        private readonly string ModelApiURL = "http://localhost:8000/generate-questions";
+        private readonly ILogger<InterviewQuestionService> _logger;
 
         public InterviewQuestionService(IInterviewQuestionRepository interviewQuestionRepository,
                                  IApplicationRepository applicationRepository,
-                                 IMapper mapper)
+                                 IMLServiceClient mlServiceClient,
+                                 IMapper mapper,
+                                 ILogger<InterviewQuestionService> logger)
         {
             _interviewQuestionRepository = interviewQuestionRepository;
             _applicationRepository = applicationRepository;
+            _mlServiceClient = mlServiceClient;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<List<InterviewQuestionResponseDto>> CreateInterviewQuestionsAsync(List<InterviewQuestionCreateDto> interviewQuestionCreateDto)
@@ -63,80 +69,54 @@ namespace GPBackend.Services.Implements
 
         public async Task<List<InterviewQuestionResponseDto>> GetInterviewQuestionsFromModelAsync(int applicationId, string jobDescription, string jobTitle)
         {
-            // fetch questions from the model API
-            // var client = new HttpClient();
-
-            // var application = await _applicationRepository.GetByIdAsync(applicationId);
-
-            // HttpResponseMessage? response = null;
-
-            // if (application == null)
-            // {
-            //     if (jobDescription == null || jobTitle == null)
-            //     {
-            //         throw new ArgumentException("Job description and title cannot be null when application is not found.");
-            //     }
-            //     response = await client.PostAsJsonAsync(ModelApiURL, new
-            //     {
-            //         description = jobDescription,
-            //         // job_title = jobTitle,
-            //         num_questions = 8,
-            //     });
-            //     if (!response.IsSuccessStatusCode)
-            //     {
-            //         throw new Exception("Failed to fetch interview questions from the model API using job description and title.");
-            //     }
-            // }
-            // else
-            // {
-            //     if (application.Description == null || application.JobTitle == null)
-            //     {
-            //         throw new ArgumentException("Job description and title cannot be null when application is found.");
-            //     }
-            //     response = await client.PostAsJsonAsync(ModelApiURL, new
-            //     {
-            //         description = application.Description,
-            //         // job_title = application.JobTitle,
-            //         num_questions = 3,
-            //     });
-            //     if (!response.IsSuccessStatusCode)
-            //     {
-            //         throw new Exception("Failed to fetch interview questions from the model API using application data.");
-            //     }
-            // }
-            // // if (!response.IsSuccessStatusCode)
-            // // {
-            // //     throw new Exception("Failed to fetch interview questions from the model API.");
-            // // }
-
-            // // var raw = await response.Content.ReadAsStringAsync();
-            // // Console.WriteLine(raw);
-
-            // var questions = await response.Content.ReadFromJsonAsync<InterviewQuestionAIDto>(
-            //     new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
-            // );
-
-            // if (questions == null || questions.Questions == null || questions.Questions.Count == 0)
-            // {
-            //     throw new Exception("No questions were returned from the model API.");
-            // }
-
-            // // Manually map each string to InterviewQuestionResponseDto
-            // var questionDtos = questions.Questions
-            //     .Select(q => new InterviewQuestionResponseDto { Question = q })
-            //     .ToList();
-
-            var questionDtos = new List<InterviewQuestionResponseDto>
+            try
             {
-                new InterviewQuestionResponseDto { Question = "Tell me about a challenging project you led and the outcome." },
-                new InterviewQuestionResponseDto { Question = "How do you approach debugging complex issues in production?" },
-                new InterviewQuestionResponseDto { Question = "Describe a time you collaborated across teams to deliver a feature." }
-            };
+                string descriptionToUse = jobDescription;
+                int numQuestions = 3;
 
+                // If applicationId is provided, try to get the application details
+                if (applicationId > 0)
+                {
+                    var application = await _applicationRepository.GetByIdAsync(applicationId);
+                    if (application != null && !string.IsNullOrWhiteSpace(application.Description))
+                    {
+                        descriptionToUse = application.Description;
+                        _logger.LogInformation("Using job description from application {ApplicationId}", applicationId);
+                    }
+                }
 
+                // Validate that we have a job description
+                if (string.IsNullOrWhiteSpace(descriptionToUse))
+                {
+                    throw new ArgumentException("Job description cannot be null or empty.");
+                }
 
-            return questionDtos;
+                _logger.LogInformation("Calling ML service to generate {NumQuestions} questions for job description (length: {Length})",
+                    numQuestions, descriptionToUse.Length);
 
+                // Call ML service to generate questions
+                var questions = await _mlServiceClient.GenerateQuestionsAsync(descriptionToUse, numQuestions);
+
+                if (questions == null || questions.Count == 0)
+                {
+                    _logger.LogWarning("ML service returned no questions");
+                    throw new InvalidOperationException("No questions were returned from the ML service.");
+                }
+
+                // Map each string question to InterviewQuestionResponseDto
+                var questionDtos = questions
+                    .Select(q => new InterviewQuestionResponseDto { Question = q })
+                    .ToList();
+
+                _logger.LogInformation("Successfully generated {Count} questions from ML service", questionDtos.Count);
+
+                return questionDtos;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating interview questions from ML service");
+                throw;
+            }
         }
     }
 }
