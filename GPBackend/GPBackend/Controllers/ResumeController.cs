@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using System.Security.Claims;
+using System.ComponentModel.DataAnnotations;
 
 namespace GPBackend.Controllers
 {
@@ -54,13 +55,13 @@ namespace GPBackend.Controllers
             try
             {
                 int userId = GetAuthenticatedUserId();
-                
+
                 var resume = await _resumeService.GetResumeByIdAsync(id, userId);
                 if (resume == null)
                 {
                     return NotFound();
                 }
-                
+
                 return Ok(resume);
             }
             catch (UnauthorizedAccessException)
@@ -76,7 +77,7 @@ namespace GPBackend.Controllers
             try
             {
                 int userId = GetAuthenticatedUserId();
-                
+
                 if (file == null || file.Length == 0)
                 {
                     return BadRequest("No file was uploaded");
@@ -84,13 +85,13 @@ namespace GPBackend.Controllers
 
                 using var memoryStream = new MemoryStream();
                 await file.CopyToAsync(memoryStream);
-                
+
                 var resumeDto = new ResumeCreateDto
                 {
                     UserId = userId,
                     ResumeFile = memoryStream.ToArray()
                 };
-                
+
                 var createdResume = await _resumeService.CreateResumeAsync(resumeDto);
                 return CreatedAtAction(nameof(GetResumeById), new { id = createdResume.ResumeId }, createdResume);
             }
@@ -107,21 +108,21 @@ namespace GPBackend.Controllers
             try
             {
                 int userId = GetAuthenticatedUserId();
-                
+
                 if (file == null || file.Length == 0)
                 {
                     return BadRequest("No file was uploaded");
                 }
-                
+
                 using var memoryStream = new MemoryStream();
                 await file.CopyToAsync(memoryStream);
-                
+
                 var resumeDto = new ResumeUpdateDto
                 {
                     UserId = userId,
                     ResumeFile = memoryStream.ToArray()
                 };
-                
+
                 var result = await _resumeService.UpdateResumeAsync(id, resumeDto, userId);
                 if (!result)
                 {
@@ -143,7 +144,7 @@ namespace GPBackend.Controllers
             try
             {
                 int userId = GetAuthenticatedUserId();
-                
+
                 var result = await _resumeService.DeleteResumeAsync(id, userId);
                 if (!result)
                 {
@@ -155,6 +156,43 @@ namespace GPBackend.Controllers
             catch (UnauthorizedAccessException)
             {
                 return Unauthorized();
+            }
+        }
+
+        [HttpPost("{id}/match")]
+        public async Task<ActionResult<ResumeMatchingResponse>> MatchResume(int id, [FromBody] MatchResumeByIdRequestDto request)
+        {
+            try
+            {
+                int userId = GetAuthenticatedUserId();
+
+                if (request == null || string.IsNullOrWhiteSpace(request.JobDescription))
+                {
+                    return BadRequest(new { message = "Job description is required." });
+                }
+
+                var matchingResult = await _resumeService.MatchResumeAsync(id, request.JobDescription, userId);
+                return Ok(matchingResult);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (TimeoutException ex)
+            {
+                return StatusCode(504, new { message = "Request timed out. The ML service is taking too long to respond.", details = ex.Message });
+            }
+            catch (HttpRequestException ex)
+            {
+                return StatusCode(502, new { message = "Error communicating with ML service.", details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while matching resume.", details = ex.Message });
             }
         }
     }

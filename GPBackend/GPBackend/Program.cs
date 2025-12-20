@@ -263,7 +263,15 @@ namespace GPBackend
             
             // Register HttpClient for ChatBotController
             builder.Services.AddHttpClient();
-            
+
+            // Register HttpClient for MLServiceClient with 5-minute timeout
+            builder.Services.AddHttpClient<IMLServiceClient, MLServiceClient>(client =>
+            {
+                var baseUrl = builder.Configuration["MLService:BaseUrl"] ?? throw new InvalidOperationException("MLService:BaseUrl is not configured");
+                client.BaseAddress = new Uri(baseUrl);
+                client.Timeout = TimeSpan.FromMinutes(5);
+            });
+
             // Register background services
             builder.Services.AddHostedService<TokenCleanupService>();
             builder.Services.AddHostedService<NotificationTriggeringService>();
