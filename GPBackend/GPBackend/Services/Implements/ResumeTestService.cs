@@ -111,20 +111,42 @@ namespace GPBackend.Services.Implements
                 resumeTestCreateDto.JobDescription
             );
 
+            //if (aiAnalysis != null)
+            //{
+            //    if (aiAnalysis.MissingSkills == null || aiAnalysis.MissingSkills.Count == 0)
+            //    {
+            //        aiAnalysis.ResumeScore = 100; // Default score if missing skills were not found
+            //    }
+            //    // Update the ATS score and save to database
+            //    createdResumeTest.AtsScore = (int)aiAnalysis.ResumeScore;
+            //    await _resumeTestRepository.UpdateResumeTestAsync(createdResumeTest);
+
+            //    // Store missing skills
+            //    if (aiAnalysis.MissingSkills != null && aiAnalysis.MissingSkills.Count > 0)
+            //    {
+            //        await _resumeTestMissingSkillsService.StoreMissingSkillsAsync(createdResumeTest.TestId, aiAnalysis.MissingSkills);
+            //    }
+            //}
             if (aiAnalysis != null)
             {
-                if (aiAnalysis.MissingSkills == null || aiAnalysis.MissingSkills.Count == 0)
-                {
-                    aiAnalysis.ResumeScore = 100; // Default score if missing skills were not found
-                }
-                // Update the ATS score and save to database
-                createdResumeTest.AtsScore = (int)aiAnalysis.ResumeScore;
+                // If MissingSkills is empty, you still want a perfect score
+                //if (aiAnalysis.MissingSkills == null || aiAnalysis.MissingSkills.Count == 0)
+                //{
+                //    aiAnalysis.ResumeScore = 1.0; // 1.0 == 100%
+                //}
+
+                // Convert model score (0–1) to percentage (0–100)
+                var percentageScore = aiAnalysis.ResumeScore * 100.0;
+
+                createdResumeTest.AtsScore = (int)Math.Round(percentageScore);
                 await _resumeTestRepository.UpdateResumeTestAsync(createdResumeTest);
 
-                // Store missing skills
                 if (aiAnalysis.MissingSkills != null && aiAnalysis.MissingSkills.Count > 0)
                 {
-                    await _resumeTestMissingSkillsService.StoreMissingSkillsAsync(createdResumeTest.TestId, aiAnalysis.MissingSkills);
+                    await _resumeTestMissingSkillsService.StoreMissingSkillsAsync(
+                        createdResumeTest.TestId,
+                        aiAnalysis.MissingSkills
+                    );
                 }
             }
 

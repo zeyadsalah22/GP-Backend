@@ -40,10 +40,11 @@ namespace GPBackend
             {
                 options.AddPolicy("AllowAll", policy =>
                 {
-                    policy.AllowAnyMethod()
+                    policy.AllowAnyOrigin()
+                          .AllowAnyMethod()
                           .AllowAnyHeader()
-                          .AllowCredentials()
-                          .WithOrigins("http://localhost:5253", "http://localhost:5173", "https://localhost:3000", "https://localhost:5253");
+                          .AllowCredentials();
+                          //.WithOrigins("http://localhost:5253", "http://localhost:5173", "https://localhost:3000", "https://localhost:5253");
                 });
             });
 
