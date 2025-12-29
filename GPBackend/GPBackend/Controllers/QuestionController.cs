@@ -17,10 +17,12 @@ namespace GPBackend.Controllers
     public class QuestionController : ControllerBase
     {
         private readonly IQuestionService _QuestionService;
+        private readonly IConfiguration _configuration;
 
-        public QuestionController(IQuestionService QuestionService)
+        public QuestionController(IQuestionService QuestionService, IConfiguration configuration)
         {
             _QuestionService = QuestionService;
+            _configuration = configuration;
         }
 
         // Helper method to get the authenticated user's ID
@@ -223,6 +225,40 @@ namespace GPBackend.Controllers
             catch (UnauthorizedAccessException)
             {
                 return Unauthorized();
+            }
+        }
+
+        /// <summary>
+        /// Get user's Q&A history for NodeRAG (authenticated via Bearer token)
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet("user/{userId}")]
+        public async Task<ActionResult<List<QuestionHistoryDto>>> GetUserQuestionHistory(int userId)
+        {
+            try
+            {
+                // Validate Bearer token from NodeRAG
+                var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return Unauthorized(new { message = "Authorization header missing or invalid" });
+                }
+
+                var token = authHeader.Substring("Bearer ".Length).Trim();
+                var expectedToken = _configuration["NodeRAG:BackendAuthToken"];
+                
+                if (string.IsNullOrEmpty(expectedToken) || token != expectedToken)
+                {
+                    return Unauthorized(new { message = "Invalid authentication token" });
+                }
+
+                // Fetch Q&A history
+                var history = await _QuestionService.GetUserQuestionHistoryAsync(userId);
+                return Ok(history);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error retrieving question history", details = ex.Message });
             }
         }
 
