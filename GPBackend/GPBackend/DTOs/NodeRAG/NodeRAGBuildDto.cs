@@ -1,10 +1,19 @@
+using System.Text.Json.Serialization;
+
 namespace GPBackend.DTOs.NodeRAG
 {
     public class NodeRAGBuildRequestDto
     {
+        [JsonPropertyName("user_id")]
         public string UserId { get; set; } = null!;
+        
+        [JsonPropertyName("incremental")]
         public bool Incremental { get; set; } = true;
+        
+        [JsonPropertyName("sync_to_neo4j")]
         public bool SyncToNeo4j { get; set; } = true;
+        
+        [JsonPropertyName("force_rebuild")]
         public bool ForceRebuild { get; set; } = false;
     }
 

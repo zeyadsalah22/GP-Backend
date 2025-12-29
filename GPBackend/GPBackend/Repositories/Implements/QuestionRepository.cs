@@ -20,6 +20,8 @@ namespace GPBackend.Repositories.Implements
         {
             return await _context.Questions
                         .Include(q => q.Application)
+                            .ThenInclude(a => a.UserCompany)
+                                .ThenInclude(uc => uc.Company)
                         .Include(q => q.Tags)
                         .Where(q => q.Application.UserId == userId && !q.IsDeleted)
                         .OrderBy(q => q.CreatedAt)

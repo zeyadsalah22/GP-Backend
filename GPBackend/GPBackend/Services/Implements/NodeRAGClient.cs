@@ -109,15 +109,30 @@ namespace GPBackend.Services.Implements
                         ForceRebuild = forceRebuild
                     };
 
-                    var json = JsonSerializer.Serialize(requestBody);
+                    var json = JsonSerializer.Serialize(requestBody, new JsonSerializerOptions { WriteIndented = true });
                     var content = new StringContent(json, Encoding.UTF8, "application/json");
 
                     var request = new HttpRequestMessage(HttpMethod.Post, "build");
                     request.Headers.Add("X-API-Key", _apiKey);
                     request.Content = content;
+                    // _logger.LogInformation("Sending build request to NodeRAG: BaseUrl={BaseUrl}, Timeout={Timeout}s", 
+                    //     _httpClient.BaseAddress, _httpClient.Timeout.TotalSeconds);
 
-                    _logger.LogInformation("Sending build request to NodeRAG: BaseUrl={BaseUrl}, Timeout={Timeout}s", 
-                        _httpClient.BaseAddress, _httpClient.Timeout.TotalSeconds);
+                    // Log the complete request details
+                    var fullUrl = $"{_httpClient.BaseAddress}build";
+                    _logger.LogInformation(
+                        "=== NodeRAG Build Request ===" + Environment.NewLine +
+                        "URL: {Url}" + Environment.NewLine +
+                        "Method: POST" + Environment.NewLine +
+                        "Headers:" + Environment.NewLine +
+                        "  Content-Type: application/json" + Environment.NewLine +
+                        "  X-API-Key: {ApiKey}" + Environment.NewLine +
+                        "Request Body:" + Environment.NewLine +
+                        "{RequestBody}" + Environment.NewLine +
+                        "===========================",
+                        fullUrl,
+                        string.IsNullOrEmpty(_apiKey) ? "[NOT SET]" : "[SET]",
+                        json);
                     
                     var responseTask = _httpClient.SendAsync(request);
                     _logger.LogInformation("Waiting for NodeRAG build response...");
