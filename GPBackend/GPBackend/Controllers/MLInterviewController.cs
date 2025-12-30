@@ -35,6 +35,72 @@ namespace GPBackend.Controllers
             return userId;
         }
 
+        // Maximum file size: 10MB
+        private const long MaxFileSize = 10 * 1024 * 1024;
+
+        // Helper method to validate PDF files
+        private async Task<(bool isValid, string errorMessage)> ValidatePdfFileAsync(IFormFile file)
+        {
+            // Check if file exists
+            if (file == null || file.Length == 0)
+            {
+                return (false, "No file was uploaded");
+            }
+
+            // Check file size
+            if (file.Length > MaxFileSize)
+            {
+                return (false, $"File size exceeds maximum allowed size of {MaxFileSize / (1024 * 1024)}MB");
+            }
+
+            // Check file extension
+            var extension = Path.GetExtension(file.FileName)?.ToLowerInvariant();
+            if (extension != ".pdf")
+            {
+                return (false, "Only PDF files are allowed");
+            }
+
+            // Check declared Content-Type
+            if (file.ContentType != "application/pdf")
+            {
+                return (false, "Invalid content type. Must be application/pdf");
+            }
+
+            // Check actual file content for PDF magic bytes
+            using (var stream = file.OpenReadStream())
+            {
+                // Check file header (%PDF)
+                byte[] header = new byte[5];
+                int bytesRead = await stream.ReadAsync(header, 0, 5);
+
+                if (bytesRead < 5 ||
+                    header[0] != 0x25 ||  // '%'
+                    header[1] != 0x50 ||  // 'P'
+                    header[2] != 0x44 ||  // 'D'
+                    header[3] != 0x46 ||  // 'F'
+                    header[4] != 0x2D)    // '-'
+                {
+                    return (false, "File is not a valid PDF (missing %PDF- header)");
+                }
+
+                // Check for PDF EOF marker (%%EOF)
+                if (stream.Length > 1024)
+                {
+                    stream.Seek(-1024, SeekOrigin.End);
+                    byte[] endBytes = new byte[1024];
+                    await stream.ReadAsync(endBytes, 0, 1024);
+                    
+                    string endContent = System.Text.Encoding.ASCII.GetString(endBytes);
+                    if (!endContent.Contains("%%EOF"))
+                    {
+                        return (false, "File is not a valid PDF (missing %%EOF marker)");
+                    }
+                }
+            }
+
+            return (true, string.Empty);
+        }
+
         /// <summary>
         /// Generate interview questions based on job description
         /// </summary>
@@ -97,6 +163,13 @@ namespace GPBackend.Controllers
                 if (request.ResumeFile == null || request.ResumeFile.Length == 0)
                 {
                     return BadRequest(new { message = "Resume file is required." });
+                }
+
+                // Validate PDF file
+                var (isValid, errorMessage) = await ValidatePdfFileAsync(request.ResumeFile);
+                if (!isValid)
+                {
+                    return BadRequest(new { message = errorMessage });
                 }
 
                 if (string.IsNullOrWhiteSpace(request.JobDescription))
