@@ -14,16 +14,22 @@ namespace GPBackend.Services.Implements
 
         private readonly IApplicationRepository _applicationRepository;
         private readonly IMapper _mapper;
+        private readonly INodeRAGService _nodeRAGService;
+        private readonly ILogger<QuestionService> _logger;
 
         public QuestionService(
             IQuestionRepository QuestionRepository,
             IApplicationRepository applicationRepository,
-            IMapper mapper
+            IMapper mapper,
+            INodeRAGService nodeRAGService,
+            ILogger<QuestionService> logger
             )
         {
             _questionRepository = QuestionRepository;
             _applicationRepository = applicationRepository;
             _mapper = mapper;
+            _nodeRAGService = nodeRAGService;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<QuestionResponseDto>> GetAllQuestion(int userId)
@@ -86,6 +92,35 @@ namespace GPBackend.Services.Implements
 
             var questionDto = _mapper.Map<QuestionResponseDto>(question);
 
+            // If answer was provided during creation, sync to NodeRAG asynchronously
+            if (!string.IsNullOrWhiteSpace(question.Answer))
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var jobTitle = application.JobTitle;
+                        var companyName = application.UserCompany?.Company?.Name;
+                        
+                        await _nodeRAGService.SyncQuestionAnswerAsync(
+                            userId, 
+                            question.QuestionId, 
+                            question.Question1, 
+                            question.Answer, 
+                            jobTitle, 
+                            companyName);
+                        
+                        _logger.LogInformation("Question {QuestionId} synced to NodeRAG on creation for UserId={UserId}", 
+                            question.QuestionId, userId);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to sync question {QuestionId} to NodeRAG on creation for UserId={UserId}", 
+                            question.QuestionId, userId);
+                    }
+                });
+            }
+
             return questionDto;
         }
         public async Task<bool> UpdateQuestionById(int questionId, int userId, QuestionUpdateDto questionUpdateDto)
@@ -104,11 +139,42 @@ namespace GPBackend.Services.Implements
                 return false;
             }
 
+            var previousAnswer = question.Answer;
+
             _mapper.Map(questionUpdateDto, question);
 
             question.UpdatedAt = DateTime.UtcNow;
 
-            return await _questionRepository.UpdateQuestionAsync(question);
+            var result = await _questionRepository.UpdateQuestionAsync(question);
+            
+            // If answer was added/updated, sync to NodeRAG asynchronously
+            if (result && !string.IsNullOrWhiteSpace(question.Answer) && question.Answer != previousAnswer)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var jobTitle = application.JobTitle;
+                        var companyName = application.UserCompany?.Company?.Name;
+                        
+                        await _nodeRAGService.SyncQuestionAnswerAsync(
+                            userId, 
+                            questionId, 
+                            question.Question1, 
+                            question.Answer, 
+                            jobTitle, 
+                            companyName);
+                        
+                        _logger.LogInformation("Question {QuestionId} synced to NodeRAG for UserId={UserId}", questionId, userId);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to sync question {QuestionId} to NodeRAG for UserId={UserId}", questionId, userId);
+                    }
+                });
+            }
+            
+            return result;
         }
         public async Task<bool> DeleteQuestionById(int questionId, int userId)
         {
@@ -212,6 +278,26 @@ namespace GPBackend.Services.Implements
             }
 
             return response;
+        }
+
+        public async Task<List<QuestionHistoryDto>> GetUserQuestionHistoryAsync(int userId)
+        {
+            var questions = await _questionRepository.GetAllQuestionAsync(userId);
+            
+            var history = questions
+                .Where(q => !string.IsNullOrWhiteSpace(q.Answer))
+                .Select(q => new QuestionHistoryDto
+                {
+                    QuestionId = $"q_{q.QuestionId}",
+                    Question = q.Question1,
+                    Answer = q.Answer ?? string.Empty,
+                    JobTitle = q.Application?.JobTitle,
+                    CompanyName = q.Application?.UserCompany?.Company?.Name,
+                    SubmissionDate = q.CreatedAt
+                })
+                .ToList();
+            
+            return history;
         }
     }
 }
