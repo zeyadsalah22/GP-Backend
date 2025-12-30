@@ -4,6 +4,7 @@ using GPBackend.Models;
 using GPBackend.Repositories.Interfaces;
 using GPBackend.Services.Interfaces;
 using Microsoft.Extensions.Logging;
+using GPBackend.BackgoundServices;
 
 namespace GPBackend.Services.Implements
 {
@@ -13,16 +14,22 @@ namespace GPBackend.Services.Implements
         private readonly IMLServiceClient _mlServiceClient;
         private readonly IMapper _mapper;
         private readonly ILogger<ResumeService> _logger;
+        private readonly INodeRAGClient _nodeRAGClient;
+        private readonly NodeRAGBackgroundService _backgroundService;
 
         public ResumeService(IResumeRepository resumeRepository,
                             IMLServiceClient mlServiceClient,
                             IMapper mapper,
-                            ILogger<ResumeService> logger)
+                            ILogger<ResumeService> logger,
+                            INodeRAGClient nodeRAGClient,
+                            NodeRAGBackgroundService backgroundService)
         {
             _resumeRepository = resumeRepository;
             _mlServiceClient = mlServiceClient;
             _mapper = mapper;
             _logger = logger;
+            _nodeRAGClient = nodeRAGClient;
+            _backgroundService = backgroundService;
         }
         public async Task<IEnumerable<ResumeResponseDto>> GetAllResumesAsync(int userId)
         {
@@ -47,6 +54,37 @@ namespace GPBackend.Services.Implements
         {
             var resume = _mapper.Map<Resume>(resumeDto);
             var createdResume = await _resumeRepository.CreateAsync(resume);
+            
+            // Upload to NodeRAG asynchronously (don't block on failure)
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var filename = $"resume_{createdResume.UserId}_{createdResume.ResumeId}.pdf";
+                    await _nodeRAGClient.UploadDocumentAsync(
+                        createdResume.UserId, 
+                        createdResume.ResumeFile, 
+                        filename, 
+                        "resume");
+                    
+                    // Queue graph build job
+                    var buildJob = new NodeRAGBackgroundJob
+                    {
+                        JobType = NodeRAGJobType.BuildGraph,
+                        UserId = createdResume.UserId
+                    };
+                    await _backgroundService.QueueJobAsync(buildJob);
+                    
+                    _logger.LogInformation("Resume {ResumeId} uploaded to NodeRAG and build queued for UserId={UserId}", 
+                        createdResume.ResumeId, createdResume.UserId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to upload resume {ResumeId} to NodeRAG for UserId={UserId}", 
+                        createdResume.ResumeId, createdResume.UserId);
+                }
+            });
+            
             return _mapper.Map<ResumeResponseDto>(createdResume);
         }
 
@@ -63,7 +101,42 @@ namespace GPBackend.Services.Implements
             _mapper.Map(resumeDto, existingResume);
             existingResume.UpdatedAt = DateTime.UtcNow; // Update the timestamp
 
-            return await _resumeRepository.UpdateAsync(existingResume);
+            var result = await _resumeRepository.UpdateAsync(existingResume);
+            
+            // Upload updated resume to NodeRAG asynchronously (don't block on failure)
+            if (result)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var filename = $"resume_{existingResume.UserId}_{existingResume.ResumeId}.pdf";
+                        await _nodeRAGClient.UploadDocumentAsync(
+                            existingResume.UserId, 
+                            existingResume.ResumeFile, 
+                            filename, 
+                            "resume");
+                        
+                        // Queue graph build job
+                        var buildJob = new NodeRAGBackgroundJob
+                        {
+                            JobType = NodeRAGJobType.BuildGraph,
+                            UserId = existingResume.UserId
+                        };
+                        await _backgroundService.QueueJobAsync(buildJob);
+                        
+                        _logger.LogInformation("Updated resume {ResumeId} uploaded to NodeRAG and build queued for UserId={UserId}", 
+                            existingResume.ResumeId, existingResume.UserId);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to upload updated resume {ResumeId} to NodeRAG for UserId={UserId}", 
+                            existingResume.ResumeId, existingResume.UserId);
+                    }
+                });
+            }
+            
+            return result;
         }
 
         public async Task<bool> DeleteResumeAsync(int id, int userId)

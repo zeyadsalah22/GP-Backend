@@ -18,5 +18,6 @@ namespace GPBackend.Services.Interfaces
         Task<bool> DeleteQuestionById(int questionId, int userId);
         Task<int> BulkDeleteQuestionsAsync(IEnumerable<int> ids, int userId);
         Task<QuestionBatchResponseDto> CreateQuestionsBatchAsync(int userId, QuestionBatchCreateDto batchCreateDto);
+        Task<List<QuestionHistoryDto>> GetUserQuestionHistoryAsync(int userId);
     }
 }

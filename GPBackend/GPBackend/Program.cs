@@ -43,7 +43,13 @@ namespace GPBackend
                     policy.AllowAnyMethod()
                           .AllowAnyHeader()
                           .AllowCredentials()
-                          .WithOrigins("http://localhost:5253", "http://localhost:5173", "https://localhost:3000", "https://localhost:5253", "https://job-lander-frontend.vercel.app/");
+                          .WithOrigins("http://localhost:5253",
+                                       "http://localhost:8000", 
+                                       "http://localhost:5173", 
+                                       "https://localhost:3000", 
+                                       "https://localhost:5253", 
+                                       "https://job-lander-frontend.vercel.app",
+                                       "https://job-lander-phi.vercel.app");
                 });
             });
 
@@ -272,8 +278,24 @@ namespace GPBackend
                 client.Timeout = TimeSpan.FromMinutes(5);
             });
 
+            // Register HttpClient for NodeRAGClient with configurable timeout
+            builder.Services.AddHttpClient<INodeRAGClient, NodeRAGClient>(client =>
+            {
+                var baseUrl = builder.Configuration["NodeRAG:BaseUrl"] ?? throw new InvalidOperationException("NodeRAG:BaseUrl is not configured");
+                client.BaseAddress = new Uri(baseUrl);
+                var timeoutSeconds = int.Parse(builder.Configuration["NodeRAG:TimeoutSeconds"] ?? "600");
+                client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
+            });
+
+            // Register NodeRAG services
+            builder.Services.AddScoped<INodeRAGService, NodeRAGService>();
+
+            // Register NodeRAG Background Service as Singleton (needs to accept jobs from multiple scopes)
+            builder.Services.AddSingleton<NodeRAGBackgroundService>();
+            builder.Services.AddHostedService(provider => provider.GetRequiredService<NodeRAGBackgroundService>());
+
             // Register background services
-            builder.Services.AddHostedService<TokenCleanupService>();
+            builder.Services.AddHostedService<BackgoundServices.TokenCleanupService>();
             builder.Services.AddHostedService<NotificationTriggeringService>();
 
             builder.Services.AddRateLimiter(options => {

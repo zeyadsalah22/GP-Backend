@@ -11,5 +11,6 @@ namespace GPBackend.Services.Interfaces
         Task<bool> DeleteResumeAsync(int id, int userId);
 
         Task<ResumeMatchingResponse> MatchResumeAsync(int resumeId, string jobDescription, int userId);
+        
     }
 }
