@@ -10,22 +10,35 @@ using GPBackend.DTOs.Question;
 using System.Security.Claims;
 using Microsoft.AspNetCore.RateLimiting;
 
-[Authorize(Policy = "AdminOnly")]
+// [Authorize(Policy = "AdminOnly")]
+[Authorize]
 [EnableRateLimiting("ChatbotPerIp")]
 [ApiController]
 [Route("api/chatbot")]
 public class ChatBotController : ControllerBase
 {
     private readonly HttpClient _httpClient;
-    private readonly IApplicationService _applicationService;
-    private readonly IQuestionService _questionService;
-    private readonly string _pythonServiceUrl = "http://localhost:8001"; // Configure this
+    private readonly IConfiguration _configuration;
+    private readonly ILogger<ChatBotController> _logger;
+    private readonly string _n8nWebhookUrl;
+    private readonly string _n8nApiKey;
 
-    public ChatBotController(HttpClient httpClient, IApplicationService applicationService, IQuestionService questionService)
+    public ChatBotController(
+        HttpClient httpClient, 
+        IConfiguration configuration,
+        ILogger<ChatBotController> logger)
     {
         _httpClient = httpClient;
-        _applicationService = applicationService;
-        _questionService = questionService;
+        _configuration = configuration;
+        _logger = logger;
+        
+        var baseUrl = _configuration["N8NChatbot:BaseUrl"] ?? "http://localhost:5678";
+        var webhookPath = _configuration["N8NChatbot:WebhookPath"] ?? "/webhook/chatbot/send-message";
+        _n8nWebhookUrl = $"{baseUrl}{webhookPath}";
+        _n8nApiKey = _configuration["N8NChatbot:ApiKey"] ?? throw new InvalidOperationException("N8NChatbot:ApiKey is not configured");
+        
+        var timeoutSeconds = int.Parse(_configuration["N8NChatbot:TimeoutSeconds"] ?? "60");
+        _httpClient.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
     }
 
     // Helper method to get the authenticated user's ID
@@ -41,109 +54,95 @@ public class ChatBotController : ControllerBase
 
     // Initialize Chat Session
     [HttpPost("initialize/{userId}")]
-    public async Task<IActionResult> InitializeChat(int userId)
+    public IActionResult InitializeChat(int userId)
     {
         try
         {
-            // Get user's applications and questions data from your database
-            var applicationsData = await _applicationService.GetFilteredApplicationsAsync(userId, new ApplicationQueryDto { PageSize = 100 });
-            var questionsData = await _questionService.GetFilteredQuestionBasedOnQuery(userId, new QuestionQueryDto { PageSize = 100 });
-
-            if (applicationsData.Items.Count == 0)
+            // Validate user is authenticated
+            var authenticatedUserId = GetAuthenticatedUserId();
+            if (authenticatedUserId != userId)
             {
-                return BadRequest("No applications found, please create an application first");
+                return Forbid("You can only initialize chat for your own account");
             }
 
-            var request = new
-            {
-                user_id = userId,
-                applications_data = applicationsData,
-                questions_data = questionsData
-            };
-
-            var json = JsonSerializer.Serialize(request);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync($"{_pythonServiceUrl}/initialize-chat", content);
+            // Generate session ID for conversation memory in n8n
+            var sessionId = Guid.NewGuid().ToString();
             
-            if (response.IsSuccessStatusCode)
-            {
-                var responseContent = await response.Content.ReadAsStringAsync();
-                return Ok(JsonSerializer.Deserialize<object>(responseContent));
-            }
+            _logger.LogInformation("Chat session initialized for UserId={UserId}, SessionId={SessionId}", 
+                userId, sessionId);
             
-            return BadRequest("Failed to initialize chat session");
+            return Ok(new { 
+                sessionId = sessionId,
+                message = "Chat initialized successfully. You can now start asking questions about your job applications."
+            });
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Error initializing chat for UserId={UserId}", userId);
             return StatusCode(500, new { error = ex.Message });
         }
     }
 
-    // Send Message with Streaming Response
+    // Send Message to n8n AI Agent
     [HttpPost("send-message")]
-    public async Task SendMessage([FromBody] SendMessageRequestDto request)
+    public async Task<IActionResult> SendMessage([FromBody] SendMessageRequestDto request)
     {
         try
         {
-            var requestData = new
+            var userId = GetAuthenticatedUserId();
+            var token = Request.Headers["Authorization"].ToString();
+            
+            _logger.LogInformation("Sending message to n8n chatbot: UserId={UserId}, SessionId={SessionId}", 
+                userId, request.SessionId);
+            
+            var requestBody = new
             {
                 session_id = request.SessionId,
-                message = request.Message
+                user_id = userId,
+                message = request.Message,
+                auth_token = token
             };
-
-            var json = JsonSerializer.Serialize(requestData);
+            
+            var json = JsonSerializer.Serialize(requestBody);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            // Set response headers for streaming
-            Response.Headers.Add("Content-Type", "text/event-stream");
-            Response.Headers.Add("Cache-Control", "no-cache");
-            Response.Headers.Add("Connection", "keep-alive");
-
-            var response = await _httpClient.PostAsync($"{_pythonServiceUrl}/send-message", content);
+            
+            // Create request with authentication header
+            var httpRequest = new HttpRequestMessage(HttpMethod.Post, _n8nWebhookUrl)
+            {
+                Content = content
+            };
+            httpRequest.Headers.Add("N8N-Chatbot-API-Key", _n8nApiKey);
+            
+            // Call n8n webhook
+            var response = await _httpClient.SendAsync(httpRequest);
             
             if (response.IsSuccessStatusCode)
             {
-                // Stream the response back to the client
-                await using var stream = await response.Content.ReadAsStreamAsync();
-                await stream.CopyToAsync(Response.Body);
+                var responseContent = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation("Received response from n8n chatbot for SessionId={SessionId}", 
+                    request.SessionId);
+                
+                // Parse and return the response
+                var result = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                return Ok(result);
             }
             else
             {
-                Response.StatusCode = 500;
-                await Response.WriteAsync("data: {\"type\":\"error\",\"data\":\"Failed to send message\"}\n\n");
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("n8n chatbot returned error: StatusCode={StatusCode}, Error={Error}", 
+                    response.StatusCode, errorContent);
+                return StatusCode(500, new { error = "Failed to get response from chatbot", details = errorContent });
             }
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "HTTP error communicating with n8n chatbot");
+            return StatusCode(503, new { error = "Chatbot service unavailable", details = ex.Message });
         }
         catch (Exception ex)
         {
-            Response.StatusCode = 500;
-            await Response.WriteAsync($"data: {{\"type\":\"error\",\"data\":\"{ex.Message}\"}}\n\n");
-        }
-    }
-
-    // Close Chat Session
-    [HttpPost("close-chat")]
-    public async Task<IActionResult> CloseChat([FromBody] CloseChatRequestDto request)
-    {
-        try
-        {
-            var requestData = new { session_id = request.SessionId };
-            var json = JsonSerializer.Serialize(requestData);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync($"{_pythonServiceUrl}/close-chat", content);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                var responseContent = await response.Content.ReadAsStringAsync();
-                return Ok(JsonSerializer.Deserialize<object>(responseContent));
-            }
-
-            return BadRequest("Failed to close chat session");
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { error = ex.Message });
+            _logger.LogError(ex, "Error processing chatbot message");
+            return StatusCode(500, new { error = "Internal server error", details = ex.Message });
         }
     }
 }
