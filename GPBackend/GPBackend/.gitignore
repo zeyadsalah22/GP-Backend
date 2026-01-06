@@ -1,6 +1,7 @@
 obj/
 bin/
-
+.cursor/
+n8n-workflows/
 # Sensitive configuration files
 appsettings.Development.json
 
