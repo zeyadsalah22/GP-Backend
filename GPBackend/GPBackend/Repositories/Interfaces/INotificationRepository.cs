@@ -19,6 +19,7 @@ namespace GPBackend.Repositories.Interfaces
         public Task<int> BulkDeleteAsync(int userId, List<int> ids);
         public Task<List<TodoList>> GetApplicationsInDueDaysAsync(int dueDays);
         public Task<List<Interview>> GetInterviewsInDueDaysAsync(int dueDays);
+        public Task<bool> NotificationExistsAsync(int userId, int? entityTargetedId, Models.Enums.NotificationType type, int hoursWindow, string? messageContains = null);
 
     }
 }

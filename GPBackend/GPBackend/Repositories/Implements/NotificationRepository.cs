@@ -130,23 +130,53 @@ namespace GPBackend.Repositories.Implements
 
         public async Task<List<Interview>> GetInterviewsInDueDaysAsync(int dueDays)
         {
-            int currentDay = DateTime.Now.Day;
+            var now = DateTime.Now;
+            var futureDate = now.AddDays(dueDays);
             return await _context.Interviews
                             .Where(a => !a.IsDeleted &&
-                                   a.StartDate.Day -currentDay < dueDays)
+                                   a.StartDate >= now &&
+                                   a.StartDate <= futureDate)
                             .AsNoTracking()
                             .ToListAsync();                   
         }
 
         public async Task<List<TodoList>> GetApplicationsInDueDaysAsync(int dueDays)
         {
-            int currentDay = DateTime.Now.Day;
+            var now = DateTime.Now;
+            var futureDate = now.AddDays(dueDays);
             return await _context.TodoLists
                                  .Where(a => !a.IsDeleted &&
-                                        a.Deadline.Value.Hour - currentDay < dueDays)
+                                        a.Deadline.HasValue &&
+                                        a.Deadline.Value >= now &&
+                                        a.Deadline.Value <= futureDate)
                                 .AsNoTracking()
                                 .ToListAsync();
                                 
+        }
+
+        public async Task<bool> NotificationExistsAsync(int userId, int? entityTargetedId, Models.Enums.NotificationType type, int hoursWindow, string? messageContains = null)
+        {
+            var cutoffTime = DateTime.Now.AddHours(-hoursWindow);
+            
+            var query = _context.Notifications
+                .Where(n => n.UserId == userId &&
+                           n.Type == type &&
+                           n.CreatedAt >= cutoffTime &&
+                           !n.IsDeleted);
+            
+            // If entityTargetedId is provided, match on it
+            if (entityTargetedId.HasValue)
+            {
+                query = query.Where(n => n.EntityTargetedId == entityTargetedId.Value);
+            }
+            
+            // Check for exact message match to prevent duplicate spam
+            if (!string.IsNullOrEmpty(messageContains))
+            {
+                query = query.Where(n => n.Message == messageContains);
+            }
+            
+            return await query.AnyAsync();
         }
     }
 }
