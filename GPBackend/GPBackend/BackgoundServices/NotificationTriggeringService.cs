@@ -14,7 +14,6 @@ namespace GPBackend.BackgoundServices
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<NotificationTriggeringService> _logger;
         private readonly TimeSpan _period = TimeSpan.FromHours(24); // Run daily
-        private readonly List<NotificationCreateDto> notifications = new List<NotificationCreateDto>();
         private const int DUEDAYSFORAPPLICATIONS = 2;
         private const int DUEDAYSFORINTERVIEWS = 2;
 
@@ -41,9 +40,22 @@ namespace GPBackend.BackgoundServices
                     var _notificationRepo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
                     var _notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
                     
-                    await CreateApplicationsNotification(_notificationRepo);
-                    await CreateInterviewsNotification(_notificationRepo);
-                    await _notificationService.CreateBulkNotificationsAsync(notifications);
+                    // Create a fresh list for each execution to prevent accumulation
+                    var notifications = new List<NotificationCreateDto>();
+                    
+                    await CreateApplicationsNotification(_notificationRepo, notifications);
+                    await CreateInterviewsNotification(_notificationRepo, notifications);
+                    
+                    if (notifications.Any())
+                    {
+                        await _notificationService.CreateBulkNotificationsAsync(notifications);
+                        _logger.LogInformation($"Sent {notifications.Count} notification(s)");
+                    }
+                    else
+                    {
+                        _logger.LogInformation("No notifications to send");
+                    }
+                    
                     _logger.LogInformation("Finish notification triggering service excution");
                 }
                 catch (Exception ex)
@@ -55,39 +67,75 @@ namespace GPBackend.BackgoundServices
             }
         }
 
-        private async Task CreateInterviewsNotification(INotificationRepository _notificationRepo)
+        private async Task CreateInterviewsNotification(INotificationRepository _notificationRepo, List<NotificationCreateDto> notifications)
         {
             List<Interview> dueInterviews = await _notificationRepo.GetInterviewsInDueDaysAsync(DUEDAYSFORINTERVIEWS);
+            int addedCount = 0;
+            
             foreach (var item in dueInterviews)
             {
-                var NotificationCreateDto = new NotificationCreateDto
+                var daysUntil = (int)Math.Ceiling((item.StartDate - DateTime.Now).TotalDays);
+                var timeDescription = daysUntil <= 1 ? $"in {daysUntil} day" : $"in {daysUntil} days";
+                var message = $"Your mock interview for position {item.Position} is scheduled {timeDescription} at {item.StartDate:g}";
+                
+                // Check if this exact notification was already sent within the last 24 hours
+                bool exists = await _notificationRepo.NotificationExistsAsync(
+                    item.UserId, 
+                    item.InterviewId, 
+                    Models.Enums.NotificationType.Interview, 
+                    24,
+                    message); // Check for exact message match
+                
+                if (!exists)
                 {
-                    UserId = item.UserId,
-                    ActorId = 2,
-                    EntityTargetedId = item.InterviewId,
-                    Type = Models.Enums.NotificationType.Interview,
-                    Message = $"Your mock interview for position {item.Position} scheduled at {item.StartDate} is due {DUEDAYSFORINTERVIEWS} days"
-                };
-                notifications.Add(NotificationCreateDto);
-                _logger.LogInformation($"Added {notifications.Count} interview notification reminders");
+                    var NotificationCreateDto = new NotificationCreateDto
+                    {
+                        UserId = item.UserId,
+                        ActorId = 2,
+                        EntityTargetedId = item.InterviewId,
+                        Type = Models.Enums.NotificationType.Interview,
+                        Message = message
+                    };
+                    notifications.Add(NotificationCreateDto);
+                    addedCount++;
+                }
             }
+            _logger.LogInformation($"Added {addedCount} new interview notification reminders (skipped {dueInterviews.Count - addedCount} duplicates)");
         }
 
-        private async Task CreateApplicationsNotification(INotificationRepository _notificationRepo)
+        private async Task CreateApplicationsNotification(INotificationRepository _notificationRepo, List<NotificationCreateDto> notifications)
         {
             List<TodoList> dueApplications = await _notificationRepo.GetApplicationsInDueDaysAsync(DUEDAYSFORAPPLICATIONS);
+            int addedCount = 0;
+            
             foreach (var item in dueApplications)
             {
-                var NotificationCreateDto = new NotificationCreateDto
+                var daysUntil = (int)Math.Ceiling((item.Deadline!.Value - DateTime.Now).TotalDays);
+                var timeDescription = daysUntil <= 1 ? $"{daysUntil} day" : $"{daysUntil} days";
+                var message = $"Application '{item.ApplicationTitle}' is due in {timeDescription}. Hurry up and submit! {item.ApplicationLink}";
+                
+                // Check if this exact notification was already sent within the last 24 hours
+                bool exists = await _notificationRepo.NotificationExistsAsync(
+                    item.UserId, 
+                    null, 
+                    Models.Enums.NotificationType.TodoItem, 
+                    24,
+                    message); // Check for exact message match
+                
+                if (!exists)
                 {
-                    UserId = item.UserId,
-                    ActorId = 2,
-                    Type = Models.Enums.NotificationType.TodoItem,
-                    Message = $"Application Titled {item.ApplicationTitle} is due in {DUEDAYSFORAPPLICATIONS}, hurry up and submit the application. Here is the link {item.ApplicationLink}"
-                };
-                notifications.Add(NotificationCreateDto);
-                _logger.LogInformation($"Added {notifications.Count} Applications notification reminders");
+                    var NotificationCreateDto = new NotificationCreateDto
+                    {
+                        UserId = item.UserId,
+                        ActorId = 2,
+                        Type = Models.Enums.NotificationType.TodoItem,
+                        Message = message
+                    };
+                    notifications.Add(NotificationCreateDto);
+                    addedCount++;
+                }
             }
+            _logger.LogInformation($"Added {addedCount} new application notification reminders (skipped {dueApplications.Count - addedCount} duplicates)");
         }
     }
 } 
