@@ -1,3 +1,5 @@
+using GPBackend.DTOs.Common;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace GPBackend.DTOs.UserCompany
