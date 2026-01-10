@@ -1,5 +1,6 @@
 using AutoMapper;
 using GPBackend.DTOs.Gmail;
+using GPBackend.DTOs.Notification;
 using GPBackend.Models;
 using GPBackend.Models.Enums;
 using GPBackend.Repositories.Interfaces;
@@ -11,17 +12,20 @@ namespace GPBackend.Services.Implements
     {
         private readonly IEmailApplicationUpdateRepository _emailUpdateRepository;
         private readonly IApplicationRepository _applicationRepository;
+        private readonly INotificationService _notificationService;
         private readonly IMapper _mapper;
         private readonly ILogger<EmailProcessingService> _logger;
 
         public EmailProcessingService(
             IEmailApplicationUpdateRepository emailUpdateRepository,
             IApplicationRepository applicationRepository,
+            INotificationService notificationService,
             IMapper mapper,
             ILogger<EmailProcessingService> logger)
         {
             _emailUpdateRepository = emailUpdateRepository;
             _applicationRepository = applicationRepository;
+            _notificationService = notificationService;
             _mapper = mapper;
             _logger = logger;
         }
@@ -131,6 +135,12 @@ namespace GPBackend.Services.Implements
                 // If we found a matching application, update it
                 if (application != null)
                 {
+                    // Capture old status/stage BEFORE updating
+                    var oldStatus = application.Status;
+                    var oldStage = application.Stage;
+                    var companyName = application.UserCompany.Company.Name;
+                    var jobTitle = application.JobTitle;
+
                     var updated = await UpdateApplicationFromEmailAsync(
                         application.ApplicationId,
                         webhookData.UserId,
@@ -144,6 +154,18 @@ namespace GPBackend.Services.Implements
                     {
                         _logger.LogInformation("Successfully updated application {ApplicationId} from email {EmailId}", 
                             application.ApplicationId, webhookData.EmailData.EmailId);
+
+                        // Send notification if status or stage changed
+                        await SendNotificationIfChangedAsync(
+                            webhookData.UserId,
+                            application.ApplicationId,
+                            companyName,
+                            jobTitle,
+                            oldStatus,
+                            detectedStatus,
+                            oldStage,
+                            detectedStage
+                        );
 
                         return new EmailProcessingResultDto
                         {
@@ -265,6 +287,92 @@ namespace GPBackend.Services.Implements
         {
             var unmatchedUpdates = await _emailUpdateRepository.GetUnmatchedByUserIdAsync(userId);
             return _mapper.Map<IEnumerable<EmailApplicationUpdateResponseDto>>(unmatchedUpdates);
+        }
+
+        /// <summary>
+        /// Send notification to user if application status or stage changed
+        /// </summary>
+        private async Task SendNotificationIfChangedAsync(
+            int userId,
+            int applicationId,
+            string companyName,
+            string jobTitle,
+            ApplicationDecisionStatus oldStatus,
+            ApplicationDecisionStatus? newStatus,
+            ApplicationStage oldStage,
+            ApplicationStage? newStage)
+        {
+            try
+            {
+                // Check if anything actually changed
+                var statusChanged = newStatus.HasValue && oldStatus != newStatus.Value;
+                var stageChanged = newStage.HasValue && oldStage != newStage.Value;
+
+                if (!statusChanged && !stageChanged)
+                {
+                    _logger.LogInformation("No status/stage change detected for application {ApplicationId}, skipping notification", applicationId);
+                    return;
+                }
+
+                // Build notification message
+                var message = BuildNotificationMessage(
+                    companyName,
+                    jobTitle,
+                    oldStatus,
+                    newStatus,
+                    oldStage,
+                    newStage,
+                    statusChanged,
+                    stageChanged
+                );
+
+                // Create notification
+                await _notificationService.CreateNotificationAsync(new NotificationCreateDto
+                {
+                    UserId = userId,
+                    ActorId = 2,  // System actor (ID 2)
+                    Type = NotificationType.Application,
+                    NotificationCategory = NotificationCategory.System,
+                    EntityTargetedId = applicationId,
+                    Message = message
+                });
+
+                _logger.LogInformation("Notification sent to user {UserId} for application {ApplicationId} update", userId, applicationId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending notification for application {ApplicationId} update", applicationId);
+                // Don't throw - notification failure shouldn't stop email processing
+            }
+        }
+
+        /// <summary>
+        /// Build notification message based on what changed
+        /// </summary>
+        private string BuildNotificationMessage(
+            string companyName,
+            string jobTitle,
+            ApplicationDecisionStatus oldStatus,
+            ApplicationDecisionStatus? newStatus,
+            ApplicationStage oldStage,
+            ApplicationStage? newStage,
+            bool statusChanged,
+            bool stageChanged)
+        {
+            var messageParts = new List<string>();
+            messageParts.Add($"Application to {companyName} ({jobTitle}) updated:");
+
+            if (statusChanged && newStatus.HasValue)
+            {
+                messageParts.Add($"Status {oldStatus} → {newStatus.Value}");
+            }
+
+            if (stageChanged && newStage.HasValue)
+            {
+                messageParts.Add($"Stage {oldStage} → {newStage.Value}");
+            }
+
+            return string.Join(", ", messageParts);
         }
     }
 }
