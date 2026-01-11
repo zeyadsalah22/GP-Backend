@@ -188,5 +188,10 @@ namespace GPBackend.Repositories.Implements
         {
             return await _context.Companies.AnyAsync(c => c.CompanyId == id);
         }
+
+        async Task<bool> ICompanyRepository.CompanyExistsAsync(int id)
+        {
+            return await CompanyExistsAsync(id);
+        }
     }
 }

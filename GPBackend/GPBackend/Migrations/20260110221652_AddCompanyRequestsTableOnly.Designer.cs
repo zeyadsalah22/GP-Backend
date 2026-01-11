@@ -4,6 +4,7 @@ using GPBackend.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GPBackend.Migrations
 {
     [DbContext(typeof(GPDBContext))]
-    partial class GPDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260110221652_AddCompanyRequestsTableOnly")]
+    partial class AddCompanyRequestsTableOnly
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -4234,8 +4237,8 @@ namespace GPBackend.Migrations
                         .HasColumnName("company_name");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
                         .HasColumnName("description");
 
                     b.Property<int?>("IndustryId")
@@ -4259,8 +4262,8 @@ namespace GPBackend.Migrations
                         .HasColumnName("location");
 
                     b.Property<string>("RejectionReason")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
                         .HasColumnName("rejection_reason");
 
                     b.Property<int>("RequestStatus")
