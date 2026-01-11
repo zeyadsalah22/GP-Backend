@@ -13,17 +13,20 @@ namespace GPBackend.Services.Implements
     {
         private readonly IApplicationRepository _applicationRepository;
         private readonly IUserCompanyRepository _userCompanyRepository;
+        private readonly ICompanyRepository _companyRepository;
         private readonly IEmployeeRepository _employeeRepository;
         private readonly IMapper _mapper;
 
         public ApplicationService(
             IApplicationRepository applicationRepository,
             IUserCompanyRepository userCompanyRepository,
+            ICompanyRepository companyRepository,
             IEmployeeRepository employeeRepository,
             IMapper mapper)
         {
             _applicationRepository = applicationRepository;
             _userCompanyRepository = userCompanyRepository;
+            _companyRepository = companyRepository;
             _employeeRepository = employeeRepository;
             _mapper = mapper;
         }
@@ -124,11 +127,29 @@ namespace GPBackend.Services.Implements
 
         public async Task<ApplicationResponseDto> CreateApplicationAsync(int userId, ApplicationCreateDto createDto)
         {
-            // Verify the UserCompany relation exists
+            // Check if UserCompany relation exists
             var userCompanyExists = await _userCompanyRepository.UserCompanyExistsAsync(userId, createDto.CompanyId);
             if (!userCompanyExists)
             {
-                throw new InvalidOperationException("The specified user-company relationship does not exist");
+                // Verify company exists in global Companies table
+                var companyExists = await _companyRepository.CompanyExistsAsync(createDto.CompanyId);
+                if (!companyExists)
+                {
+                    throw new InvalidOperationException("The specified company does not exist");
+                }
+                
+                // Auto-create UserCompany with default values
+                var userCompany = new UserCompany
+                {
+                    UserId = userId,
+                    CompanyId = createDto.CompanyId,
+                    InterestLevel = InterestLevel.Medium, // Default
+                    Favorite = false,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    IsDeleted = false
+                };
+                await _userCompanyRepository.CreateAsync(userCompany);
             }
             
             // Validate contacted employees if provided

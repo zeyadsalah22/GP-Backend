@@ -207,6 +207,9 @@ namespace GPBackend
             builder.Services.AddScoped<IInterviewAnswerHelpfulRepository, InterviewAnswerHelpfulRepository>();
             builder.Services.AddScoped<IQuestionAskedByRepository, QuestionAskedByRepository>();
 
+            // Register repositories
+            builder.Services.AddScoped<ICompanyRequestRepository, CompanyRequestRepository>();
+
             // Register services
             builder.Services.AddScoped<IJwtService, JwtService>();
             builder.Services.AddScoped<IUserService, UserService>();
@@ -238,6 +241,7 @@ namespace GPBackend
             builder.Services.AddScoped<ISavedPostService, SavedPostService>();
             builder.Services.AddScoped<ICommunityInterviewQuestionService, CommunityInterviewQuestionService>();
             builder.Services.AddScoped<IInterviewAnswerService, InterviewAnswerService>();
+            builder.Services.AddScoped<ICompanyRequestService, CompanyRequestService>();
 
             // Register repositories
             builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();

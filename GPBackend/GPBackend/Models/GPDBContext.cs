@@ -57,6 +57,7 @@ public partial class GPDBContext : DbContext
     public virtual DbSet<Notification> Notifications { get; set; }
     public virtual DbSet<NotificationPreference> NotificationPreferences { get; set; }
     public virtual DbSet<UserConnection> UserConnections { get; set; }
+    public virtual DbSet<CompanyRequest> CompanyRequests { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1280,6 +1281,72 @@ public partial class GPDBContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.NoAction)
                 .HasConstraintName("FK_QuestionAskedBy_Users");
+        });
+
+        modelBuilder.Entity<CompanyRequest>(entity =>
+        {
+            entity.HasKey(e => e.RequestId);
+
+            entity.ToTable("Company_Requests");
+
+            entity.Property(e => e.RequestId).HasColumnName("request_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.CompanyName)
+                .HasMaxLength(100)
+                .HasColumnName("company_name");
+            entity.Property(e => e.Location)
+                .HasMaxLength(100)
+                .HasColumnName("location");
+            entity.Property(e => e.IndustryId).HasColumnName("industry_id");
+            entity.Property(e => e.LinkedinLink)
+                .HasMaxLength(255)
+                .HasColumnName("linkedin_link");
+            entity.Property(e => e.CareersLink)
+                .HasMaxLength(255)
+                .HasColumnName("careers_link");
+            entity.Property(e => e.Description)
+                .HasMaxLength(2000)
+                .HasColumnName("description");
+            entity.Property(e => e.RequestStatus)
+                .HasConversion<int>()
+                .HasColumnName("request_status");
+            entity.Property(e => e.RequestedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("requested_at");
+            entity.Property(e => e.ReviewedAt)
+                .HasPrecision(0)
+                .HasColumnName("reviewed_at");
+            entity.Property(e => e.ReviewedByAdminId).HasColumnName("reviewed_by_admin_id");
+            entity.Property(e => e.RejectionReason)
+                .HasMaxLength(1000)
+                .HasColumnName("rejection_reason");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
+
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.RequestStatus);
+            entity.HasIndex(e => e.RequestedAt);
+            entity.HasIndex(e => e.CompanyName);
+
+            entity.HasOne(d => d.User)
+                .WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_CompanyRequests_Users");
+
+            entity.HasOne(d => d.ReviewedByAdmin)
+                .WithMany()
+                .HasForeignKey(d => d.ReviewedByAdminId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK_CompanyRequests_ReviewedByAdmin");
+
+            entity.HasOne(d => d.Industry)
+                .WithMany()
+                .HasForeignKey(d => d.IndustryId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_CompanyRequests_Industries");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -116,7 +116,7 @@ namespace GPBackend.Repositories
         public async Task<PercentsDTO> GetPercentsAsync(int userId)
         {
             var applications = await _context.Applications
-                .Where(a => a.UserId == userId && !a.IsDeleted && (a.Status == ApplicationDecisionStatus.Accepted || a.Status == ApplicationDecisionStatus.Rejected))
+                .Where(a => a.UserId == userId && !a.IsDeleted)
                 .Select(a => new
                 {
                     a.Stage
