@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.RateLimiting;
 
 // [Authorize(Policy = "AdminOnly")]
 [Authorize]
-[EnableRateLimiting("ChatbotPerIp")]
+[EnableRateLimiting("ChatbotPerUserDaily")]
 [ApiController]
 [Route("api/chatbot")]
 public class ChatBotController : ControllerBase

@@ -365,6 +365,18 @@ namespace GPBackend
                         QueueLimit = 0
                     });
                 });
+
+                // Chatbot per-user daily limit (5 requests per day per user)
+                options.AddPolicy("ChatbotPerUserDaily", ctx =>
+                {
+                    var userId = ctx.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "anon";
+                    return RateLimitPartition.GetFixedWindowLimiter(userId, _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 5, // 5 requests per day per user
+                        Window = TimeSpan.FromDays(1),
+                        QueueLimit = 0
+                    });
+                });
             });
 
             var app = builder.Build();
