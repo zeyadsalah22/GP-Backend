@@ -2,6 +2,7 @@ obj/
 bin/
 .cursor/
 n8n-workflows/
+Thesis/
 # Sensitive configuration files
 appsettings.Development.json
 
