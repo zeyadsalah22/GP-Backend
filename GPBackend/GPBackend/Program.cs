@@ -20,6 +20,8 @@ using GPBackend.Hubs;
 using GPBackend.BackgoundServices;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Authorization;
+using GPBackend.Services.Interfaces;
+using GPBackend.Services.Implements;
 
 namespace GPBackend
 {
@@ -229,6 +231,10 @@ namespace GPBackend
             builder.Services.AddScoped<ISkillService, SkillService>();
             builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
             builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
+            builder.Services.AddHttpClient<IGmailApiEmailSender, GmailApiEmailSender>(client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(30);
+            });
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<IPostService, PostService>();
             builder.Services.AddScoped<ITagService, TagService>();

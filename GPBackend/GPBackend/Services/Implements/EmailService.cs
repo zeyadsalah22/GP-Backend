@@ -1,9 +1,6 @@
 using GPBackend.DTOs.Email;
 using GPBackend.Services.Interfaces;
-using MailKit.Net.Smtp;
-using MailKit.Security;
 using MimeKit;
-using MimeKit.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -11,10 +8,16 @@ namespace GPBackend.Services.Implements{
     public class EmailService : IEmailService{
         private readonly IConfiguration _configuration;
         private readonly ILogger<EmailService> _logger;
+        private readonly IGmailApiEmailSender _gmailSender;
         
-        public EmailService(IConfiguration configuration, ILogger<EmailService> logger){
+        public EmailService(
+            IConfiguration configuration,
+            ILogger<EmailService> logger,
+            IGmailApiEmailSender gmailSender)
+        {
             _configuration = configuration;
             _logger = logger;
+            _gmailSender = gmailSender;
         }
 
         public async Task<bool> SendWelcomeEmailAsync(WelcomeEmailDto welcomeEmailDto){
@@ -31,7 +34,9 @@ namespace GPBackend.Services.Implements{
             try
             {
                 var email = new MimeMessage();
-                email.From.Add(new MailboxAddress(_configuration["EmailSettings:SenderName"], _configuration["EmailSettings:SenderEmail"]));
+                var senderName = _configuration["GmailSender:SenderName"] ?? "Job Lander";
+                var senderEmail = _configuration["GmailSender:SenderEmail"] ?? throw new InvalidOperationException("GmailSender:SenderEmail is not configured");
+                email.From.Add(new MailboxAddress(senderName, senderEmail));
                 email.To.Add(new MailboxAddress(emailDto.To, emailDto.To));
                 
                 if(emailDto.CcEmails != null){
@@ -57,12 +62,8 @@ namespace GPBackend.Services.Implements{
                 }
 
                 email.Body = body.ToMessageBody();
-
-                using var smtp = new SmtpClient();
-                await smtp.ConnectAsync(_configuration["EmailSettings:SmtpServer"], int.Parse(_configuration["EmailSettings:Port"]), SecureSocketOptions.StartTls);
-                await smtp.AuthenticateAsync(_configuration["EmailSettings:Username"], _configuration["EmailSettings:Password"]);
-                await smtp.SendAsync(email);
-                await smtp.DisconnectAsync(true);
+                
+                await _gmailSender.SendAsync(email);
 
                 _logger.LogInformation("Email sent successfully to {Email}", emailDto.To);
                 return true;
