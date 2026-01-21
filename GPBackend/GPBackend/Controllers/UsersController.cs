@@ -7,6 +7,7 @@ using System.Security.Claims;
 using GPBackend.DTOs.Auth;
 using GPBackend.DTOs.User;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Http;
 
 namespace GPBackend.Controllers
 {
@@ -16,6 +17,17 @@ namespace GPBackend.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;
+        private const long MaxProfilePictureSize = 5 * 1024 * 1024; // 5 MB
+
+        private int GetAuthenticatedUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                throw new UnauthorizedAccessException("User is not authenticated properly");
+            }
+            return userId;
+        }
 
         public UsersController(IUserService userService)
         {
@@ -121,6 +133,46 @@ namespace GPBackend.Controllers
             }
 
             return NoContent();
+        }
+
+        // POST: api/users/profile-picture
+        [HttpPost("profile-picture")]
+        [Authorize(Policy = "UserOrAdmin")]
+        public async Task<IActionResult> UploadProfilePicture(IFormFile profilePicture)
+        {
+            try
+            {
+                int userId = GetAuthenticatedUserId();
+
+                if (profilePicture == null || profilePicture.Length == 0)
+                {
+                    return BadRequest(new { message = "No profile picture was uploaded" });
+                }
+
+                if (profilePicture.Length > MaxProfilePictureSize)
+                {
+                    return BadRequest(new { message = $"Profile picture size exceeds {MaxProfilePictureSize / (1024 * 1024)}MB limit" });
+                }
+
+                if (string.IsNullOrWhiteSpace(profilePicture.ContentType) ||
+                    !profilePicture.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+                {
+                    return BadRequest(new { message = "Invalid file type. Only image files are allowed" });
+                }
+
+                var profilePictureUrl = await _userService.UpdateProfilePictureAsync(userId, profilePicture);
+                if (profilePictureUrl == null)
+                {
+                    return StatusCode(500, new { message = "Failed to update profile picture" });
+                }
+
+                // Shape matches what the frontend expects: { profilePictureUrl: "..." }
+                return Ok(new { profilePictureUrl });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized();
+            }
         }
 
         // PUT: api/users/{id}/change-role

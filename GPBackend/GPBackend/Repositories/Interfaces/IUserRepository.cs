@@ -12,5 +12,6 @@ namespace GPBackend.Repositories.Interfaces
         Task<bool> DeleteAsync(int id);
         Task<bool> EmailExistsAsync(string email);
         Task<bool> ChangePasswordAsync(int id, string newPassword);
+        Task<bool> UpdateProfilePictureAsync(int id, string profilePictureDataUrl);
     }
 }

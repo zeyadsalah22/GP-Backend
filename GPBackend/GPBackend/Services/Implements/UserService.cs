@@ -8,6 +8,7 @@ using GPBackend.Repositories.Interfaces;
 using GPBackend.Services.Interfaces;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.AspNetCore.Http;
 
 namespace GPBackend.Services.Implements
 {
@@ -138,7 +139,33 @@ namespace GPBackend.Services.Implements
         {
             return await _userRepository.DeleteAsync(id);
         }
+        public async Task<string?> UpdateProfilePictureAsync(int userId, IFormFile profilePicture)
+        {
+            if (profilePicture == null || profilePicture.Length == 0)
+            {
+                return null;
+            }
 
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null || user.IsDeleted)
+            {
+                return null;
+            }
+
+            // Convert image to a data URL string stored in the database
+            using var memoryStream = new MemoryStream();
+            await profilePicture.CopyToAsync(memoryStream);
+            var bytes = memoryStream.ToArray();
+            var base64 = Convert.ToBase64String(bytes);
+            var contentType = string.IsNullOrWhiteSpace(profilePicture.ContentType)
+                ? "image/png"
+                : profilePicture.ContentType;
+
+            var dataUrl = $"data:{contentType};base64,{base64}";
+
+            var updated = await _userRepository.UpdateProfilePictureAsync(userId, dataUrl);
+            return updated ? dataUrl : null;
+        }
         #region Password Hashing
 
         private string HashPassword(string password)
