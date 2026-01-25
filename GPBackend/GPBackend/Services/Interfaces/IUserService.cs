@@ -2,6 +2,7 @@ using GPBackend.DTOs.Auth;
 using GPBackend.DTOs.User;
 using GPBackend.Models;
 using GPBackend.Models.Enums;
+using Microsoft.AspNetCore.Http;
 
 namespace GPBackend.Services.Interfaces
 {
@@ -19,5 +20,7 @@ namespace GPBackend.Services.Interfaces
         Task<bool> ChangePasswordAsync(int id, string currentPassword, string newPassword);
         Task<bool> ChangeUserRoleAsync(int userId, UserRole role);
         Task<bool> DeleteUserAsync(int id);
+
+        Task<string?> UpdateProfilePictureAsync(int userId, IFormFile profilePicture);
     }
 } 

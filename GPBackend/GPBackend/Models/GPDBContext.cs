@@ -508,7 +508,6 @@ public partial class GPDBContext : DbContext
                 .HasDefaultValue(UserRole.User)
                 .HasColumnName("role");
             entity.Property(e => e.ProfilePictureUrl)
-                .HasMaxLength(500)
                 .HasColumnName("profile_picture_url");
             entity.Property(e => e.ReputationPoints)
                 .HasDefaultValue(0)

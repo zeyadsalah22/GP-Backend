@@ -102,7 +102,19 @@ namespace GPBackend.Repositories.Implements
             await _context.SaveChangesAsync();
             return true;
         }
-        
+
+        public async Task<bool> UpdateProfilePictureAsync(int id, string profilePictureDataUrl)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null || user.IsDeleted)
+                return false;
+
+            user.ProfilePictureUrl = profilePictureDataUrl;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
         private async Task<bool> UserExistsAsync(int id)
         {
             return await _context.Users.AnyAsync(u => u.UserId == id && !u.IsDeleted);
