@@ -24,6 +24,8 @@ public partial class GPDBContext : DbContext
     public virtual DbSet<Employee> Employees { get; set; }
     public virtual DbSet<Interview> Interviews { get; set; }
     public virtual DbSet<InterviewQuestion> InterviewQuestions { get; set; }
+    public virtual DbSet<InterviewQuestionFeedback> InterviewQuestionFeedbacks { get; set; }
+    public virtual DbSet<InterviewVideoFeedback> InterviewVideoFeedbacks { get; set; }
     public virtual DbSet<Question> Questions { get; set; }
     public virtual DbSet<QuestionTag> QuestionTags { get; set; }
     public virtual DbSet<Resume> Resumes { get; set; }
@@ -338,6 +340,76 @@ public partial class GPDBContext : DbContext
             entity.HasOne(d => d.Interview).WithMany(p => p.InterviewQuestions)
                 .HasForeignKey(d => d.InterviewId)
                 .HasConstraintName("FK_Interview_Questions_Interviews");
+        });
+
+        modelBuilder.Entity<InterviewQuestionFeedback>(entity =>
+        {
+            entity.ToTable("Interview_Question_Feedback");
+
+            entity.HasIndex(e => e.InterviewQuestionId).IsUnique();
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.InterviewQuestionId).HasColumnName("question_id");
+            entity.Property(e => e.Score).HasColumnName("score");
+            entity.Property(e => e.Feedback).HasColumnName("feedback");
+            entity.Property(e => e.StrengthsJson).HasColumnName("strengths_json");
+            entity.Property(e => e.ImprovementsJson).HasColumnName("improvements_json");
+            // Context can be large (e.g., job description); do not truncate.
+            entity.Property(e => e.Context).HasColumnName("context");
+            entity.Property(e => e.RawResponseJson).HasColumnName("raw_response_json");
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
+
+            entity.HasOne(d => d.InterviewQuestion)
+                .WithMany()
+                .HasForeignKey(d => d.InterviewQuestionId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Interview_Question_Feedback_Interview_Questions");
+        });
+
+        modelBuilder.Entity<InterviewVideoFeedback>(entity =>
+        {
+            entity.ToTable("Interview_Video_Feedback");
+
+            entity.HasIndex(e => e.InterviewId).IsUnique();
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.InterviewId).HasColumnName("interview_id");
+
+            entity.Property(e => e.Confidence).HasColumnName("confidence");
+            entity.Property(e => e.Engagement).HasColumnName("engagement");
+            entity.Property(e => e.Stress).HasColumnName("stress");
+            entity.Property(e => e.Authenticity).HasColumnName("authenticity");
+
+            entity.Property(e => e.Summary).HasColumnName("summary");
+            entity.Property(e => e.StrengthsJson).HasColumnName("strengths_json");
+            entity.Property(e => e.ImprovementsJson).HasColumnName("improvements_json");
+            entity.Property(e => e.RecommendationsJson).HasColumnName("recommendations_json");
+            entity.Property(e => e.ReportPath).HasMaxLength(512).HasColumnName("report_path");
+            entity.Property(e => e.RawResponseJson).HasColumnName("raw_response_json");
+
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
+                .HasDefaultValueSql("(sysutcdatetime())")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.IsDeleted).HasColumnName("is_deleted");
+
+            entity.HasOne(d => d.Interview)
+                .WithMany()
+                .HasForeignKey(d => d.InterviewId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Interview_Video_Feedback_Interviews");
         });
 
         modelBuilder.Entity<Question>(entity =>

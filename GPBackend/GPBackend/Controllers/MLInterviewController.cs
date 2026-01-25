@@ -13,18 +13,18 @@ namespace GPBackend.Controllers
     public class MLInterviewController : ControllerBase
     {
         private readonly IMLServiceClient _mlServiceClient;
-        private readonly IInterviewFeedbackClient _interviewFeedbackClient;
+        private readonly IInterviewFeedbackService _interviewFeedbackService;
         private readonly IResumeService _resumeService;
         private readonly ILogger<MLInterviewController> _logger;
 
         public MLInterviewController(
             IMLServiceClient mlServiceClient,
-            IInterviewFeedbackClient interviewFeedbackClient,
+            IInterviewFeedbackService interviewFeedbackService,
             IResumeService resumeService,
             ILogger<MLInterviewController> logger)
         {
             _mlServiceClient = mlServiceClient;
-            _interviewFeedbackClient = interviewFeedbackClient;
+            _interviewFeedbackService = interviewFeedbackService;
             _resumeService = resumeService;
             _logger = logger;
         }
@@ -96,7 +96,7 @@ namespace GPBackend.Controllers
                     stream.Seek(-1024, SeekOrigin.End);
                     byte[] endBytes = new byte[1024];
                     await stream.ReadAsync(endBytes, 0, 1024);
-                    
+
                     string endContent = System.Text.Encoding.ASCII.GetString(endBytes);
                     if (!endContent.Contains("%%EOF"))
                     {
@@ -274,116 +274,142 @@ namespace GPBackend.Controllers
             }
         }
 
-        /// <summary>
-        /// Health check endpoint to verify Interview Feedback service is reachable and models are loaded
-        /// </summary>
-        [HttpGet("feedback/health")]
-        [AllowAnonymous]
-        public async Task<ActionResult<InterviewFeedbackHealthResponseDto>> FeedbackHealthAsync()
+        // ===== Interview-bound feedback APIs (persisted) =====
+
+        [HttpPost("{interviewId:int}/feedback/grade-question")]
+        public async Task<ActionResult<InterviewQuestionFeedbackResponseDto>> GradeInterviewQuestionAsync(
+            int interviewId,
+            [FromBody] GradeInterviewQuestionRequestDto request)
         {
             try
             {
-                var result = await _interviewFeedbackClient.HealthAsync(HttpContext.RequestAborted);
+                int userId = GetAuthenticatedUserId();
+
+                if (request == null || request.InterviewQuestionId <= 0)
+                {
+                    return BadRequest(new { message = "interviewQuestionId is required." });
+                }
+
+                var result = await _interviewFeedbackService.GradeInterviewQuestionAsync(
+                    userId,
+                    interviewId,
+                    request.InterviewQuestionId,
+                    request.Context,
+                    HttpContext.RequestAborted);
+
                 return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
             catch (TimeoutException ex)
             {
-                _logger.LogError(ex, "Timeout while checking Interview Feedback service health");
+                _logger.LogError(ex, "Timeout while grading interview question");
                 return StatusCode(504, new { message = "Request timed out. The Interview Feedback service is taking too long to respond.", details = ex.Message });
             }
             catch (HttpRequestException ex)
             {
-                _logger.LogError(ex, "HTTP error while checking Interview Feedback service health");
+                _logger.LogError(ex, "HTTP error while grading interview question");
                 return StatusCode(502, new { message = "Error communicating with Interview Feedback service.", details = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error checking Interview Feedback service health");
-                return StatusCode(500, new { message = "An error occurred while checking Interview Feedback service health.", details = ex.Message });
+                _logger.LogError(ex, "Error grading interview question");
+                return StatusCode(500, new { message = "An error occurred while grading the interview question.", details = ex.Message });
             }
         }
 
-        /// <summary>
-        /// Grade a single interview answer (AI feedback)
-        /// </summary>
-        [HttpPost("feedback/grade-answer")]
-        public async Task<ActionResult<GradeAnswerResponseDto>> GradeAnswerAsync([FromBody] GradeAnswerRequestDto request)
+        [HttpPost("{interviewId:int}/feedback/grade-questions-batch")]
+        public async Task<ActionResult<List<InterviewQuestionFeedbackResponseDto>>> GradeInterviewQuestionsBatchAsync(
+            int interviewId,
+            [FromBody] GradeInterviewQuestionsBatchRequestDto request)
         {
             try
             {
-                if (request == null || string.IsNullOrWhiteSpace(request.Question) || string.IsNullOrWhiteSpace(request.Answer))
+                int userId = GetAuthenticatedUserId();
+
+                if (request == null || request.InterviewQuestionIds == null || request.InterviewQuestionIds.Count == 0)
                 {
-                    return BadRequest(new { message = "Question and Answer are required." });
+                    return BadRequest(new { message = "interviewQuestionIds list is required." });
                 }
 
-                var result = await _interviewFeedbackClient.GradeAnswerAsync(request, HttpContext.RequestAborted);
+                var result = await _interviewFeedbackService.GradeInterviewQuestionsBatchAsync(
+                    userId,
+                    interviewId,
+                    request.InterviewQuestionIds,
+                    request.Context,
+                    HttpContext.RequestAborted);
+
                 return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
             catch (TimeoutException ex)
             {
-                _logger.LogError(ex, "Timeout while grading interview answer");
+                _logger.LogError(ex, "Timeout while grading interview questions batch");
                 return StatusCode(504, new { message = "Request timed out. The Interview Feedback service is taking too long to respond.", details = ex.Message });
             }
             catch (HttpRequestException ex)
             {
-                _logger.LogError(ex, "HTTP error while grading interview answer");
+                _logger.LogError(ex, "HTTP error while grading interview questions batch");
                 return StatusCode(502, new { message = "Error communicating with Interview Feedback service.", details = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error grading interview answer");
-                return StatusCode(500, new { message = "An error occurred while grading the interview answer.", details = ex.Message });
+                _logger.LogError(ex, "Error grading interview questions batch");
+                return StatusCode(500, new { message = "An error occurred while grading the interview questions batch.", details = ex.Message });
             }
         }
 
-        /// <summary>
-        /// Grade multiple interview answers in one request (batch)
-        /// </summary>
-        [HttpPost("feedback/grade-answers-batch")]
-        public async Task<ActionResult<GradeAnswersBatchResponseDto>> GradeAnswersBatchAsync([FromBody] GradeAnswersBatchRequestDto request)
+        [HttpGet("{interviewId:int}/feedback/answers")]
+        public async Task<ActionResult<List<InterviewQuestionFeedbackResponseDto>>> GetAnswersFeedbackAsync(int interviewId)
         {
             try
             {
-                if (request == null || request.Items == null || request.Items.Count == 0)
-                {
-                    return BadRequest(new { message = "Items list is required." });
-                }
-
-                if (request.Items.Any(i => string.IsNullOrWhiteSpace(i.Question) || string.IsNullOrWhiteSpace(i.Answer)))
-                {
-                    return BadRequest(new { message = "Each item must include non-empty Question and Answer." });
-                }
-
-                var result = await _interviewFeedbackClient.GradeAnswersBatchAsync(request, HttpContext.RequestAborted);
+                int userId = GetAuthenticatedUserId();
+                var result = await _interviewFeedbackService.GetAnswersFeedbackAsync(userId, interviewId, HttpContext.RequestAborted);
                 return Ok(result);
             }
-            catch (TimeoutException ex)
+            catch (UnauthorizedAccessException ex)
             {
-                _logger.LogError(ex, "Timeout while grading interview answers batch");
-                return StatusCode(504, new { message = "Request timed out. The Interview Feedback service is taking too long to respond.", details = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
-            catch (HttpRequestException ex)
+            catch (KeyNotFoundException ex)
             {
-                _logger.LogError(ex, "HTTP error while grading interview answers batch");
-                return StatusCode(502, new { message = "Error communicating with Interview Feedback service.", details = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error grading interview answers batch");
-                return StatusCode(500, new { message = "An error occurred while grading the interview answers batch.", details = ex.Message });
+                return NotFound(new { message = ex.Message });
             }
         }
 
-        /// <summary>
-        /// Analyze interview video for non-verbal feedback. Accepts multipart/form-data field name: file
-        /// </summary>
-        [HttpPost("feedback/analyze-video")]
+        [HttpPost("{interviewId:int}/feedback/analyze-video")]
         [RequestSizeLimit(110 * 1024 * 1024)]
         [RequestFormLimits(MultipartBodyLengthLimit = 110 * 1024 * 1024)]
-        public async Task<ActionResult<AnalyzeVideoResponseDto>> AnalyzeVideoAsync([FromForm] AnalyzeVideoRequestDto request)
+        public async Task<ActionResult<InterviewVideoFeedbackResponseDto>> AnalyzeInterviewVideoAsync(
+            int interviewId,
+            [FromForm] AnalyzeVideoRequestDto request)
         {
             try
             {
+                int userId = GetAuthenticatedUserId();
+
                 if (request == null || request.File == null)
                 {
                     return BadRequest(new { message = "Video file is required." });
@@ -395,15 +421,24 @@ namespace GPBackend.Controllers
                     return BadRequest(new { message = errorMessage });
                 }
 
-                // Stream the video to FastAPI (do not persist in database)
                 await using var stream = request.File.OpenReadStream();
-                var result = await _interviewFeedbackClient.AnalyzeVideoAsync(
+                var result = await _interviewFeedbackService.AnalyzeInterviewVideoAsync(
+                    userId,
+                    interviewId,
                     stream,
                     request.File.FileName,
                     request.File.ContentType,
                     HttpContext.RequestAborted);
 
                 return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
             }
             catch (TimeoutException ex)
             {
@@ -422,10 +457,27 @@ namespace GPBackend.Controllers
             }
         }
 
+        [HttpGet("{interviewId:int}/feedback/video")]
+        public async Task<ActionResult<InterviewVideoFeedbackResponseDto>> GetVideoFeedbackAsync(int interviewId)
+        {
+            try
+            {
+                int userId = GetAuthenticatedUserId();
+                var result = await _interviewFeedbackService.GetVideoFeedbackAsync(userId, interviewId, HttpContext.RequestAborted);
+                if (result == null) return NotFound(new { message = "Video feedback not found." });
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+        }
+
         // Alternative endpoint: Match resume by ID (uses existing resume in database)
-        /// <summary>
-        /// Match an existing resume by ID against a job description
-        /// </summary>
         [HttpPost("match-resume/{resumeId}")]
         public async Task<ActionResult<ResumeMatchingResponse>> MatchResumeByIdAsync(int resumeId, [FromBody] MatchResumeByIdRequestDto request)
         {

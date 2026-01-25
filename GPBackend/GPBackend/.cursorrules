@@ -1,0 +1,45 @@
+# GPBackend (.NET) Architecture & Conventions
+
+## Layering (Clean Architecture)
+- Controllers depend only on **Services interfaces** and DTOs.
+- Services depend on **Repositories interfaces** and external clients (e.g., `IInterviewFeedbackClient`).
+- Repositories are the only layer allowed to access `GPDBContext`.
+- Never inject or use `GPDBContext` inside Services or Controllers.
+
+## Folder responsibilities
+- `Controllers/`: request/response orchestration, auth/claims extraction, HTTP status mapping.
+- `Services/Interfaces/` + `Services/Implements/`: business logic + coordination between repositories/external services.
+- `Repositories/Interfaces/` + `Repositories/Implements/`: persistence logic, EF queries, SaveChanges.
+- `DTOs/<Feature>/`: request/response models for controller APIs and external service contracts.
+- `Models/`: EF entities only (no controller logic).
+- `KeepDataAnnotations/`: metadata decorators for EF entities using `[ModelMetadataType]`.
+
+## DTO conventions
+- **One DTO class per file** in `DTOs/<Feature>/`.
+- File name must match the class name exactly (e.g., `GradeInterviewQuestionRequestDto.cs`).
+- Do not create “bundle” files like `*Dtos.cs` that contain many DTOs.
+
+## Naming conventions
+- Use existing naming patterns:
+  - Requests: `*RequestDto`
+  - Responses: `*ResponseDto`
+  - Create/Update: `*CreateDto`, `*UpdateDto`
+- Keep routes consistent with controllers’ base route; prefer resource-based URLs.
+
+## Controllers
+- Controllers must not call repositories directly.
+- Controllers must not construct EF entities.
+- Controllers should translate exceptions into HTTP responses (400/404/502/504/500) consistently.
+
+## Services
+- Services must validate ownership/authorization using repository methods (e.g., `GetByInterviewIdAsync(userId, interviewId)`).
+- Services should remain testable by mocking repository interfaces and external clients.
+
+## Repositories
+- Repositories use EF Core (`GPDBContext`) and implement filtering for soft deletes when applicable (`!IsDeleted`).
+- Keep query methods user-scoped when the resource is user-owned (e.g., `GetByInterviewIdAsync(userId, interviewId)`).
+
+## DataAnnotations
+- Whenever a new EF entity is added in `Models/`, add its metadata file in `KeepDataAnnotations/` following the existing pattern.
+
+
