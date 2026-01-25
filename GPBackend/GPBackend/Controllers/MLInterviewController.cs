@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using GPBackend.Services.Interfaces;
+using GPBackend.DTOs.InterviewFeedback;
 using System.Security.Claims;
 using System.ComponentModel.DataAnnotations;
 
@@ -12,15 +13,18 @@ namespace GPBackend.Controllers
     public class MLInterviewController : ControllerBase
     {
         private readonly IMLServiceClient _mlServiceClient;
+        private readonly IInterviewFeedbackClient _interviewFeedbackClient;
         private readonly IResumeService _resumeService;
         private readonly ILogger<MLInterviewController> _logger;
 
         public MLInterviewController(
             IMLServiceClient mlServiceClient,
+            IInterviewFeedbackClient interviewFeedbackClient,
             IResumeService resumeService,
             ILogger<MLInterviewController> logger)
         {
             _mlServiceClient = mlServiceClient;
+            _interviewFeedbackClient = interviewFeedbackClient;
             _resumeService = resumeService;
             _logger = logger;
         }
@@ -37,6 +41,9 @@ namespace GPBackend.Controllers
 
         // Maximum file size: 10MB
         private const long MaxFileSize = 10 * 1024 * 1024;
+
+        // Maximum video size: 100MB
+        private const long MaxVideoSize = 100 * 1024 * 1024;
 
         // Helper method to validate PDF files
         private async Task<(bool isValid, string errorMessage)> ValidatePdfFileAsync(IFormFile file)
@@ -96,6 +103,32 @@ namespace GPBackend.Controllers
                         return (false, "File is not a valid PDF (missing %%EOF marker)");
                     }
                 }
+            }
+
+            return (true, string.Empty);
+        }
+
+        private (bool isValid, string errorMessage) ValidateVideoFile(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return (false, "No video file was uploaded");
+            }
+
+            if (file.Length > MaxVideoSize)
+            {
+                return (false, $"Video size exceeds maximum allowed size of {MaxVideoSize / (1024 * 1024)}MB");
+            }
+
+            var extension = Path.GetExtension(file.FileName)?.ToLowerInvariant();
+            var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".mp4", ".avi", ".mov", ".mkv", ".webm"
+            };
+
+            if (string.IsNullOrWhiteSpace(extension) || !allowed.Contains(extension))
+            {
+                return (false, "Invalid video format. Allowed formats: mp4, avi, mov, mkv, webm");
             }
 
             return (true, string.Empty);
@@ -238,6 +271,154 @@ namespace GPBackend.Controllers
                     Message = $"Error checking health: {ex.Message}",
                     Timestamp = DateTime.UtcNow
                 });
+            }
+        }
+
+        /// <summary>
+        /// Health check endpoint to verify Interview Feedback service is reachable and models are loaded
+        /// </summary>
+        [HttpGet("feedback/health")]
+        [AllowAnonymous]
+        public async Task<ActionResult<InterviewFeedbackHealthResponseDto>> FeedbackHealthAsync()
+        {
+            try
+            {
+                var result = await _interviewFeedbackClient.HealthAsync(HttpContext.RequestAborted);
+                return Ok(result);
+            }
+            catch (TimeoutException ex)
+            {
+                _logger.LogError(ex, "Timeout while checking Interview Feedback service health");
+                return StatusCode(504, new { message = "Request timed out. The Interview Feedback service is taking too long to respond.", details = ex.Message });
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "HTTP error while checking Interview Feedback service health");
+                return StatusCode(502, new { message = "Error communicating with Interview Feedback service.", details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking Interview Feedback service health");
+                return StatusCode(500, new { message = "An error occurred while checking Interview Feedback service health.", details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Grade a single interview answer (AI feedback)
+        /// </summary>
+        [HttpPost("feedback/grade-answer")]
+        public async Task<ActionResult<GradeAnswerResponseDto>> GradeAnswerAsync([FromBody] GradeAnswerRequestDto request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.Question) || string.IsNullOrWhiteSpace(request.Answer))
+                {
+                    return BadRequest(new { message = "Question and Answer are required." });
+                }
+
+                var result = await _interviewFeedbackClient.GradeAnswerAsync(request, HttpContext.RequestAborted);
+                return Ok(result);
+            }
+            catch (TimeoutException ex)
+            {
+                _logger.LogError(ex, "Timeout while grading interview answer");
+                return StatusCode(504, new { message = "Request timed out. The Interview Feedback service is taking too long to respond.", details = ex.Message });
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "HTTP error while grading interview answer");
+                return StatusCode(502, new { message = "Error communicating with Interview Feedback service.", details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error grading interview answer");
+                return StatusCode(500, new { message = "An error occurred while grading the interview answer.", details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Grade multiple interview answers in one request (batch)
+        /// </summary>
+        [HttpPost("feedback/grade-answers-batch")]
+        public async Task<ActionResult<GradeAnswersBatchResponseDto>> GradeAnswersBatchAsync([FromBody] GradeAnswersBatchRequestDto request)
+        {
+            try
+            {
+                if (request == null || request.Items == null || request.Items.Count == 0)
+                {
+                    return BadRequest(new { message = "Items list is required." });
+                }
+
+                if (request.Items.Any(i => string.IsNullOrWhiteSpace(i.Question) || string.IsNullOrWhiteSpace(i.Answer)))
+                {
+                    return BadRequest(new { message = "Each item must include non-empty Question and Answer." });
+                }
+
+                var result = await _interviewFeedbackClient.GradeAnswersBatchAsync(request, HttpContext.RequestAborted);
+                return Ok(result);
+            }
+            catch (TimeoutException ex)
+            {
+                _logger.LogError(ex, "Timeout while grading interview answers batch");
+                return StatusCode(504, new { message = "Request timed out. The Interview Feedback service is taking too long to respond.", details = ex.Message });
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "HTTP error while grading interview answers batch");
+                return StatusCode(502, new { message = "Error communicating with Interview Feedback service.", details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error grading interview answers batch");
+                return StatusCode(500, new { message = "An error occurred while grading the interview answers batch.", details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Analyze interview video for non-verbal feedback. Accepts multipart/form-data field name: file
+        /// </summary>
+        [HttpPost("feedback/analyze-video")]
+        [RequestSizeLimit(110 * 1024 * 1024)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 110 * 1024 * 1024)]
+        public async Task<ActionResult<AnalyzeVideoResponseDto>> AnalyzeVideoAsync([FromForm] AnalyzeVideoRequestDto request)
+        {
+            try
+            {
+                if (request == null || request.File == null)
+                {
+                    return BadRequest(new { message = "Video file is required." });
+                }
+
+                var (isValid, errorMessage) = ValidateVideoFile(request.File);
+                if (!isValid)
+                {
+                    return BadRequest(new { message = errorMessage });
+                }
+
+                // Stream the video to FastAPI (do not persist in database)
+                await using var stream = request.File.OpenReadStream();
+                var result = await _interviewFeedbackClient.AnalyzeVideoAsync(
+                    stream,
+                    request.File.FileName,
+                    request.File.ContentType,
+                    HttpContext.RequestAborted);
+
+                return Ok(result);
+            }
+            catch (TimeoutException ex)
+            {
+                _logger.LogError(ex, "Timeout while analyzing interview video");
+                return StatusCode(504, new { message = "Request timed out. The Interview Feedback service is taking too long to respond.", details = ex.Message });
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "HTTP error while analyzing interview video");
+                return StatusCode(502, new { message = "Error communicating with Interview Feedback service.", details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error analyzing interview video");
+                return StatusCode(500, new { message = "An error occurred while analyzing the interview video.", details = ex.Message });
             }
         }
 

@@ -288,6 +288,16 @@ namespace GPBackend
                 client.Timeout = TimeSpan.FromMinutes(5);
             });
 
+            // Register HttpClient for Interview Feedback service (answers + video)
+            builder.Services.AddHttpClient<IInterviewFeedbackClient, InterviewFeedbackClient>(client =>
+            {
+                var baseUrl = builder.Configuration["InterviewFeedbackService:BaseUrl"]
+                              ?? throw new InvalidOperationException("InterviewFeedbackService:BaseUrl is not configured");
+                client.BaseAddress = new Uri(baseUrl);
+                // Video analysis can take a few minutes; keep a larger timeout.
+                client.Timeout = TimeSpan.FromMinutes(10);
+            });
+
             // Register HttpClient for NodeRAGClient with configurable timeout
             builder.Services.AddHttpClient<INodeRAGClient, NodeRAGClient>(client =>
             {
