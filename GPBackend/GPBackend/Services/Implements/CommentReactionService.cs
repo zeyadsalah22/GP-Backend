@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using GPBackend.DTOs.Reaction;
 using GPBackend.Models;
 using GPBackend.Models.Enums;
@@ -13,6 +13,7 @@ namespace GPBackend.Services.Implements
         private readonly ICommentRepository _commentRepository;
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
+        private readonly ICommunityNotificationService _notificationService;
 
         private const int UPVOTE_POINTS = 5;
         // private const int DOWNVOTE_POINTS = 0;
@@ -21,12 +22,14 @@ namespace GPBackend.Services.Implements
             ICommentReactionRepository commentReactionRepository,
             ICommentRepository commentRepository,
             IUserRepository userRepository,
-            IMapper mapper)
+            IMapper mapper,
+            ICommunityNotificationService notificationService)
         {
             _commentReactionRepository = commentReactionRepository;
             _commentRepository = commentRepository;
             _userRepository = userRepository;
             _mapper = mapper;
+            _notificationService = notificationService;
         }
 
         public async Task<CommentReactionResponseDto> AddOrUpdateReactionAsync(int userId, CommentReactionCreateDto reactionDto)
@@ -74,6 +77,9 @@ namespace GPBackend.Services.Implements
             await AddReputationPoints(comment.UserId, reactionDto.ReactionType);
 
             var addedReaction = await _commentReactionRepository.AddAsync(newReaction);
+            
+            // Notify comment owner about the reaction
+            await _notificationService.NotifyCommentReactionAsync(reactionDto.CommentId, userId);
 
             var result = _mapper.Map<CommentReactionResponseDto>(addedReaction);
             result.ReactionTypeName = addedReaction.ReactionType.ToString();

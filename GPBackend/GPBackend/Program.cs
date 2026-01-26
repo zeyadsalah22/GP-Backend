@@ -241,6 +241,7 @@ namespace GPBackend
 
             builder.Services.AddScoped<INotificationService, NotificationService>();
             builder.Services.AddScoped<INotificationPreferenceService, NotificationPreferenceService>();
+            builder.Services.AddScoped<ICommunityNotificationService, CommunityNotificationService>();
             builder.Services.AddScoped<ICommentService, CommentService>();
             builder.Services.AddScoped<IPostReactionService, PostReactionService>();
             builder.Services.AddScoped<ICommentReactionService, CommentReactionService>();
