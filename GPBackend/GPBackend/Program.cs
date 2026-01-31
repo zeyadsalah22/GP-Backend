@@ -51,7 +51,8 @@ namespace GPBackend
                                        "https://localhost:3000", 
                                        "https://localhost:5253", 
                                        "https://job-lander-frontend.vercel.app",
-                                       "https://job-lander-phi.vercel.app");
+                                       "https://job-lander-phi.vercel.app",
+                                       "https://joblander.app.n8n.cloud");
                 });
             });
 

@@ -131,7 +131,8 @@ public class ChatBotController : ControllerBase
                 var errorContent = await response.Content.ReadAsStringAsync();
                 _logger.LogError("n8n chatbot returned error: StatusCode={StatusCode}, Error={Error}", 
                     response.StatusCode, errorContent);
-                return StatusCode(500, new { error = "Failed to get response from chatbot", details = errorContent });
+                // Pass through n8n's status code to help debugging and avoid masking upstream errors.
+                return StatusCode((int)response.StatusCode, new { error = "Failed to get response from chatbot", details = errorContent });
             }
         }
         catch (HttpRequestException ex)
