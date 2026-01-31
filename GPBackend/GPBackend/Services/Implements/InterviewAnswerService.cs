@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using GPBackend.DTOs.InterviewAnswer;
 using GPBackend.Models;
 using GPBackend.Repositories.Interfaces;
@@ -13,19 +13,22 @@ namespace GPBackend.Services.Implements
         private readonly ICommunityInterviewQuestionRepository _questionRepository;
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
+        private readonly ICommunityNotificationService _notificationService;
 
         public InterviewAnswerService(
             IInterviewAnswerRepository answerRepository,
             IInterviewAnswerHelpfulRepository helpfulRepository,
             ICommunityInterviewQuestionRepository questionRepository,
             IUserRepository userRepository,
-            IMapper mapper)
+            IMapper mapper,
+            ICommunityNotificationService notificationService)
         {
             _answerRepository = answerRepository;
             _helpfulRepository = helpfulRepository;
             _questionRepository = questionRepository;
             _userRepository = userRepository;
             _mapper = mapper;
+            _notificationService = notificationService;
         }
 
         public async Task<InterviewAnswerResponseDto> CreateAnswerAsync(
@@ -78,6 +81,9 @@ namespace GPBackend.Services.Implements
                 answerAuthor.ReputationPoints += 15;
                 await _userRepository.UpdateAsync(answerAuthor);
             }
+            
+            // Notify answer owner
+            await _notificationService.NotifyAnswerHelpfulAsync(answerId, userId);
 
             return true;
         }

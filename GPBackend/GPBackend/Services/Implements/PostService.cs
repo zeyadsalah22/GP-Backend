@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using GPBackend.Models;
 using GPBackend.Repositories.Interfaces;
 using GPBackend.Services.Interfaces;
@@ -14,14 +14,22 @@ namespace GPBackend.Services.Implements
         private readonly ICommentRepository _commentRepository;
         private readonly IPostReactionRepository _postReactionRepository;
         private readonly IMapper _mapper;
+        private readonly ICommunityNotificationService _notificationService;
 
-        public PostService(IPostRepository postRepository, ITagRepository tagRepository, ICommentRepository commentRepository, IPostReactionRepository postReactionRepository, IMapper mapper)
+        public PostService(
+            IPostRepository postRepository, 
+            ITagRepository tagRepository, 
+            ICommentRepository commentRepository, 
+            IPostReactionRepository postReactionRepository, 
+            IMapper mapper,
+            ICommunityNotificationService notificationService)
         {
             _postRepository = postRepository;
             _tagRepository = tagRepository;
             _commentRepository = commentRepository;
             _postReactionRepository = postReactionRepository;
             _mapper = mapper;
+            _notificationService = notificationService;
         }
 
         public async Task<PagedResult<PostResponseDto>> GetFilteredPostsAsync(PostQueryDto queryDto)
@@ -88,6 +96,12 @@ namespace GPBackend.Services.Implements
                     createdPost.PostTags.Add(postTag);
                 }
                 await _postRepository.UpdateAsync(createdPost);
+            }
+
+            // Handle mentions if provided
+            if (postDto.MentionedUserIds != null && postDto.MentionedUserIds.Any())
+            {
+                await _notificationService.NotifyPostMentionsAsync(createdPost.PostId, postDto.MentionedUserIds, userId);
             }
 
             // Reload to get all navigation properties

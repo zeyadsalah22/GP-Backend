@@ -178,5 +178,32 @@ namespace GPBackend.Repositories.Implements
             
             return await query.AnyAsync();
         }
+
+        public async Task<Notification?> GetBatchedNotificationAsync(int userId, int? entityTargetedId, Models.Enums.NotificationType type, int hoursWindow, string? messageContains = null)
+        {
+            var cutoffTime = DateTime.UtcNow.AddHours(-hoursWindow);
+            
+            var query = _context.Notifications
+                .Where(n => n.UserId == userId &&
+                           n.Type == type &&
+                           n.CreatedAt >= cutoffTime &&
+                           !n.IsDeleted &&
+                           !n.IsRead);
+            
+            // If entityTargetedId is provided, match on it
+            if (entityTargetedId.HasValue)
+            {
+                query = query.Where(n => n.EntityTargetedId == entityTargetedId.Value);
+            }
+            
+            // Check for message pattern match (contains first word)
+            if (!string.IsNullOrEmpty(messageContains))
+            {
+                var firstWord = messageContains.Split(' ').First();
+                query = query.Where(n => n.Message.Contains(firstWord));
+            }
+            
+            return await query.OrderByDescending(n => n.CreatedAt).FirstOrDefaultAsync();
+        }
     }
 }

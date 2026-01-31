@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using GPBackend.Models.Enums;
 
 namespace GPBackend.DTOs.Post
@@ -23,6 +23,8 @@ namespace GPBackend.DTOs.Post
 
         [MaxLength(5, ErrorMessage = "Maximum 5 tags allowed")]
         public List<string>? Tags { get; set; }
+
+        public List<int> MentionedUserIds { get; set; } = new List<int>();
     }
 }
 

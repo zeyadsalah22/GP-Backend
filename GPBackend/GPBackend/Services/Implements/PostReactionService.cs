@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using GPBackend.DTOs.Reaction;
 using GPBackend.Models;
 using GPBackend.Models.Enums;
@@ -14,6 +14,7 @@ namespace GPBackend.Services.Implements
         private readonly IPostRepository _postRepository;
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
+        private readonly ICommunityNotificationService _notificationService;
 
         private const int UPVOTE_POINTS = 10;
         private const int HELPFUL_POINTS = 15;
@@ -25,12 +26,14 @@ namespace GPBackend.Services.Implements
             IPostReactionRepository postReactionRepository,
             IPostRepository postRepository,
             IUserRepository userRepository,
-            IMapper mapper)
+            IMapper mapper,
+            ICommunityNotificationService notificationService)
         {
             _postReactionRepository = postReactionRepository;
             _postRepository = postRepository;
             _userRepository = userRepository;
             _mapper = mapper;
+            _notificationService = notificationService;
         }
 
         public async Task<PostReactionResponseDto> AddOrUpdateReactionAsync(int userId, PostReactionCreateDto reactionDto)
@@ -77,6 +80,9 @@ namespace GPBackend.Services.Implements
             await AddReputationPoints(post.UserId, reactionDto.ReactionType);
 
             var addedReaction = await _postReactionRepository.AddAsync(newReaction);
+            
+            // Notify post owner about the reaction
+            await _notificationService.NotifyPostReactionAsync(reactionDto.PostId, userId);
 
             var result = _mapper.Map<PostReactionResponseDto>(addedReaction);
             result.ReactionTypeName = addedReaction.ReactionType.ToString();

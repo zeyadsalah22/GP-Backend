@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using GPBackend.DTOs.CommunityInterviewQuestion;
 using GPBackend.DTOs.Common;
 using GPBackend.DTOs.InterviewAnswer;
@@ -14,17 +14,20 @@ namespace GPBackend.Services.Implements
         private readonly IQuestionAskedByRepository _questionAskedByRepository;
         private readonly IInterviewAnswerHelpfulRepository _helpfulRepository;
         private readonly IMapper _mapper;
+        private readonly ICommunityNotificationService _notificationService;
 
         public CommunityInterviewQuestionService(
             ICommunityInterviewQuestionRepository questionRepository,
             IQuestionAskedByRepository questionAskedByRepository,
             IInterviewAnswerHelpfulRepository helpfulRepository,
-            IMapper mapper)
+            IMapper mapper,
+            ICommunityNotificationService notificationService)
         {
             _questionRepository = questionRepository;
             _questionAskedByRepository = questionAskedByRepository;
             _helpfulRepository = helpfulRepository;
             _mapper = mapper;
+            _notificationService = notificationService;
         }
 
         public async Task<PagedResult<CommunityInterviewQuestionResponseDto>> GetFilteredQuestionsAsync(
@@ -119,6 +122,9 @@ namespace GPBackend.Services.Implements
 
             await _questionAskedByRepository.CreateAsync(questionAskedBy);
             await _questionRepository.IncrementAskedCountAsync(questionId);
+            
+            // Notify question owner
+            await _notificationService.NotifyQuestionAskedThisTooAsync(questionId, userId);
 
             return true;
         }

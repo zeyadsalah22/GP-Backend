@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using GPBackend.Models;
 using GPBackend.Repositories.Interfaces;
 using GPBackend.Services.Interfaces;
@@ -14,17 +14,20 @@ namespace GPBackend.Services.Implements
         private readonly IPostRepository _postRepository;
         private readonly IMapper _mapper;
         private readonly GPDBContext _context;
+        private readonly ICommunityNotificationService _notificationService;
 
         public CommentService(
             ICommentRepository commentRepository,
             IPostRepository postRepository,
             IMapper mapper,
-            GPDBContext context)
+            GPDBContext context,
+            ICommunityNotificationService notificationService)
         {
             _commentRepository = commentRepository;
             _postRepository = postRepository;
             _mapper = mapper;
             _context = context;
+            _notificationService = notificationService;
         }
 
         public async Task<PagedResult<CommentResponseDto>> GetCommentsByPostIdAsync(CommentQueryDto queryDto)
@@ -102,11 +105,22 @@ namespace GPBackend.Services.Implements
                 }).ToList();
 
                 await _commentRepository.AddCommentMentionsAsync(mentions);
+                
+                // Notify mentioned users
+                await _notificationService.NotifyCommentMentionsAsync(createdComment.CommentId, commentDto.MentionedUserIds, userId);
             }
 
             if (commentDto.ParentCommentId.HasValue)
             {
                 await _commentRepository.UpdateReplyCountAsync(commentDto.ParentCommentId.Value, 1);
+                
+                // Notify parent comment owner about the reply
+                await _notificationService.NotifyCommentReplyAsync(commentDto.ParentCommentId.Value, userId);
+            }
+            else
+            {
+                // Notify post owner about the comment (only for top-level comments)
+                await _notificationService.NotifyPostCommentAsync(commentDto.PostId, userId);
             }
 
             if (level == 0)
@@ -164,6 +178,9 @@ namespace GPBackend.Services.Implements
                 }).ToList();
 
                 await _commentRepository.AddCommentMentionsAsync(mentions);
+                
+                // Notify mentioned users
+                await _notificationService.NotifyCommentMentionsAsync(id, commentDto.MentionedUserIds, userId);
             }
 
             var reloadedComment = await _commentRepository.GetByIdAsync(id);
