@@ -489,7 +489,7 @@ public partial class GPDBContext : DbContext
             entity.Property(e => e.TestId).HasColumnName("test_id");
             entity.Property(e => e.AtsScore).HasColumnName("ats_score");
             entity.Property(e => e.JobDescription)
-                .HasMaxLength(1000)
+                .HasMaxLength(4000)
                 .HasColumnName("job_description");
             entity.Property(e => e.ResumeId).HasColumnName("resume_id");
             entity.Property(e => e.TestDate)

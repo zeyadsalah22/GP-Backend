@@ -140,12 +140,15 @@ namespace GPBackend.Repositories
 
         private DateTime CalculateEndDate(DateTime startDate, string interval, int points)
         {
+            // "points" is the number of buckets, so the last bucket starts at startDate + (points-1)*step.
+            // (Loop also guards by results.Count < points; this keeps the date range consistent.)
+            var steps = Math.Max(points - 1, 0);
             return interval.ToLower() switch
             {
-                "day" => startDate.AddDays(points),
-                "week" => startDate.AddDays(points * 7),
-                "month" => startDate.AddMonths(points),
-                _ => startDate.AddMonths(points)
+                "day" => startDate.AddDays(steps),
+                "week" => startDate.AddDays(steps * 7),
+                "month" => startDate.AddMonths(steps),
+                _ => startDate.AddMonths(steps)
             };
         }
 
