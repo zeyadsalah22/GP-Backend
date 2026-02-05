@@ -3,6 +3,8 @@ bin/
 .cursor/
 n8n-workflows/
 Thesis/
+ingestion_resumes/
+
 # Sensitive configuration files
 appsettings.Development.json
 
