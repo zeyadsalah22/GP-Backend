@@ -151,12 +151,11 @@ namespace GPBackend.Services.Implements
                     throw new HttpRequestException($"NodeRAG returned status {response.StatusCode}: {errorContent}");
                 }
 
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
+                var responseBody = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation("NodeRAG build response body: {Body}", responseBody);
 
-                var result = await response.Content.ReadFromJsonAsync<NodeRAGBuildResponseDto>(options);
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var result = JsonSerializer.Deserialize<NodeRAGBuildResponseDto>(responseBody, options);
                 
                 if (result == null)
                 {
@@ -357,10 +356,12 @@ namespace GPBackend.Services.Implements
         {
             try
             {
-                var request = new HttpRequestMessage(HttpMethod.Get, $"graph/stats?user_id={userId}");
-                request.Headers.Add("X-API-Key", _apiKey);
-
-                var response = await _httpClient.SendAsync(request);
+                var response = await ExecuteWithRetryAsync(async () =>
+                {
+                    var request = new HttpRequestMessage(HttpMethod.Get, $"graph/stats?user_id={userId}");
+                    request.Headers.Add("X-API-Key", _apiKey);
+                    return await _httpClient.SendAsync(request);
+                });
 
                 if (!response.IsSuccessStatusCode)
                 {

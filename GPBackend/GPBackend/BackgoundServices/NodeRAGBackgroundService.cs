@@ -108,8 +108,62 @@ namespace GPBackend.BackgoundServices
                 // If no build ID, we can't poll status
                 if (string.IsNullOrEmpty(buildResult.BuildId))
                 {
-                    _logger.LogWarning("No BuildId returned for UserId={UserId}, assuming build completed", job.UserId);
-                    return;
+                    // Some deployments may not return build_id (or response parsing may fail). In that case,
+                    // we must NOT assume completion if the status isn't already completed.
+                    if (string.Equals(buildResult.Status, "completed", StringComparison.OrdinalIgnoreCase))
+                    {
+                        _logger.LogInformation("Build completed (no BuildId) for UserId={UserId}", job.UserId);
+                        return;
+                    }
+
+                    _logger.LogWarning(
+                        "No BuildId returned for UserId={UserId} with Status={Status}. Falling back to graph readiness polling.",
+                        job.UserId,
+                        buildResult.Status);
+
+                    var pollingIntervalNoId = TimeSpan.FromSeconds(
+                        int.Parse(_configuration["NodeRAG:BuildPollingIntervalSeconds"] ?? "5"));
+                    var timeoutNoId = TimeSpan.FromMinutes(
+                        int.Parse(_configuration["NodeRAG:BuildTimeoutMinutes"] ?? "10"));
+                    var startNoId = DateTime.UtcNow;
+
+                    while (DateTime.UtcNow - startNoId < timeoutNoId && !cancellationToken.IsCancellationRequested)
+                    {
+                        try
+                        {
+                            var stats = await client.GetGraphStatsAsync(job.UserId);
+
+                            // If stats endpoint responds successfully, the service has initialized and graph is available.
+                            _logger.LogInformation(
+                                "Graph is ready for UserId={UserId}. Nodes={Nodes}, Edges={Edges}, Docs={Docs}, QAPairs={QAPairs}",
+                                job.UserId,
+                                stats.TotalNodes,
+                                stats.TotalEdges,
+                                stats.DocumentsCount,
+                                stats.QaPairsCount);
+                            return;
+                        }
+                        catch (HttpRequestException ex) when (
+                            ex.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable ||
+                            ex.StatusCode == System.Net.HttpStatusCode.InternalServerError ||
+                            ex.StatusCode == null)
+                        {
+                            _logger.LogInformation(
+                                "Graph not ready yet for UserId={UserId}. Will retry. Error={Error}",
+                                job.UserId,
+                                ex.Message);
+                        }
+
+                        await Task.Delay(pollingIntervalNoId, cancellationToken);
+                    }
+
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        _logger.LogWarning("Graph readiness polling cancelled for UserId={UserId}", job.UserId);
+                        return;
+                    }
+
+                    throw new TimeoutException($"Graph readiness timed out after {timeoutNoId.TotalMinutes} minutes for UserId {job.UserId} (no build_id).");
                 }
                 
                 // Poll for completion
